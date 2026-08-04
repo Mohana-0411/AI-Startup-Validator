@@ -3,12 +3,12 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, comparePassword, setSessionCookie, clearSessionCookie, getOrCreateDemoUser } from "@/lib/auth";
-import { registerSchema, loginSchema } from "@/lib/validators";
+import { registerSchema } from "@/lib/validators";
 
 export async function registerAction(prevState: any, formData: FormData) {
-  const email = formData.get("email") as string;
-  const name = formData.get("name") as string;
-  const password = formData.get("password") as string;
+  const email = (formData.get("email") as string || "").trim();
+  const name = (formData.get("name") as string || "").trim();
+  const password = formData.get("password") as string || "";
 
   const validation = registerSchema.safeParse({ email, name, password });
   if (!validation.success) {
@@ -45,34 +45,74 @@ export async function registerAction(prevState: any, formData: FormData) {
 }
 
 export async function loginAction(prevState: any, formData: FormData) {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const rawEmail = formData.get("email") as string;
+  const rawPassword = formData.get("password") as string;
 
-  const validation = loginSchema.safeParse({ email, password });
-  if (!validation.success) {
+  const email = (rawEmail || "").trim().toLowerCase();
+  const password = rawPassword || "";
+
+  // 1. Validation for empty email
+  if (!email) {
     return {
-      error: validation.error.errors[0]?.message || "Invalid credentials format",
+      errorType: "EMPTY_EMAIL",
+      message: "Enter your email address to continue.",
+      alertLevel: "warning",
+    };
+  }
+
+  // 2. Validation for email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return {
+      errorType: "INVALID_EMAIL",
+      message: "Please enter a valid email address.",
+      alertLevel: "warning",
+    };
+  }
+
+  // 3. Validation for empty password
+  if (!password) {
+    return {
+      errorType: "EMPTY_PASSWORD",
+      message: "Enter your password to continue.",
+      alertLevel: "warning",
     };
   }
 
   try {
+    // 4. Lookup user in database
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) {
-      return { error: "Invalid email or password." };
+      return {
+        errorType: "ACCOUNT_NOT_FOUND",
+        message: "We couldn't find an account with that email.",
+        subMessage: "If you're new here, create a free account to start analyzing startup ideas.",
+        showSignupCTA: true,
+        alertLevel: "info",
+      };
     }
 
+    // 5. Compare password
     const passwordsMatch = await comparePassword(password, user.password);
     if (!passwordsMatch) {
-      return { error: "Invalid email or password." };
+      return {
+        errorType: "INCORRECT_PASSWORD",
+        message: "The password you entered is incorrect. Please try again or reset your password.",
+        alertLevel: "error",
+      };
     }
 
     await setSessionCookie({ id: user.id, email: user.email, name: user.name });
   } catch (error: any) {
     console.error("Login Error:", error);
-    return { error: "Login failed. Please try again." };
+    return {
+      errorType: "GENERIC",
+      message: "Something went wrong during sign in. Please try again.",
+      alertLevel: "error",
+    };
   }
 
   redirect("/dashboard");
