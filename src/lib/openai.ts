@@ -12,17 +12,33 @@ interface StartupIdeaInput {
   competitors?: string | null;
 }
 
+const DOMAIN_REFUSAL_MESSAGE = `I'm designed specifically to help with startups and entrepreneurship.
+
+I can't provide reliable answers outside that domain.
+
+Ask me anything about:
+
+• Startup validation
+• Business models
+• MVPs
+• Competitor analysis
+• Go-to-market strategy
+• Pricing
+• Funding
+• Execution roadmap`;
+
 export function isStartupRelatedIntent(message: string): { isStartup: boolean; category?: string } {
   const lower = message.toLowerCase().trim();
 
   // Explicit non-startup topic triggers
   const nonStartupTriggers = [
+    { keywords: ["superman", "batman", "spiderman", "avengers", "marvel", "dc comics", "hero", "superhero"], category: "superheroes & comics" },
     { keywords: ["biryani", "recipe", "cook", "bake", "curry", "kitchen", "food dish", "chef", "pasta", "pizza", "noodle"], category: "cooking" },
     { keywords: ["movie", "cinema", "actor", "actress", "film", "hollywood", "bollywood", "netflix show", "anime"], category: "movies & entertainment" },
     { keywords: ["weather", "temperature", "rain", "forecast", "climate today"], category: "weather" },
     { keywords: ["cricket", "football", "soccer", "nba", "ipl", "match score", "tennis", "olympics"], category: "sports" },
     { keywords: ["joke", "tell me a joke", "riddle", "funny story", "poem", "sing a song"], category: "entertainment" },
-    { keywords: ["capital of", "who invented", "who painted", "presidential election", "history of rome"], category: "general trivia" },
+    { keywords: ["capital of", "who invented", "who painted", "presidential election", "history of rome", "math homework", "solve equation"], category: "general trivia & homework" },
     { keywords: ["horoscope", "astrology", "zodiac", "tarot"], category: "astrology" },
   ];
 
@@ -32,15 +48,16 @@ export function isStartupRelatedIntent(message: string): { isStartup: boolean; c
     }
   }
 
-  // Allowed startup keywords
+  // Allowed startup keywords & domain concepts
   const startupKeywords = [
     "startup", "business", "idea", "market", "validate", "validation", "customer", "discovery",
     "competitor", "competition", "rival", "moat", "product", "pricing", "model", "strategy",
     "go-to-market", "gtm", "marketing", "sales", "growth", "funding", "fundraise", "investor",
-    "vc", "venture", "pitch", "deck", "saas", "entrepreneur", "metric", "cac", "ltv", "pmf",
-    "product-market fit", "financial", "revenue", "monetiz", "team", "operation", "score",
-    "improve", "swat", "risk", "opportunity", "audience", "mvp", "launch", "b2b", "b2c",
-    "churn", "retention", "waitlist", "traction", "scale", "feature", "workflow", "unit economics"
+    "vc", "venture", "pitch", "deck", "saas", "entrepreneur", "entrepreneurship", "metric", "cac",
+    "ltv", "pmf", "product-market fit", "financial", "revenue", "monetiz", "team", "operation",
+    "score", "improve", "swat", "risk", "opportunity", "audience", "mvp", "launch", "b2b", "b2c",
+    "churn", "retention", "waitlist", "traction", "scale", "feature", "workflow", "unit economics",
+    "yc", "y combinator", "seed", "pre-seed", "series a", "cap table", "execution roadmap"
   ];
 
   const hasStartupKw = startupKeywords.some((kw) => lower.includes(kw));
@@ -48,14 +65,14 @@ export function isStartupRelatedIntent(message: string): { isStartup: boolean; c
     return { isStartup: true };
   }
 
-  // If very short general question like "Hi", "Hello", "How are you", "Help", treat as startup prompt greeting
+  // Allowed greetings
   const greetings = ["hi", "hello", "hey", "help", "good morning", "good evening", "what can you do"];
   if (greetings.some((g) => lower === g || lower.startsWith(g))) {
     return { isStartup: true };
   }
 
-  // Default to non-startup if no startup keywords or context match
-  return { isStartup: false, category: "general topics" };
+  // Default to non-startup if no startup intent matched
+  return { isStartup: false, category: "unrelated topics" };
 }
 
 export async function generateStartupAnalysis(
@@ -147,34 +164,37 @@ export async function generateMentorChatResponse({
     overallScore: number;
   } | null;
 }): Promise<string> {
-  // Step 1: Pre-classification via Lightweight Intent Classifier
+  // Step 1: Pre-classification via Intent Classifier
   const classification = isStartupRelatedIntent(userMessage);
   if (!classification.isStartup) {
-    const categoryName = classification.category || "non-startup topics";
-    return `I'm your AI Startup Mentor, so I can't help with ${categoryName}. Ask me anything about startups, business strategy, validation, competitors, funding, pricing, SaaS, or entrepreneurship.`;
+    return DOMAIN_REFUSAL_MESSAGE;
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
 
-  const contextPrompt = `You are a strict, professional AI Startup Mentor.
+  const systemPrompt = `You are an AI Startup Mentor.
 
-CRITICAL MANDATE:
-You MUST ONLY answer questions directly related to:
-- Startup ideas & business models
-- Market validation & customer discovery
-- Competitor analysis & moats
-- Product development & pricing strategy
-- Go-to-market strategy, marketing, & sales
-- Growth, funding, investors, & pitch decks
-- SaaS, entrepreneurship, & metrics
-- Product-market fit & financial planning
+CRITICAL CLASSIFICATION & DOMAIN INSTRUCTIONS:
 
-STRICT REFUSAL RULE:
-If the user asks about ANY unrelated topic (such as cooking, recipes, movies, sports, weather, jokes, or general trivia), YOU MUST REFUSE TO ANSWER.
-NEVER attempt to bridge or force unrelated topics (like biryani or cooking) into startup advice.
+Before responding, you MUST classify the user's message:
 
-Refusal template:
-"I'm your AI Startup Mentor, so I can't help with [topic]. Ask me anything about startups, business strategy, validation, competitors, funding, pricing, SaaS, or entrepreneurship."
+STEP 1: Determine whether the user's message is related to:
+- startup ideas, business models, SaaS, or entrepreneurship
+- fundraising, YC, pitch decks, VCs, or investors
+- MVP development, pricing, competitors, or moats
+- marketing, sales, customer discovery, or product validation
+- execution roadmap, unit economics, or startup metrics
+
+STEP 2: IF THE MESSAGE IS UNRELATED (e.g., Superman, comic books, movies, football, cooking, recipes, math homework, politics, weather, random chatting):
+DO NOT invent a startup answer.
+DO NOT pretend unrelated questions are startup questions.
+DO NOT force startup context into unrelated conversations.
+
+You MUST respond ONLY with this exact polite refusal text:
+"${DOMAIN_REFUSAL_MESSAGE}"
+
+STEP 3: IF THE MESSAGE IS STARTUP-RELATED:
+Answer the question thoroughly, practically, and actionably using the provided startup context.
 
 ${
   analysisContext
@@ -195,7 +215,7 @@ ${
       const openai = new OpenAI({ apiKey });
 
       const messages: { role: "system" | "user" | "assistant"; content: string }[] = [
-        { role: "system", content: contextPrompt },
+        { role: "system", content: systemPrompt },
         ...history.slice(-8).map((m) => ({ role: m.role, content: m.content })),
         { role: "user", content: userMessage },
       ];
@@ -203,7 +223,7 @@ ${
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages,
-        temperature: 0.3,
+        temperature: 0.2,
       });
 
       const reply = response.choices[0]?.message?.content;
@@ -232,8 +252,7 @@ function generateFallbackMentorReply(
 ): string {
   const classification = isStartupRelatedIntent(msg);
   if (!classification.isStartup) {
-    const categoryName = classification.category || "non-startup topics";
-    return `I'm your AI Startup Mentor, so I can't help with ${categoryName}. Ask me anything about startups, business strategy, validation, competitors, funding, pricing, SaaS, or entrepreneurship.`;
+    return DOMAIN_REFUSAL_MESSAGE;
   }
 
   const lowerMsg = msg.toLowerCase();
