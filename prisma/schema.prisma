@@ -8,13 +8,28 @@ datasource db {
 }
 
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
+  id        String        @id @default(uuid())
+  email     String        @unique
   name      String?
   password  String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
   analyses  Analysis[]
+  settings  UserSettings?
+}
+
+model UserSettings {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme             String   @default("light") // "light" | "dark" | "system"
+  productUpdates    Boolean  @default(true)
+  analysisCompleted Boolean  @default(true)
+  weeklyTips        Boolean  @default(false)
+  aiResponseLength  String   @default("Balanced") // "Short" | "Balanced" | "Detailed"
+  aiResponseStyle   String   @default("Professional") // "Professional" | "Friendly" | "Direct"
+  autoSaveChat      Boolean  @default(true)
+  updatedAt         DateTime @updatedAt
 }
 
 model Analysis {
