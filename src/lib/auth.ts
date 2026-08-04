@@ -62,7 +62,7 @@ export async function getCurrentUser(): Promise<UserSession | null> {
   try {
     const user = await prisma.user.findUnique({
       where: { id: session.id },
-      select: { id: true, email: true, name: true },
+      select: { id: true, email: true, name: true, createdAt: true },
     });
     return user;
   } catch {
@@ -87,7 +87,7 @@ export async function getOrCreateDemoUser(): Promise<UserSession> {
     });
   }
 
-  const sessionUser = { id: user.id, email: user.email, name: user.name };
+  const sessionUser = { id: user.id, email: user.email, name: user.name, createdAt: user.createdAt };
   await setSessionCookie(sessionUser);
   return sessionUser;
 }
