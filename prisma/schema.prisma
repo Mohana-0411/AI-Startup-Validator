@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String?
+  password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  analyses  Analysis[]
+}
+
+model Analysis {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startupName    String
+  idea           String
+  problem        String
+  solution       String
+  audience       String
+  country        String
+  businessModel  String
+  competitors    String?
+  analysisResult String
+  overallScore   Int
+  createdAt      DateTime      @default(now())
+  chatMessages   ChatMessage[]
+  roadmapTasks   RoadmapTask[]
+
+  @@index([userId])
+}
+
+model ChatMessage {
+  id         String   @id @default(uuid())
+  analysisId String
+  analysis   Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  role       String   // "user" | "assistant"
+  content    String
+  createdAt  DateTime @default(now())
+
+  @@index([analysisId])
+}
+
+model RoadmapTask {
+  id          String   @id @default(uuid())
+  analysisId  String
+  analysis    Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  phase       String   // "Phase 1: Idea Validation" | "Phase 2: MVP Development" | "Phase 3: Growth" | "Phase 4: Scale"
+  title       String
+  description String
+  priority    String   // "High" | "Medium" | "Low"
+  effort      String   // e.g. "1 week"
+  impact      String   // "High" | "Medium" | "Low"
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([analysisId])
+}
