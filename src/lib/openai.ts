@@ -50,6 +50,70 @@ export interface IndustryExpertPersona {
   forbiddenTerms: string[];
 }
 
+export interface ClarificationCheckResult {
+  needsClarification: boolean;
+  questions?: string[];
+  message?: string;
+}
+
+export function assessClarificationNeed(input: StartupIdeaInput): ClarificationCheckResult {
+  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution}`.trim();
+  const name = input.startupName.trim();
+  const idea = input.idea.trim();
+
+  // If startup concept contains explicit domain markers, proceed directly
+  const clearSelfContainedTerms = [
+    "panipuri", "puri", "chaat", "restaurant", "food", "clothing", "fashion", "apparel",
+    "gym", "fitness", "tuition", "school", "academy", "hospital", "clinic",
+    "rice mill", "mill", "factory", "bakery", "salon", "laundry", "resume builder",
+    "delivery", "saas", "software", "marketplace", "e-commerce"
+  ];
+
+  const lower = fullText.toLowerCase();
+  const isSelfContained = clearSelfContainedTerms.some((term) => lower.includes(term));
+
+  if (isSelfContained && idea.length >= 10) {
+    return { needsClarification: false };
+  }
+
+  // Check for ambiguous single-word/short inputs like "FreshBox", "SmartCart", "NextGen"
+  const wordCount = fullText.split(/\s+/).filter(Boolean).length;
+  if (wordCount < 15 || idea.length < 15 || (!isSelfContained && idea.split(" ").length < 4)) {
+    const isSmartCart = name.toLowerCase().includes("smartcart");
+    const isFreshBox = name.toLowerCase().includes("freshbox");
+
+    let specificQuestions: string[] = [];
+
+    if (isFreshBox) {
+      specificQuestions = [
+        "What does FreshBox do in detail?",
+        "Is it a software product, a food/meal delivery business, an e-commerce platform, or a logistics company?",
+        "Who are your primary target customers?",
+      ];
+    } else if (isSmartCart) {
+      specificQuestions = [
+        "What does SmartCart do in detail?",
+        "Is it grocery delivery, POS checkout software, an e-commerce platform, or an AI shopping assistant?",
+        "Who are your primary target customers?",
+      ];
+    } else {
+      specificQuestions = [
+        `What does ${name} do in detail?`,
+        `Is ${name} a software/SaaS product, a food/retail business, an e-commerce platform, or a local service?`,
+        `Who are your primary target customers and geography?`,
+      ];
+    }
+
+    return {
+      needsClarification: true,
+      questions: specificQuestions,
+      message: `Before I analyze your startup, I need a little more information.`,
+    };
+  }
+
+  return { needsClarification: false };
+}
+
 export function detectDetailedStartupCategory(text: string): DetailedStartupCategory {
   const lower = text.toLowerCase();
 
@@ -169,7 +233,7 @@ export function detectDetailedStartupCategory(text: string): DetailedStartupCate
     return "RETAIL_LOCAL";
   }
 
-  // 9. Software / SaaS (Default for tech tools like School Management Software)
+  // 9. Software / SaaS
   return "SOFTWARE_SAAS";
 }
 

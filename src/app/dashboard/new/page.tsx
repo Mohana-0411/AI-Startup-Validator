@@ -2,20 +2,59 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Sparkles, ArrowLeft, Send, AlertCircle } from "lucide-react";
-import { createAnalysisAction } from "@/app/actions/analysisActions";
+import { Sparkles, ArrowLeft, Send, AlertCircle, HelpCircle, CheckCircle2 } from "lucide-react";
+import { createAnalysisAction, checkClarificationAction } from "@/app/actions/analysisActions";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 export default function NewAnalysisPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Clarification state
+  const [clarificationQuestions, setClarificationQuestions] = useState<string[] | null>(null);
+  const [clarificationAnswers, setClarificationAnswers] = useState<{ [key: number]: string }>({});
+  const [isBypassed, setIsBypassed] = useState(false);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     setErrorMsg(null);
 
-    const formData = new FormData(e.currentTarget);
+    const formEl = e.currentTarget;
+    const formData = new FormData(formEl);
+
+    // If clarification was not checked yet and not bypassed, check ambiguity first
+    if (!clarificationQuestions && !isBypassed) {
+      const inputData = {
+        startupName: formData.get("startupName") as string,
+        idea: formData.get("idea") as string,
+        problem: formData.get("problem") as string,
+        solution: formData.get("solution") as string,
+        audience: formData.get("audience") as string,
+        country: formData.get("country") as string,
+        businessModel: formData.get("businessModel") as string,
+        competitors: (formData.get("competitors") as string) || "",
+      };
+
+      const check = await checkClarificationAction(inputData);
+
+      if (check.needsClarification && check.questions) {
+        setLoading(false);
+        setClarificationQuestions(check.questions);
+        return;
+      }
+    }
+
+    // Append clarification answers to idea/solution if user answered them
+    if (clarificationQuestions && Object.keys(clarificationAnswers).length > 0) {
+      const extraInfo = Object.entries(clarificationAnswers)
+        .map(([idx, ans]) => `Q: ${clarificationQuestions[Number(idx)]} A: ${ans}`)
+        .join(" | ");
+
+      const currentIdea = formData.get("idea") as string;
+      formData.set("idea", `${currentIdea} (${extraInfo})`);
+    }
+
     const result = await createAnalysisAction(null, formData);
     if (result && result.error) {
       setErrorMsg(result.error);
@@ -24,7 +63,7 @@ export default function NewAnalysisPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 font-sans">
       <LoadingOverlay isLoading={loading} />
 
       <div className="max-w-3xl mx-auto space-y-6">
@@ -56,6 +95,51 @@ export default function NewAnalysisPage() {
             </div>
           )}
 
+          {/* Intelligent Clarification Banner (If Ambiguity Detected) */}
+          {clarificationQuestions && (
+            <div className="mt-6 p-6 bg-purple-50/70 border border-purple-200 rounded-2xl space-y-4">
+              <div className="flex items-center gap-2.5 text-purple-950">
+                <HelpCircle className="w-5 h-5 text-purple-600 shrink-0" />
+                <h3 className="text-sm font-extrabold">Clarification Required Before Analysis</h3>
+              </div>
+              <p className="text-xs text-slate-700 font-medium">
+                Before I analyze your startup, I need a little more information to avoid making assumptions:
+              </p>
+
+              <div className="space-y-3">
+                {clarificationQuestions.map((q, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <label className="block text-xs font-bold text-purple-950">
+                      {idx + 1}. {q}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Type your answer here..."
+                      value={clarificationAnswers[idx] || ""}
+                      onChange={(e) => setClarificationAnswers({ ...clarificationAnswers, [idx]: e.target.value })}
+                      className="w-full px-3.5 py-2.5 bg-white border border-purple-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsBypassed(true);
+                    const formEl = document.querySelector("form") as HTMLFormElement;
+                    if (formEl) formEl.requestSubmit();
+                  }}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Submit Clarifications & Generate Analysis
+                </button>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             {/* Startup Name */}
             <div>
@@ -66,7 +150,7 @@ export default function NewAnalysisPage() {
                 type="text"
                 name="startupName"
                 required
-                placeholder="e.g. EcoDelivery AI, FinFlow, MedPulse"
+                placeholder="e.g. FreshBox, SmartCart, EcoDelivery, Panipuri Express"
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all"
               />
             </div>
@@ -108,7 +192,7 @@ export default function NewAnalysisPage() {
                   name="solution"
                   required
                   rows={4}
-                  placeholder="How does your product solve this problem? What is your core technology or secret sauce?"
+                  placeholder="How does your product solve this problem? What is your core technology or operational model?"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all resize-none"
                 />
               </div>
@@ -124,7 +208,7 @@ export default function NewAnalysisPage() {
                   type="text"
                   name="audience"
                   required
-                  placeholder="e.g. Rural hospitals, emergency clinics, B2B logistics managers"
+                  placeholder="e.g. Rural hospitals, emergency clinics, local consumers"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all"
                 />
               </div>
@@ -153,7 +237,7 @@ export default function NewAnalysisPage() {
                   type="text"
                   name="businessModel"
                   required
-                  placeholder="e.g. B2B SaaS Subscription, 15% Marketplace Fee, Usage-based"
+                  placeholder="e.g. B2B SaaS Subscription, Direct Retail Sales, 15% Commission"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all"
                 />
               </div>

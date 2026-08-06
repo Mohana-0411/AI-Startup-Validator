@@ -3,9 +3,36 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser, getOrCreateDemoUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import { startupAnalysisSchema } from "@/lib/validators";
-import { generateStartupAnalysis } from "@/lib/openai";
+import { generateStartupAnalysis, assessClarificationNeed } from "@/lib/openai";
+
+export async function checkClarificationAction(inputData: {
+  startupName: string;
+  idea: string;
+  problem: string;
+  solution: string;
+  audience: string;
+  country: string;
+  businessModel: string;
+  competitors?: string;
+}) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return { error: "Unauthorized. Please log in first." };
+  }
+
+  const check = assessClarificationNeed(inputData);
+  if (check.needsClarification) {
+    return {
+      needsClarification: true,
+      questions: check.questions,
+      message: check.message,
+    };
+  }
+
+  return { needsClarification: false };
+}
 
 export async function createAnalysisAction(prevState: any, formData: FormData) {
   const user = await getCurrentUser();
