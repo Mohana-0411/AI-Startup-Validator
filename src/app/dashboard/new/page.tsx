@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Sparkles, ArrowLeft, Send, AlertCircle, HelpCircle, CheckCircle2 } from "lucide-react";
 import { createAnalysisAction, checkClarificationAction } from "@/app/actions/analysisActions";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { RotatingPlaceholderInput } from "@/components/RotatingPlaceholderInput";
 
 export default function NewAnalysisPage() {
   const [loading, setLoading] = useState(false);
@@ -83,7 +84,7 @@ export default function NewAnalysisPage() {
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900">Analyze Any Startup or Business Idea</h1>
+              <h1 className="text-2xl font-extrabold text-slate-900">Analyze Any New Venture</h1>
               <p className="text-xs text-slate-600 font-medium mt-1">
                 Describe your startup or business idea. This can be a software startup, local business, retail store, restaurant, manufacturing business, AI product, service business, or any entrepreneurial venture.
               </p>
@@ -149,10 +150,10 @@ export default function NewAnalysisPage() {
           )}
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-            {/* Startup / Business Name */}
+            {/* Startup / Venture Name */}
             <div>
               <label className="block text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
-                Startup or Business Name <span className="text-purple-600">*</span>
+                Venture Name <span className="text-purple-600">*</span>
               </label>
               <input
                 type="text"
@@ -163,16 +164,14 @@ export default function NewAnalysisPage() {
               />
             </div>
 
-            {/* One-line Idea */}
+            {/* One-line Idea with Rotating Placeholder */}
             <div>
               <label className="block text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
                 One-line Idea <span className="text-purple-600">*</span>
               </label>
-              <input
-                type="text"
+              <RotatingPlaceholderInput
                 name="idea"
                 required
-                placeholder="e.g. Hygienic street food stall with 6 flavored waters OR SaaS platform for ATS resume optimization"
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all"
               />
             </div>
@@ -200,7 +199,7 @@ export default function NewAnalysisPage() {
                   name="solution"
                   required
                   rows={4}
-                  placeholder="How does your business solve this? (e.g. Mineral water counter setup with standardized secret recipe OR AI instant resume keyword scoring)"
+                  placeholder="How does your venture solve this? (e.g. Mineral water counter setup with standardized secret recipe OR AI instant resume keyword scoring)"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all resize-none"
                 />
               </div>
@@ -268,10 +267,10 @@ export default function NewAnalysisPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg shadow-purple-600/30 text-base transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-extrabold rounded-xl shadow-lg shadow-purple-600/30 text-base transition-all flex items-center justify-center gap-2"
               >
                 <Send className="w-5 h-5" />
-                Analyze Business Idea
+                Validate Your Idea Free
               </button>
             </div>
           </form>

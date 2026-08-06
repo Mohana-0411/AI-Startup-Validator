@@ -146,7 +146,7 @@ export default async function DashboardPage() {
                 <span>Command Center</span>
               </div>
               <h1 className="text-2xl font-extrabold text-slate-900">Welcome to AI Startup Validator! 👋</h1>
-              <p className="text-xs text-slate-500">Start by analyzing any startup or business idea. Our AI adapts its recommendations based on your industry.</p>
+              <p className="text-xs text-slate-500">Analyze any new venture and receive AI-powered insights tailored to your specific industry.</p>
             </div>
           )}
 
@@ -425,7 +425,7 @@ export default async function DashboardPage() {
           <div className="bg-white rounded-2xl p-8 border border-slate-200/80 shadow-sm text-center space-y-3">
             <Sparkles className="w-8 h-8 text-purple-600 mx-auto" />
             <h3 className="text-base font-bold text-slate-900">No Active Analysis Context</h3>
-            <p className="text-xs text-slate-500">Start by analyzing any startup or business idea. Our AI adapts its recommendations based on your industry.</p>
+            <p className="text-xs text-slate-500">Analyze any new venture and receive AI-powered insights tailored to your specific industry.</p>
             <Link href="/dashboard/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white text-xs font-bold rounded-xl shadow-md">
               <Plus className="w-4 h-4" /> Start First Analysis
             </Link>
