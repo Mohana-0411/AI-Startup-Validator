@@ -14,6 +14,27 @@ export type IdeaTypeKind =
   | "Service Business"
   | "Product Business";
 
+export interface IndustryProfile {
+  detectedIndustry: string;
+  subIndustry: string;
+  businessCategoryKind:
+    | "Product Business"
+    | "Service Business"
+    | "Offline Business"
+    | "Online Business"
+    | "Hybrid Business"
+    | "Local Business"
+    | "Technology Startup"
+    | "Manufacturing"
+    | "Franchise"
+    | "Marketplace"
+    | "E-Commerce"
+    | "Social Enterprise";
+  revenueModelType: string;
+  regulatoryBody: string;
+  keyOperatingMetrics: string[];
+}
+
 export interface StartupLifecycle {
   currentStage: LifecycleStage;
   confidenceScore: number;
@@ -77,6 +98,7 @@ export interface BusinessDNA {
 
 export interface AnalysisResultJSON {
   overallScore: number;
+  industryProfile?: IndustryProfile;
   businessClassification?: BusinessClassification;
   businessDNA?: BusinessDNA;
   startupLifecycle?: StartupLifecycle;

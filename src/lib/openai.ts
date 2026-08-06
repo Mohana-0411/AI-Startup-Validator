@@ -6,6 +6,7 @@ import {
   StartupLifecycle,
   LifecycleStage,
   IdeaTypeKind,
+  IndustryProfile,
 } from "./types";
 
 interface StartupIdeaInput {
@@ -71,6 +72,76 @@ export function detectIdeaTypeKind(text: string, category: DetailedStartupCatego
     return "Traditional Business";
   }
   return "Traditional Business";
+}
+
+export function inferIndustryProfile(input: StartupIdeaInput): IndustryProfile {
+  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
+  const category = detectDetailedStartupCategory(fullText);
+
+  let detectedIndustry = "Technology & Software";
+  let subIndustry = "B2B SaaS / Web App";
+  let categoryKind: IndustryProfile["businessCategoryKind"] = "Technology Startup";
+  let regulatoryBody = "Standard Corporate Regulations";
+  let metrics = ["Monthly Recurring Revenue (MRR)", "Customer Acquisition Cost (CAC)", "User Activation Rate"];
+
+  if (category === "FOOD") {
+    detectedIndustry = "Food & Beverage";
+    subIndustry = fullText.includes("panipuri") ? "Street Food / Quick Service Counter" : "Restaurant & Food Service";
+    categoryKind = fullText.includes("panipuri") ? "Local Business" : "Offline Business";
+    regulatoryBody = "FSSAI Food Safety & Municipal Trade Licensing";
+    metrics = ["Daily Counter Footfall", "Average Transaction Value", "Gross Ingredient Profit Margin (65%+)"];
+  } else if (category === "FASHION") {
+    detectedIndustry = "Fashion & Apparel";
+    subIndustry = "D2C Apparel & Clothing Brand";
+    categoryKind = "Product Business";
+    regulatoryBody = "GST & Textile Standards Authority";
+    metrics = ["Fabric Sample Testing Pass Rate", "Return Rate (<10%)", "Gross Merchandise Value (GMV)"];
+  } else if (category === "FITNESS") {
+    detectedIndustry = "Fitness & Wellness";
+    subIndustry = "Health Club & Commercial Gym";
+    categoryKind = "Local Business";
+    regulatoryBody = "Municipal Trade Permit & Commercial Fire Clearance";
+    metrics = ["Active Monthly Subscriptions", "Personal Training Upsell Rate", "Floor Capacity Utilization"];
+  } else if (category === "HEALTHCARE") {
+    detectedIndustry = "Healthcare & Medical Services";
+    subIndustry = "Clinical Care & Hospital";
+    categoryKind = "Offline Business";
+    regulatoryBody = "Medical Council & Clinical Establishment Authority";
+    metrics = ["Bed Occupancy Rate", "Patient Satisfaction & Referral Score", "Diagnostic Precision Rate"];
+  } else if (category === "MANUFACTURING") {
+    detectedIndustry = "Manufacturing & Processing";
+    subIndustry = "Agri-Processing & Industrial Milling";
+    categoryKind = "Manufacturing";
+    regulatoryBody = "Pollution Control Board & Industrial Factory License";
+    metrics = ["Milling Machinery Yield %", "Daily Processing Tonnage", "Raw Material Paddy Procurement Cost"];
+  } else if (category === "AGRICULTURE") {
+    detectedIndustry = "Agriculture & Agribusiness";
+    subIndustry = "Organic Farming & Crop Production";
+    categoryKind = "Product Business";
+    regulatoryBody = "Organic Certification Authority (NPOP/APMC)";
+    metrics = ["Crop Yield Per Acre", "Cold Storage Preservation Rate", "Wholesale Mandi Off-Take Price"];
+  } else if (category === "EDUCATION") {
+    detectedIndustry = "Education & Training";
+    subIndustry = "Academy & Coaching Center";
+    categoryKind = "Service Business";
+    regulatoryBody = "Education Department & Academic Accreditation";
+    metrics = ["Student Batch Enrollment Rate", "Exam Pass Ratio", "Teacher Retention Rate"];
+  } else if (category === "RETAIL_LOCAL") {
+    detectedIndustry = "Retail & Commerce";
+    subIndustry = "Storefront Retail & Goods Shop";
+    categoryKind = "Local Business";
+    regulatoryBody = "Shops & Establishment Licensing";
+    metrics = ["Sales Per Square Foot", "Inventory Turnover Ratio", "Repeat Shopper Rate"];
+  }
+
+  return {
+    detectedIndustry,
+    subIndustry,
+    businessCategoryKind: categoryKind,
+    revenueModelType: input.businessModel || "Direct Commercial Sales",
+    regulatoryBody,
+    keyOperatingMetrics: metrics,
+  };
 }
 
 export function assessClarificationNeed(input: StartupIdeaInput): ClarificationCheckResult {
@@ -950,6 +1021,7 @@ export async function generateStartupAnalysis(
   input: StartupIdeaInput
 ): Promise<AnalysisResultJSON> {
   const apiKey = process.env.OPENAI_API_KEY;
+  const inferredProfile = inferIndustryProfile(input);
   const inferredDNA = inferBusinessDNA(input);
   const inferredClassification = inferBusinessClassification(input);
   const inferredLifecycle = inferStartupLifecycle(input);
@@ -960,19 +1032,21 @@ export async function generateStartupAnalysis(
     try {
       const openai = new OpenAI({ apiKey });
 
-      const prompt = `You are a top-tier ${persona.personaTitle}.
+      const prompt = `You are an Industry-Agnostic AI Business Intelligence Platform acting as a ${persona.personaTitle}.
 
-FOLLOW THIS STRICT 9-STEP REASONING PIPELINE:
-STEP 1: Detect Idea Type Kind: "${persona.ideaTypeKind}".
-STEP 2: Identify Industry: "${persona.category}".
-STEP 3: Select Business Expert Persona: "${persona.personaTitle}".
-STEP 4: Generate analysis based strictly on business type. Focus on: ${persona.primaryDomainFocus.join(", ")}.
+FOLLOW THIS STRICT 11-STEP REASONING PIPELINE:
+STEP 1: Understand the business idea: "${input.idea}" for venture "${input.startupName}".
+STEP 2: Detect Industry: "${inferredProfile.detectedIndustry}".
+STEP 3: Detect Business Model: "${input.businessModel}".
+STEP 4: Detect Category Kind: "${inferredProfile.businessCategoryKind}".
+STEP 5: Construct Industry Profile with real regulatory bodies and key operating metrics.
+STEP 6: Construct Business DNA matching real domain parameters.
+STEP 7: Generate Startup Analysis based strictly on domain requirements. Focus on: ${persona.primaryDomainFocus.join(", ")}.
 CRITICAL MANDATE: NEVER use these forbidden terms unless this is actually a software startup: ${persona.forbiddenTerms.join(", ") || "None"}.
-STEP 5: Construct Business DNA matching real industry parameters.
-STEP 6: Generate Startup / Business Health.
-STEP 7: Generate Competitor Insights.
-STEP 8: Generate Execution Roadmap.
-STEP 9: Prepare context for AI Mentor.
+STEP 8: Generate Startup Health diagnostics.
+STEP 9: Generate Competitor Insights.
+STEP 10: Generate Execution Roadmap.
+STEP 11: Prepare structured context for AI Mentor.
 
 Input Data:
 Startup Name: ${input.startupName}
@@ -986,6 +1060,7 @@ Competitors: ${input.competitors || "Not specified"}
 
 Return JSON only containing:
 overallScore (integer 0-100)
+industryProfile (object matching IndustryProfile schema)
 businessClassification (object)
 businessDNA (object)
 startupLifecycle (object matching StartupLifecycle schema)
@@ -1006,7 +1081,7 @@ investorVerdict (string)`;
         messages: [
           {
             role: "system",
-            content: `You are a world-class ${persona.personaTitle}. Always provide strictly industry-tailored JSON startup analysis. Never recommend coding or SaaS metrics for non-software businesses.`,
+            content: `You are an industry-agnostic ${persona.personaTitle}. Always provide strictly industry-tailored JSON business analysis. Never recommend coding or SaaS metrics for non-software businesses.`,
           },
           {
             role: "user",
@@ -1021,6 +1096,7 @@ investorVerdict (string)`;
       if (content) {
         const parsed = JSON.parse(content) as AnalysisResultJSON;
         parsed.overallScore = Math.min(100, Math.max(0, Math.round(parsed.overallScore)));
+        if (!parsed.industryProfile) parsed.industryProfile = inferredProfile;
         if (!parsed.businessDNA) parsed.businessDNA = inferredDNA;
         if (!parsed.businessClassification) parsed.businessClassification = inferredClassification;
         if (!parsed.startupLifecycle) parsed.startupLifecycle = inferredLifecycle;
@@ -1053,6 +1129,7 @@ export async function generateMentorChatResponse({
     businessClassification?: BusinessClassification | null;
     businessDNA?: BusinessDNA | null;
     startupLifecycle?: StartupLifecycle | null;
+    industryProfile?: IndustryProfile | null;
   } | null;
 }): Promise<string> {
   const classification = isStartupRelatedIntent(userMessage);
@@ -1063,24 +1140,27 @@ export async function generateMentorChatResponse({
   const apiKey = process.env.OPENAI_API_KEY;
   const dna = analysisContext?.businessDNA;
   const lc = analysisContext?.startupLifecycle;
+  const prof = analysisContext?.industryProfile;
 
   const fullText = `${dna?.startupName || analysisContext?.startupName || ""} ${dna?.industry || ""} ${analysisContext?.idea || ""} ${analysisContext?.problem || ""}`;
   const category = detectDetailedStartupCategory(fullText);
   const persona = getExpertPersona(category);
 
-  const systemPrompt = `You are a top-tier ${persona.personaTitle}.
+  const systemPrompt = `You are an industry-agnostic AI Business Consultant acting as a top-tier ${persona.personaTitle}.
 
 BUSINESS REASONING CONTEXT:
-- Startup Name: "${dna?.startupName || analysisContext?.startupName || "Business"}"
-- Business Kind: ${persona.ideaTypeKind}
-- Detected Industry: ${dna?.industry || persona.category}
+- Startup/Business Name: "${dna?.startupName || analysisContext?.startupName || "Venture"}"
+- Category Kind: ${prof?.businessCategoryKind || persona.ideaTypeKind}
+- Detected Industry: ${prof?.detectedIndustry || dna?.industry || persona.category}
+- Regulatory Body: ${prof?.regulatoryBody || "Standard Corporate Regulations"}
+- Key Operating Metrics: ${prof?.keyOperatingMetrics ? prof.keyOperatingMetrics.join(", ") : persona.primaryDomainFocus[0]}
 - Persona: ${persona.personaTitle}
 - Current Lifecycle Stage: ${lc?.currentStage || "Validation Stage"} (Confidence: ${lc?.confidenceScore || 90}%)
 - Primary Domain Focus: ${persona.primaryDomainFocus.join(", ")}
 
 CRITICAL MANDATE:
 1. Answer as an expert ${persona.personaTitle}.
-2. Focus strictly on ${persona.category} domain advice (e.g. location, taste, footfall, licensing, machinery, patients, organic farming, or curriculum).
+2. Focus strictly on ${persona.category} domain advice (e.g. location, footfall, licensing, machinery, organic farming yield, patient care, or curriculum).
 3. NEVER mention software engineering, writing code, APIs, MVP app, or CAC/LTV unless the business is ACTUALLY software.
 4. Keep advice tailored to current lifecycle stage (${lc?.currentStage || "Validation Stage"}).`;
 
@@ -1124,6 +1204,7 @@ function generateFallbackMentorReply(
     businessClassification?: BusinessClassification | null;
     businessDNA?: BusinessDNA | null;
     startupLifecycle?: StartupLifecycle | null;
+    industryProfile?: IndustryProfile | null;
   } | null
 ): string {
   const classification = isStartupRelatedIntent(msg);
@@ -1133,22 +1214,25 @@ function generateFallbackMentorReply(
 
   const dna = ctx?.businessDNA || (ctx ? inferBusinessDNA(ctx as any) : null);
   const lc = ctx?.startupLifecycle || (ctx ? inferStartupLifecycle(ctx as any) : null);
-  const name = dna?.startupName || ctx?.startupName || "your business";
+  const prof = ctx?.industryProfile || (ctx ? inferIndustryProfile(ctx as any) : null);
+  const name = dna?.startupName || ctx?.startupName || "your venture";
 
   const category = detectDetailedStartupCategory(`${name} ${ctx?.idea || ""} ${ctx?.problem || ""}`);
   const persona = getExpertPersona(category);
 
-  return `As your **${persona.personaTitle}**, here is stage and industry-tailored advice for **${name}** (${persona.ideaTypeKind}, Stage: **${lc?.currentStage || "Validation Stage"}**):
+  return `As your **${persona.personaTitle}**, here is domain and stage-tailored guidance for **${name}** (${prof?.businessCategoryKind || persona.ideaTypeKind}, Stage: **${lc?.currentStage || "Validation Stage"}**):
 
 1. **Domain Focus**: ${persona.primaryDomainFocus[0]}
-2. **Immediate Next Target**: ${lc?.nextMilestone || "Validate customer demand"}
-3. **Stage Priorities**:
+2. **Key Metric**: ${prof?.keyOperatingMetrics ? prof.keyOperatingMetrics[0] : "Target customer acquisition"}
+3. **Immediate Next Target**: ${lc?.nextMilestone || "Validate customer demand"}
+4. **Stage Priorities**:
 ${lc?.suggestedPriorities ? lc.suggestedPriorities.map((p, i) => `   - Step ${i + 1}: ${p}`).join("\n") : "   - Complete customer interviews\n   - Test pricing willingness"}
-4. **Key Operational Risk**: Watch out for ${lc?.currentStageRisks ? lc.currentStageRisks[0] : "premature expansion"}.`;
+5. **Regulatory & Risk Consideration**: ${prof?.regulatoryBody || "Ensure local compliance"}.`;
 }
 
 function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
   const name = input.startupName.trim();
+  const inferredProfile = inferIndustryProfile(input);
   const inferredDNA = inferBusinessDNA(input);
   const inferredClassification = inferBusinessClassification(input);
   const inferredLifecycle = inferStartupLifecycle(input);
@@ -1176,6 +1260,7 @@ function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
 
   return {
     overallScore: score,
+    industryProfile: inferredProfile,
     businessClassification: inferredClassification,
     businessDNA: inferredDNA,
     startupLifecycle: inferredLifecycle,
