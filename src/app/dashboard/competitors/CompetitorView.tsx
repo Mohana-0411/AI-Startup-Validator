@@ -16,6 +16,7 @@ import {
   Crosshair,
   Award,
   Filter,
+  Activity,
 } from "lucide-react";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { AnalysisResultJSON } from "@/lib/types";
@@ -50,6 +51,8 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
     }
   }
 
+  const stage = result?.startupLifecycle?.currentStage || "Validation Stage";
+
   // Parse competitors or construct real/similar market competitor profiles
   const rawCompetitorList = currentAnalysis?.competitors
     ? currentAnalysis.competitors.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean)
@@ -68,30 +71,57 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
         marketPosition: idx === 0 ? "Market Leader" : "Challenger",
         keyFeatures: "Core legacy suite, manual workflows, standard reporting",
       }))
+    : stage === "Idea Stage" || stage === "Validation Stage"
+    ? [
+        {
+          name: "Existing Manual Workflows & Spreadsheets",
+          category: "Conceptual Alternatives",
+          description: `Current manual methods and spreadsheets used by ${currentAnalysis?.audience || "target users"} before adopting ${currentAnalysis?.startupName || "this idea"}.`,
+          targetAudience: currentAnalysis?.audience || "Early Adopters",
+          strengths: ["Zero financial cost", "Familiarity among legacy teams"],
+          weaknesses: ["High manual effort", "Prone to errors", "No automated AI speed"],
+          pricingModel: "Free / Manual labor cost",
+          differentiation: `10x speed improvement over manual spreadsheet processes.`,
+          marketPosition: "Status Quo",
+          keyFeatures: "Manual data entry, fragmented emails",
+        },
+        {
+          name: "Unfocused Generalist Tools",
+          category: "Broad Platforms",
+          description: "Over-complicated platforms missing specialized workflows for this specific problem.",
+          targetAudience: currentAnalysis?.audience || "General Market",
+          strengths: ["Large feature catalog"],
+          weaknesses: ["High friction", "Irrelevant clutter"],
+          pricingModel: "$99/mo standard fee",
+          differentiation: `Hyper-focused workflow tailored specifically for ${currentAnalysis?.startupName || "this market"}.`,
+          marketPosition: "Generalist Challenger",
+          keyFeatures: "Generic dashboard, heavy setup",
+        },
+      ]
     : [
         {
           name: "Legacy Incumbent Systems",
-          category: "Traditional Software",
-          description: "Traditional manual/legacy enterprise software solutions currently used by target customers.",
+          category: "Market Leaders",
+          description: "Dominant enterprise platforms holding primary market share in target category.",
           targetAudience: currentAnalysis?.audience || "Enterprise Customers",
-          strengths: ["Established customer base", "High switching costs", "Broad legacy integrations"],
-          weaknesses: ["Slow user experience", "Lack of modern AI automation", "Expensive per-seat licensing"],
-          pricingModel: "$500+ / month / license (Estimated)",
-          differentiation: `Deliver 10x faster AI workflows at lower initial customer friction.`,
-          marketPosition: "Incumbent Leader",
-          keyFeatures: "Legacy database storage, manual data entry, traditional PDF exports",
+          strengths: ["Massive customer base", "Global brand recognition"],
+          weaknesses: ["High cost", "Slow product iteration"],
+          pricingModel: "$500+ / month enterprise tiers",
+          differentiation: `Modern AI automation with 1-minute time-to-value onboarding.`,
+          marketPosition: "Market Leader",
+          keyFeatures: "Enterprise suite, legacy database integrations",
         },
         {
-          name: "Generic Point Solutions",
-          category: "Alternative Tools",
-          description: "Fragmented point tools and spreadsheet workflows used as makeshift alternatives.",
-          targetAudience: currentAnalysis?.audience || "SMB Users",
-          strengths: ["Low initial barrier to entry", "Flexible manual customization"],
-          weaknesses: ["Prone to human error", "No unified workflow automation", "High ongoing maintenance effort"],
-          pricingModel: "Free / Open-Source / Manual labor cost",
-          differentiation: `Unified automated end-to-end platform tailored specifically for ${currentAnalysis?.startupName || "this market"}.`,
-          marketPosition: "Niche Fragmented",
-          keyFeatures: "Spreadsheet templates, ad-hoc scripts, manual tracking",
+          name: "High-Growth Challenger Platforms",
+          category: "Direct Competitors",
+          description: "Venture-backed fast-growing challengers competing on modern UI and feature depth.",
+          targetAudience: currentAnalysis?.audience || "SMB & Mid-Market",
+          strengths: ["Fast release cadence", "Modern user interface"],
+          weaknesses: ["Aggressive pricing increases", "Limited niche customization"],
+          pricingModel: "$49 - $199 / month",
+          differentiation: `Superior unit economics and specialized category moats.`,
+          marketPosition: "Fast Challenger",
+          keyFeatures: "Cloud APIs, modern UI components",
         },
       ];
 
@@ -107,20 +137,20 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 space-y-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header Banner */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100 mb-2">
               <Trophy className="w-3.5 h-3.5 text-purple-600" />
-              <span>Competitive Landscape Engine</span>
+              <span>Lifecycle-Aware Competitor Engine</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Competitor Insights & Positioning
             </h1>
             <p className="text-xs text-slate-500">
-              Benchmark market rivals, identify strategic gaps, and build defensible competitive moats
+              Benchmarking rivals adapted to current stage ({stage})
             </p>
           </div>
 
@@ -138,7 +168,7 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
             <Trophy className="w-12 h-12 text-purple-600 mx-auto" />
             <h3 className="text-lg font-bold text-slate-900">No Competitor Analysis Available</h3>
             <p className="text-xs text-slate-500">
-              Run your first startup analysis to generate real-time competitor profiles, market gap matrices, and moat strategies.
+              Run your first startup analysis to generate real-time competitor profiles and positioning.
             </p>
             <Link
               href="/dashboard/new"
@@ -150,10 +180,10 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
           </div>
         ) : (
           <>
-            {/* Startup Selection Bar & Search Filter Controls */}
+            {/* Context Selection Bar */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Context Startup:</span>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Startup:</span>
                 <div className="relative">
                   <select
                     value={selectedId}
@@ -168,6 +198,11 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
                   </select>
                   <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
+
+                <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-extrabold rounded-xl flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-indigo-600" />
+                  Stage: {stage}
+                </span>
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -178,24 +213,9 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search competitors or features..."
+                    placeholder="Search competitors..."
                     className="pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-600"
                   />
-                </div>
-
-                {/* Filter Selector */}
-                <div className="relative">
-                  <select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="appearance-none bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 pr-8 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-600 cursor-pointer"
-                  >
-                    <option value="all">All Categories</option>
-                    <option value="incumbent">Incumbent Platforms</option>
-                    <option value="niche">Niche Alternatives</option>
-                    <option value="traditional">Traditional Software</option>
-                  </select>
-                  <Filter className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -205,9 +225,8 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-purple-600" />
-                  Competitor Profiles for &ldquo;{currentAnalysis.startupName}&rdquo;
+                  Stage-Aware Competitor Profiles for &ldquo;{currentAnalysis.startupName}&rdquo; ({stage})
                 </h2>
-                <span className="text-xs text-slate-400 italic">* All market values are AI-estimated data</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -276,145 +295,11 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
                     </div>
 
                     <div className="p-3 bg-purple-50/50 rounded-xl border border-purple-100 text-xs">
-                      <span className="font-bold text-purple-950 block mb-0.5">Differentiation Opportunity:</span>
+                      <span className="font-bold text-purple-950 block mb-0.5">Differentiation Strategy:</span>
                       <p className="text-slate-700">{comp.differentiation}</p>
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* Comparison Table */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden space-y-0">
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Crosshair className="w-5 h-5 text-purple-600" />
-                  Competitor Feature & Pricing Matrix
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">Side-by-side comparison across features, pricing, positioning, and weaknesses</p>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50/80 border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                      <th className="py-3.5 px-6">Competitor</th>
-                      <th className="py-3.5 px-6">Est. Pricing</th>
-                      <th className="py-3.5 px-6">Key Features</th>
-                      <th className="py-3.5 px-6">Market Position</th>
-                      <th className="py-3.5 px-6">Target Audience</th>
-                      <th className="py-3.5 px-6">Key Weakness</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-xs">
-                    {/* Startup Entry First */}
-                    <tr className="bg-purple-50/30 font-bold border-l-4 border-l-purple-600">
-                      <td className="py-4 px-6 text-purple-950 flex items-center gap-1.5">
-                        <Sparkles className="w-4 h-4 text-purple-600 shrink-0" />
-                        <span>{currentAnalysis.startupName} (Your Startup)</span>
-                      </td>
-                      <td className="py-4 px-6 text-purple-900">{currentAnalysis.businessModel}</td>
-                      <td className="py-4 px-6 text-slate-800">{currentAnalysis.solution.slice(0, 50)}...</td>
-                      <td className="py-4 px-6">
-                        <ScoreBadge score={currentAnalysis.overallScore} size="sm" showLabel />
-                      </td>
-                      <td className="py-4 px-6 text-slate-800">{currentAnalysis.audience}</td>
-                      <td className="py-4 px-6 text-slate-500">Early market awareness</td>
-                    </tr>
-
-                    {/* Competitors List */}
-                    {competitorProfiles.map((comp, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="py-4 px-6 font-bold text-slate-900">{comp.name}</td>
-                        <td className="py-4 px-6 text-slate-600">{comp.pricingModel}</td>
-                        <td className="py-4 px-6 text-slate-600">{comp.keyFeatures}</td>
-                        <td className="py-4 px-6 text-slate-600">{comp.marketPosition}</td>
-                        <td className="py-4 px-6 text-slate-600">{comp.targetAudience}</td>
-                        <td className="py-4 px-6 text-rose-600 font-medium">{comp.weaknesses[0]}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Market Gap Analysis Section */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
-              <div className="border-b border-slate-100 pb-4">
-                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Lightbulb className="w-5 h-5 text-amber-500" />
-                  Market Gap Analysis
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">Unmet customer pain points and unique positioning opportunities</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-5 rounded-2xl bg-amber-50/40 border border-amber-100 space-y-3">
-                  <h3 className="text-xs font-bold text-amber-950 uppercase tracking-wider flex items-center gap-2">
-                    <Target className="w-4 h-4 text-amber-600" /> Opportunities Competitors Missed
-                  </h3>
-                  <p className="text-xs text-slate-700 leading-relaxed font-medium">
-                    Incumbents focus heavily on broad general features, leaving {currentAnalysis.audience} underserved with complex workflows.
-                  </p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-purple-50/40 border border-purple-100 space-y-3">
-                  <h3 className="text-xs font-bold text-purple-950 uppercase tracking-wider flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-purple-600" /> Features Competitors Don&apos;t Have
-                  </h3>
-                  <p className="text-xs text-slate-700 leading-relaxed font-medium">
-                    Instant AI automated insights, frictionless onboarding in &lt; 60 seconds, and modern value-based pricing.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* AI Competitive Strategy Section */}
-            <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
-              <div className="border-b border-slate-100 pb-4">
-                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-purple-600" />
-                  AI Competitive Strategy Playbook
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">Tactical positioning questions answered for {currentAnalysis.startupName}</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-2">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                    Why will users choose {currentAnalysis.startupName}?
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Users choose {currentAnalysis.startupName} because it solves &ldquo;{currentAnalysis.problem.slice(0, 70)}...&rdquo; 10x faster with lower setup friction than legacy tools.
-                  </p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-2">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                    How should it compete?
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Compete on speed, specialization for {currentAnalysis.audience}, and transparent {currentAnalysis.businessModel} pricing without hidden lock-in contracts.
-                  </p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-2">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                    Biggest Market Threats
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Fast feature copying by established incumbents. Counter this with rapid customer iteration and high-retention onboarding.
-                  </p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-2">
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                    Suggested Competitive Moat
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Build a data network effect moat: proprietary AI analysis models and integration workflows that become more valuable as usage grows.
-                  </p>
-                </div>
               </div>
             </div>
           </>
