@@ -7,6 +7,13 @@ export type LifecycleStage =
   | "Growth Stage"
   | "Scale Stage";
 
+export type IdeaTypeKind =
+  | "Technology Startup"
+  | "Traditional Business"
+  | "Local Business"
+  | "Service Business"
+  | "Product Business";
+
 export interface StartupLifecycle {
   currentStage: LifecycleStage;
   confidenceScore: number;
@@ -23,6 +30,7 @@ export interface StartupLifecycle {
 export interface BusinessClassification {
   industry: string;
   businessCategory: string;
+  ideaTypeKind?: IdeaTypeKind;
   businessType: "Offline Local Business" | "Physical Goods / D2C" | "Digital / Software / SaaS" | "Service / Consulting" | "Hybrid";
   revenueModel: string;
   scalability: "Low" | "Medium" | "High";
@@ -37,6 +45,7 @@ export interface BusinessDNA {
   industry: string;
   subIndustry: string;
   businessCategory: string;
+  ideaTypeKind?: IdeaTypeKind;
   businessType: "Offline Local Business" | "Physical Goods / D2C" | "Digital / Software / SaaS" | "Service / Consulting" | "Hybrid";
   businessModel: string;
   revenueModel: string;
