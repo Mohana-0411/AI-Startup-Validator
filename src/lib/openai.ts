@@ -1,5 +1,11 @@
 import OpenAI from "openai";
-import { AnalysisResultJSON, BusinessClassification, BusinessDNA } from "./types";
+import {
+  AnalysisResultJSON,
+  BusinessClassification,
+  BusinessDNA,
+  StartupLifecycle,
+  LifecycleStage,
+} from "./types";
 
 interface StartupIdeaInput {
   startupName: string;
@@ -121,6 +127,66 @@ export function detectStartupCategory(text: string): StartupCategory {
   return "SOFTWARE_SAAS";
 }
 
+export function inferStartupLifecycle(input: StartupIdeaInput): StartupLifecycle {
+  const text = `${input.startupName} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
+
+  let stage: LifecycleStage = "Validation Stage";
+  let confidence = 91;
+  let reason = "Startup has a formulated concept and target demographic, but requires formal customer demand validation.";
+
+  if (text.includes("revenue") || text.includes("paying") || text.includes("sales") || text.includes("profit")) {
+    stage = "Early Revenue Stage";
+    confidence = 93;
+    reason = "Startup has generated initial paying customer transactions and repeatable sales.";
+  } else if (text.includes("launched") || text.includes("live") || text.includes("operating")) {
+    stage = "Launch Stage";
+    confidence = 90;
+    reason = "Product/service is active in market seeking initial user adoption.";
+  } else if (text.includes("building") || text.includes("prototype") || text.includes("setup")) {
+    stage = "MVP Stage";
+    confidence = 88;
+    reason = "Startup is actively constructing its first functional MVP/storefront prototype.";
+  } else if (text.includes("concept") || text.includes("thinking") || text.includes("idea only")) {
+    stage = "Idea Stage";
+    confidence = 94;
+    reason = "Startup exists as an unvalidated conceptual idea.";
+  }
+
+  return {
+    currentStage: stage,
+    confidenceScore: confidence,
+    reason,
+    nextMilestone:
+      stage === "Idea Stage"
+        ? "Conduct 15 customer discovery interviews"
+        : stage === "Validation Stage"
+        ? "Build lightweight landing page / MVP counter prototype"
+        : stage === "MVP Stage"
+        ? "Onboard first 10 beta test users / soft launch outlet"
+        : "Scale paying customer acquisition",
+    estimatedTimeToNextStage: "3-6 weeks",
+    keyObjectives: [
+      "Validate problem urgency with target customers",
+      "Confirm willingness-to-pay for core business model",
+      "Establish primary customer acquisition channel",
+    ],
+    currentStageRisks: [
+      "Premature scaling before verifying customer demand",
+      "Miscalculating initial unit economics and operating costs",
+    ],
+    successProbability: Math.min(88, Math.max(62, Math.round(confidence * 0.85))),
+    potentialBlockers: [
+      "Customer discovery interview drop-offs",
+      "Licensing and regulatory approval delays",
+    ],
+    suggestedPriorities: [
+      "Complete problem discovery calls",
+      "Lock in initial pricing model",
+      "Build basic brand awareness",
+    ],
+  };
+}
+
 export function inferBusinessDNA(input: StartupIdeaInput): BusinessDNA {
   const name = input.startupName.trim();
   const fullText = `${name} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
@@ -174,7 +240,7 @@ export function inferBusinessDNA(input: StartupIdeaInput): BusinessDNA {
       estimatedTimeToLaunch: "2-4 weeks",
       estimatedInitialInvestment: "$3,000 - $8,000",
       recommendedTeamSize: "2-4 staff",
-      businessPriority: "Location Selection, FSSAI Licensing & Recipe Standardization",
+      businessPriority: "Location Selection, FSSAI Licensing & Taste Standardization",
     };
   }
 
@@ -224,55 +290,6 @@ export function inferBusinessDNA(input: StartupIdeaInput): BusinessDNA {
       estimatedInitialInvestment: "$10,000 - $25,000",
       recommendedTeamSize: "3-5 team members",
       businessPriority: "Fabric Sourcing, Sample Batch Testing & Social Media Launch",
-    };
-  }
-
-  if (category === "FITNESS") {
-    return {
-      startupName: name,
-      industry: "Fitness & Wellness",
-      subIndustry: "Gym & Health Club",
-      businessCategory: "Fitness Center",
-      businessType: "Offline Local Business",
-      businessModel: input.businessModel || "Monthly & Annual Membership Tiers",
-      revenueModel: "Recurring Membership Subscriptions & Personal Training Fees",
-      businessStage: "Idea",
-      targetCustomers: input.audience || "Fitness Enthusiasts & Working Professionals",
-      customerPersona: "Health-conscious individuals seeking structured workout routines and community support",
-      marketScope: "Local",
-      investmentLevel: "High",
-      operationalComplexity: "Medium",
-      technologyDependency: "Low",
-      scalability: "Medium",
-      expansionPotential: "City-wide Multi-gym Chain Franchising",
-      fundingRequirement: "$40,000 - $120,000",
-      fundingType: "Bank Loan / Angel Investment",
-      competitionLevel: "Medium",
-      riskLevel: "Medium",
-      growthPotential: "High",
-      digitalPresenceImportance: "Medium",
-      requiredLicenses: ["Commercial Space Permit", "Fire Safety Clearance", "GST Registration"],
-      primarySuccessFactors: [
-        "Prime Location & Parking Accessibility",
-        "Modern Machinery & Equipment Maintenance",
-        "Certified Trainer Retention",
-        "Member Trial Offer Conversion",
-      ],
-      biggestChallenges: [
-        "High upfront equipment capital expenditure",
-        "Member churn after initial 3 months",
-        "Peak-hour facility crowding",
-      ],
-      keyAdvantages: [
-        "Upfront annual prepay cash flow",
-        "High customer lifetime value",
-        "Strong local community network",
-      ],
-      uniqueSellingProposition: "State-of-the-art machinery combined with personalized nutrition & workout coaching",
-      estimatedTimeToLaunch: "6-12 weeks",
-      estimatedInitialInvestment: "$35,000 - $80,000",
-      recommendedTeamSize: "4-6 trainers & staff",
-      businessPriority: "Space Finalization, Equipment Leasing & Pre-launch Promotions",
     };
   }
 
@@ -423,6 +440,7 @@ export async function generateStartupAnalysis(
   const apiKey = process.env.OPENAI_API_KEY;
   const inferredDNA = inferBusinessDNA(input);
   const inferredClassification = inferBusinessClassification(input);
+  const inferredLifecycle = inferStartupLifecycle(input);
 
   if (apiKey && apiKey.trim() !== "" && !apiKey.includes("your-api-key")) {
     try {
@@ -441,56 +459,36 @@ Country/Region: ${input.country}
 Business Model: ${input.businessModel}
 Competitors: ${input.competitors || "Not specified"}
 
-FIRST: Construct the complete Business DNA object (businessDNA) representing the central intelligence of this venture:
-- startupName
-- industry
-- subIndustry
-- businessCategory
-- businessType ("Offline Local Business" | "Physical Goods / D2C" | "Digital / Software / SaaS" | "Service / Consulting" | "Hybrid")
-- businessModel
-- revenueModel
-- businessStage ("Idea" | "MVP" | "Existing Business")
-- targetCustomers
-- customerPersona
-- marketScope ("Local" | "Regional" | "National" | "Global")
-- investmentLevel ("Low" | "Medium" | "High")
-- operationalComplexity ("Low" | "Medium" | "High")
-- technologyDependency ("Low" | "Medium" | "High")
-- scalability ("Low" | "Medium" | "High")
-- expansionPotential
-- fundingRequirement
-- fundingType ("Self-funded / Bootstrapped" | "Angel / Seed VC" | "Bank Loan")
-- competitionLevel ("Low" | "Medium" | "High")
-- riskLevel ("Low" | "Medium" | "High")
-- growthPotential ("Medium" | "High" | "Exponential")
-- digitalPresenceImportance ("Low" | "Medium" | "High")
-- requiredLicenses (array of strings)
-- primarySuccessFactors (array of strings)
-- biggestChallenges (array of strings)
-- keyAdvantages (array of strings)
-- uniqueSellingProposition
-- estimatedTimeToLaunch
-- estimatedInitialInvestment
-- recommendedTeamSize
-- businessPriority
+FIRST: Classify the Startup Lifecycle (startupLifecycle):
+- currentStage ("Idea Stage" | "Validation Stage" | "MVP Stage" | "Launch Stage" | "Early Revenue Stage" | "Growth Stage" | "Scale Stage")
+- confidenceScore (integer 0-100)
+- reason (string)
+- nextMilestone (string)
+- estimatedTimeToNextStage (string)
+- keyObjectives (array of strings)
+- currentStageRisks (array of strings)
+- successProbability (integer 0-100)
+- potentialBlockers (array of strings)
+- suggestedPriorities (array of strings)
+
+SECOND: Construct Business DNA (businessDNA) and Business Classification (businessClassification).
 
 Return JSON only containing:
-overallScore (integer between 0 and 100)
+overallScore (integer 0-100)
 businessClassification (object)
-businessDNA (object matching above BusinessDNA fields)
-marketPotential (object with score 0-100, summary, details)
-problemValidation (object with score 0-100, summary, details)
-solutionQuality (object with score 0-100, summary, details)
-competitionLevel (object with score 0-100, level: "Low"|"Medium"|"High", summary, details)
-businessModel (object with score 0-100, summary, details)
+businessDNA (object)
+startupLifecycle (object matching StartupLifecycle schema)
+marketPotential (object)
+problemValidation (object)
+solutionQuality (object)
+competitionLevel (object)
+businessModel (object)
 strengths (array)
 weaknesses (array)
 opportunities (array)
 risks (array)
-nextSteps (array of actionable steps tailored to this specific Business DNA)
-investorVerdict (string)
-
-Keep answers concise, domain-accurate, and practical.`;
+nextSteps (array tailored to current stage)
+investorVerdict (string)`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -498,7 +496,7 @@ Keep answers concise, domain-accurate, and practical.`;
           {
             role: "system",
             content:
-              "You are a top-tier venture capitalist. Analyze startup ideas with strict, domain-tailored Business DNA JSON analysis.",
+              "You are a top-tier venture capitalist. Analyze startup ideas with strict, stage-aware, and domain-tailored JSON analysis.",
           },
           {
             role: "user",
@@ -515,6 +513,7 @@ Keep answers concise, domain-accurate, and practical.`;
         parsed.overallScore = Math.min(100, Math.max(0, Math.round(parsed.overallScore)));
         if (!parsed.businessDNA) parsed.businessDNA = inferredDNA;
         if (!parsed.businessClassification) parsed.businessClassification = inferredClassification;
+        if (!parsed.startupLifecycle) parsed.startupLifecycle = inferredLifecycle;
         return parsed;
       }
     } catch (error) {
@@ -543,6 +542,7 @@ export async function generateMentorChatResponse({
     overallScore: number;
     businessClassification?: BusinessClassification | null;
     businessDNA?: BusinessDNA | null;
+    startupLifecycle?: StartupLifecycle | null;
   } | null;
 }): Promise<string> {
   const classification = isStartupRelatedIntent(userMessage);
@@ -552,27 +552,23 @@ export async function generateMentorChatResponse({
 
   const apiKey = process.env.OPENAI_API_KEY;
   const dna = analysisContext?.businessDNA;
+  const lc = analysisContext?.startupLifecycle;
 
-  const systemPrompt = `You are an experienced, multi-industry AI Startup Mentor acting as an AI Co-Founder.
+  const systemPrompt = `You are an experienced AI Startup Mentor acting as an AI Co-Founder.
 
-CENTRAL BUSINESS DNA CONTEXT:
+BUSINESS DNA & LIFECYCLE INTELLIGENCE CONTEXT:
 - Startup Name: "${dna?.startupName || analysisContext?.startupName || "Startup"}"
 - Industry: ${dna?.industry || "General Industry"}
-- Sub-Industry: ${dna?.subIndustry || "Business"}
-- Business Category: ${dna?.businessCategory || "Standard Enterprise"}
-- Business Type: ${dna?.businessType || "Offline / Local"}
-- Revenue Model: ${dna?.revenueModel || analysisContext?.businessModel || "Direct Sales"}
-- Target Customers: ${dna?.targetCustomers || analysisContext?.audience || "Target Segment"}
-- Investment Level: ${dna?.investmentLevel || "Low"}
-- Scalability: ${dna?.scalability || "Medium"}
-- Risk Level: ${dna?.riskLevel || "Medium"}
-- Funding Type: ${dna?.fundingType || "Bootstrapped"}
+- Current Lifecycle Stage: ${lc?.currentStage || "Validation Stage"} (Confidence: ${lc?.confidenceScore || 90}%)
+- Stage Reason: ${lc?.reason || "Idea formulation stage"}
+- Next Milestone: ${lc?.nextMilestone || "Validate customer demand"}
+- Stage Priorities: ${lc?.suggestedPriorities ? lc.suggestedPriorities.join(", ") : "Problem validation"}
 - USP: ${dna?.uniqueSellingProposition || "Unique Value Proposition"}
-- Priority: ${dna?.businessPriority || "Customer Validation"}
 
-INSTRUCTIONS:
-Answer the founder's query using this exact Business DNA context. Provide practical, domain-specific recommendations.
-STRICT RULE: For physical/food/local businesses, NEVER recommend writing code, MVP software, APIs, or software metrics!`;
+CRITICAL MANDATE:
+Focus your advice strictly on the startup's CURRENT LIFECYCLE STAGE (${lc?.currentStage || "Validation Stage"}).
+- If Idea/Validation Stage: Focus on customer discovery interviews and market validation. DO NOT advise on scaling, hiring, or heavy capital expenditure!
+- If Growth/Scale Stage: Focus on marketing, hiring, automation, and funding.`;
 
   if (apiKey && apiKey.trim() !== "" && !apiKey.includes("your-api-key")) {
     try {
@@ -613,6 +609,7 @@ function generateFallbackMentorReply(
     overallScore: number;
     businessClassification?: BusinessClassification | null;
     businessDNA?: BusinessDNA | null;
+    startupLifecycle?: StartupLifecycle | null;
   } | null
 ): string {
   const classification = isStartupRelatedIntent(msg);
@@ -621,41 +618,23 @@ function generateFallbackMentorReply(
   }
 
   const dna = ctx?.businessDNA || (ctx ? inferBusinessDNA(ctx as any) : null);
+  const lc = ctx?.startupLifecycle || (ctx ? inferStartupLifecycle(ctx as any) : null);
   const name = dna?.startupName || ctx?.startupName || "your business";
-  const category = detectStartupCategory(`${name} ${ctx?.idea || ""} ${msg}`);
 
-  if (category === "FOOD") {
-    return `Here is Business DNA-guided advice for **${name}** (Industry: Food & Beverage):
+  return `Here is Lifecycle-aware advice for **${name}** (Current Stage: **${lc?.currentStage || "Validation Stage"}**):
 
-1. **Location & Footfall**: Choose a high-traffic spot near colleges, transit hubs, or commercial markets.
-2. **Hygiene & Taste Consistency**: Standardize your recipes so every serving delivers identical taste.
-3. **Unit Economics & Margins**: Keep raw ingredient costs below 30-35% of selling price to secure healthy 65%+ gross margins.
-4. **Required Licensing**: FSSAI Food License, GST Registration, and Municipal Permits.
-5. **Local Delivery**: Partner with local food delivery platforms (Zomato/Swiggy) to expand reach.`;
-  }
-
-  if (category === "FASHION") {
-    return `Here is Business DNA-guided strategy for **${name}** (Industry: Fashion & Apparel):
-
-1. **Fabric Sourcing**: Partner directly with textile mills to maintain fabric quality and lower unit costs.
-2. **Branding & Social Proof**: Invest in Instagram/TikTok reels and influencer seeding targeting ${dna?.targetCustomers || "your audience"}.
-3. **Inventory Drops**: Start with small batch drops to test demand before placing large orders.
-4. **Return Control**: Provide clear size charts to keep customer returns under 10%.`;
-  }
-
-  return `Here is Business DNA-guided strategy for **${name}** (Industry: ${dna?.industry || "Software"}):
-
-1. **Customer Validation**: Conduct 15 discovery calls with ${dna?.targetCustomers || "target users"}.
-2. **MVP Iteration**: Build a lightweight prototype to validate core value conversion.
-3. **Pricing Tiers**: Test value-based subscription tiers for ${dna?.revenueModel || "your business"}.
-4. **Go-to-Market**: Focus on 1 primary acquisition channel for sustainable organic growth.`;
+1. **Primary Stage Focus**: ${lc?.reason || "Validate customer demand"}
+2. **Immediate Next Milestone**: ${lc?.nextMilestone || "Conduct problem discovery interviews"}
+3. **Stage Priorities**:
+${lc?.suggestedPriorities ? lc.suggestedPriorities.map((p, i) => `   - Step ${i + 1}: ${p}`).join("\n") : "   - Interview target audience\n   - Test pricing willingness"}
+4. **Current Stage Risks**: Watch out for ${lc?.currentStageRisks ? lc.currentStageRisks[0] : "building before validating demand"}.`;
 }
 
 function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
   const name = input.startupName.trim();
   const inferredDNA = inferBusinessDNA(input);
   const inferredClassification = inferBusinessClassification(input);
-  const category = detectStartupCategory(`${name} ${input.idea} ${input.businessModel}`);
+  const inferredLifecycle = inferStartupLifecycle(input);
 
   const hasCompetitors = Boolean(input.competitors && input.competitors.length > 5);
   const problemDepth = input.problem.length;
@@ -676,16 +655,11 @@ function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
   const competitionScore = hasCompetitors ? 68 : 82;
   const businessModelScore = Math.min(90, score + 1);
 
-  let customNextSteps = inferredDNA.primarySuccessFactors.map((f, i) => `Execute Step ${i + 1}: Focus on ${f}`);
-  if (customNextSteps.length < 4) {
-    customNextSteps.push(`Finalize required permits: ${inferredDNA.requiredLicenses.join(", ")}`);
-    customNextSteps.push(`Conduct customer validation in target region (${input.country})`);
-  }
-
   return {
     overallScore: score,
     businessClassification: inferredClassification,
     businessDNA: inferredDNA,
+    startupLifecycle: inferredLifecycle,
     marketPotential: {
       score: marketScore,
       summary: `High growth potential in ${input.country} targeting ${input.audience}.`,
@@ -721,11 +695,8 @@ function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
       `Capitalize on ${inferredDNA.expansionPotential}`,
       `Leverage ${inferredDNA.uniqueSellingProposition}`,
     ],
-    risks: [
-      "Initial customer acquisition cost without referral loops",
-      "Local market competition and operational execution risks",
-    ],
-    nextSteps: customNextSteps,
-    investorVerdict: `${name} demonstrates a compelling concept tackling a genuine pain point for ${input.audience}. With disciplined execution around ${inferredDNA.businessPriority}, this business has strong venture upside.`,
+    risks: inferredLifecycle.currentStageRisks,
+    nextSteps: inferredLifecycle.suggestedPriorities,
+    investorVerdict: `${name} is currently in the ${inferredLifecycle.currentStage} with ${inferredLifecycle.confidenceScore}% classification confidence. Focusing on ${inferredLifecycle.nextMilestone} will prepare this venture for rapid stage progression.`,
   };
 }

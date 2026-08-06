@@ -1,3 +1,25 @@
+export type LifecycleStage =
+  | "Idea Stage"
+  | "Validation Stage"
+  | "MVP Stage"
+  | "Launch Stage"
+  | "Early Revenue Stage"
+  | "Growth Stage"
+  | "Scale Stage";
+
+export interface StartupLifecycle {
+  currentStage: LifecycleStage;
+  confidenceScore: number;
+  reason: string;
+  nextMilestone: string;
+  estimatedTimeToNextStage: string;
+  keyObjectives: string[];
+  currentStageRisks: string[];
+  successProbability: number;
+  potentialBlockers: string[];
+  suggestedPriorities: string[];
+}
+
 export interface BusinessClassification {
   industry: string;
   businessCategory: string;
@@ -48,6 +70,7 @@ export interface AnalysisResultJSON {
   overallScore: number;
   businessClassification?: BusinessClassification;
   businessDNA?: BusinessDNA;
+  startupLifecycle?: StartupLifecycle;
   marketPotential: {
     score: number;
     summary: string;

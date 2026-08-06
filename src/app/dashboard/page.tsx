@@ -23,6 +23,9 @@ import {
   Layers,
   Dna,
   Check,
+  Flag,
+  ChevronRight,
+  Activity,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
@@ -54,6 +57,19 @@ export default async function DashboardPage() {
   }
 
   const dna = latestResult?.businessDNA;
+  const lc = latestResult?.startupLifecycle;
+
+  const allStages = [
+    "Idea Stage",
+    "Validation Stage",
+    "MVP Stage",
+    "Launch Stage",
+    "Early Revenue Stage",
+    "Growth Stage",
+    "Scale Stage",
+  ];
+
+  const currentStageIndex = lc ? allStages.indexOf(lc.currentStage) : 1;
 
   // Fetch roadmap tasks for latest analysis
   const roadmapTasks = latestRecord
@@ -152,7 +168,108 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* 2. Business DNA Dashboard Showcase Card */}
+        {/* 2. Startup Lifecycle Intelligence Widget */}
+        {lc && (
+          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-indigo-200/80 shadow-md space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-extrabold border border-indigo-200">
+                  <Activity className="w-3.5 h-3.5 text-indigo-600 animate-pulse" />
+                  <span>Startup Lifecycle Intelligence</span>
+                </div>
+                <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                  Lifecycle Progress Timeline & Stage Prediction
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Automated stage classification governing AI Mentor advice, Roadmap milestones, and Health metrics
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1.5 bg-purple-600 text-white text-xs font-extrabold rounded-xl shadow-sm">
+                  {lc.currentStage}
+                </span>
+                <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold rounded-xl">
+                  {lc.confidenceScore}% Classification Confidence
+                </span>
+              </div>
+            </div>
+
+            {/* 7-Stage Horizontal Progress Timeline */}
+            <div className="overflow-x-auto pb-2">
+              <div className="flex items-center min-w-[700px] justify-between relative">
+                <div className="absolute top-1/2 left-4 right-4 h-1 bg-slate-100 -translate-y-1/2 -z-0" />
+                <div
+                  className="absolute top-1/2 left-4 h-1 bg-gradient-to-r from-purple-600 to-indigo-600 -translate-y-1/2 -z-0 transition-all duration-500"
+                  style={{ width: `${(currentStageIndex / (allStages.length - 1)) * 95}%` }}
+                />
+
+                {allStages.map((stg, idx) => {
+                  const isCurrent = idx === currentStageIndex;
+                  const isPassed = idx < currentStageIndex;
+                  return (
+                    <div key={stg} className="relative z-10 flex flex-col items-center gap-2 text-center">
+                      <div
+                        className={`w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-xs transition-all ${
+                          isCurrent
+                            ? "bg-purple-600 text-white ring-4 ring-purple-100 shadow-md shadow-purple-600/30 scale-110"
+                            : isPassed
+                            ? "bg-emerald-500 text-white"
+                            : "bg-slate-100 text-slate-400 border border-slate-200"
+                        }`}
+                      >
+                        {isPassed ? <Check className="w-4 h-4" /> : idx + 1}
+                      </div>
+                      <span
+                        className={`text-[11px] font-extrabold max-w-[85px] leading-tight ${
+                          isCurrent ? "text-purple-700 font-extrabold" : isPassed ? "text-slate-700" : "text-slate-400"
+                        }`}
+                      >
+                        {stg}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Stage Summary & Predictions Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              {/* Reason & Objectives */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-2">
+                <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Flag className="w-3.5 h-3.5 text-purple-600" /> Stage Rationale & Objectives
+                </span>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">&ldquo;{lc.reason}&rdquo;</p>
+              </div>
+
+              {/* Next Milestone & Est. Time */}
+              <div className="p-4 rounded-xl bg-purple-50/50 border border-purple-100 space-y-2">
+                <span className="text-[11px] font-bold text-purple-950 uppercase tracking-wider flex items-center gap-1.5">
+                  <Target className="w-3.5 h-3.5 text-purple-600" /> Next Target Milestone
+                </span>
+                <p className="text-xs font-extrabold text-purple-950">{lc.nextMilestone}</p>
+                <span className="text-[10px] font-bold text-purple-700 block">Est. Transition Time: {lc.estimatedTimeToNextStage}</span>
+              </div>
+
+              {/* Future Stage Prediction */}
+              <div className="p-4 rounded-xl bg-emerald-50/40 border border-emerald-100 space-y-2">
+                <span className="text-[11px] font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> Growth & Success Prediction
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-extrabold text-emerald-700">{lc.successProbability}%</span>
+                  <span className="text-[11px] font-bold text-slate-600">Stage Success Probability</span>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                  Primary Blocker: <span className="font-bold text-slate-800">{lc.potentialBlockers[0]}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. Business DNA Dashboard Showcase Card */}
         {dna && (
           <div className="bg-white p-6 sm:p-8 rounded-2xl border border-purple-200/80 shadow-sm space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3">
@@ -205,7 +322,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* 3. Quick Overview Section */}
+        {/* 4. Quick Overview Section */}
         {latestRecord && latestResult ? (
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -300,7 +417,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* 4. Today's Priorities Card */}
+        {/* 5. Today's Priorities Card */}
         {latestResult && (
           <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-200/40 hover:shadow-md transition-all duration-200 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -332,7 +449,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* 5. Recent Activity Section Grid */}
+        {/* 6. Recent Activity Section Grid */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <Clock className="w-5 h-5 text-purple-600" />

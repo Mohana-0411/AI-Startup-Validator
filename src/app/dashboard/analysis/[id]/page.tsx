@@ -21,6 +21,8 @@ import {
   Tag,
   Clock,
   Briefcase,
+  Activity,
+  Flag,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
@@ -53,6 +55,7 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
   const overallScore = record.overallScore;
   const classification = result.businessClassification;
   const dna = result.businessDNA;
+  const lc = result.startupLifecycle;
 
   return (
     <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 font-sans">
@@ -197,42 +200,63 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
                 </span>
               </div>
             </div>
+          </div>
+        )}
 
-            {/* Grid 2: Operational Parameters & Financial Projections */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-              {/* USP & Key Advantages */}
+        {/* Startup Lifecycle Intelligence Card */}
+        {lc && (
+          <div className="bg-white rounded-2xl p-6 sm:p-8 border border-indigo-200/80 shadow-sm space-y-6">
+            <div className="border-b border-indigo-100 pb-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-extrabold border border-indigo-200">
+                  <Activity className="w-3.5 h-3.5 text-indigo-600" />
+                  <span>Startup Lifecycle Intelligence</span>
+                </div>
+                <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                  Lifecycle Stage & Growth Prediction
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Dynamic stage classification governing AI Mentor advice and Roadmap milestones
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className="px-3.5 py-1.5 bg-purple-600 text-white text-xs font-extrabold rounded-xl shadow-sm">
+                  {lc.currentStage}
+                </span>
+                <span className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold rounded-xl">
+                  {lc.confidenceScore}% Confidence
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-2">
+                <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Flag className="w-3.5 h-3.5 text-purple-600" /> Stage Rationale
+                </span>
+                <p className="text-xs text-slate-600 leading-relaxed font-medium">&ldquo;{lc.reason}&rdquo;</p>
+              </div>
+
               <div className="p-4 rounded-xl bg-purple-50/50 border border-purple-100 space-y-2">
                 <span className="text-[11px] font-bold text-purple-950 uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-purple-600" /> Unique Selling Proposition (USP)
+                  <Target className="w-3.5 h-3.5 text-purple-600" /> Next Stage Target
                 </span>
-                <p className="text-xs text-slate-800 font-semibold leading-relaxed">&ldquo;{dna.uniqueSellingProposition}&rdquo;</p>
+                <p className="text-xs font-extrabold text-purple-950">{lc.nextMilestone}</p>
+                <span className="text-[10px] font-bold text-purple-700 block">Est. Time Horizon: {lc.estimatedTimeToNextStage}</span>
               </div>
 
-              {/* Required Licenses */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-2">
-                <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Briefcase className="w-3.5 h-3.5 text-purple-600" /> Required Licenses & Compliance
+              <div className="p-4 rounded-xl bg-emerald-50/40 border border-emerald-100 space-y-2">
+                <span className="text-[11px] font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> Stage Growth Prediction
                 </span>
-                <ul className="space-y-1 text-xs text-slate-700 font-medium">
-                  {dna.requiredLicenses.map((lic, i) => (
-                    <li key={i} className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />
-                      <span>{lic}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Execution Timelines */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-2">
-                <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-purple-600" /> Execution Timelines & Team
-                </span>
-                <div className="space-y-1 text-xs text-slate-700">
-                  <p><span className="font-bold">Initial Est. Investment:</span> {dna.estimatedInitialInvestment}</p>
-                  <p><span className="font-bold">Time to Launch:</span> {dna.estimatedTimeToLaunch}</p>
-                  <p><span className="font-bold">Team Size:</span> {dna.recommendedTeamSize}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-extrabold text-emerald-700">{lc.successProbability}%</span>
+                  <span className="text-[11px] font-bold text-slate-600">Success Probability</span>
                 </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                  Primary Risk: <span className="font-bold text-slate-800">{lc.currentStageRisks[0]}</span>
+                </p>
               </div>
             </div>
           </div>
