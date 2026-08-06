@@ -15,9 +15,12 @@ import {
   Globe2,
   DollarSign,
   Users,
-  Sliders,
-  Layers,
-  Layers3,
+  Dna,
+  Check,
+  Zap,
+  Tag,
+  Clock,
+  Briefcase,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
@@ -49,11 +52,12 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
   const result: AnalysisResultJSON = JSON.parse(record.analysisResult);
   const overallScore = record.overallScore;
   const classification = result.businessClassification;
+  const dna = result.businessDNA;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Navigation & Action Header */}
+        {/* Navigation Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <Link
             href="/dashboard"
@@ -130,85 +134,105 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
           )}
         </div>
 
-        {/* Business Classification Section */}
-        {classification && (
-          <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-purple-600" />
-                  Business Classification & Industry Profile
+        {/* Business DNA Central Intelligence Card */}
+        {dna && (
+          <div className="bg-white rounded-2xl p-6 sm:p-8 border border-purple-200/80 shadow-md space-y-6">
+            <div className="border-b border-purple-100 pb-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-extrabold border border-purple-200">
+                  <Dna className="w-4 h-4 text-purple-700 animate-pulse" />
+                  <span>Business DNA • Single Source of Truth</span>
+                </div>
+                <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                  Business Profile & Intelligence Architecture
                 </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Industry classification layer used across AI Mentor, Roadmap, and Competitor Insights
+                <p className="text-xs text-slate-500">
+                  Central DNA profile consumed by AI Mentor, Roadmap, Health Monitor, and Competitor Engine
                 </p>
               </div>
-              <span className="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 text-xs font-extrabold rounded-full">
-                {classification.industry}
-              </span>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                  Industry
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-slate-900 text-white text-xs font-extrabold rounded-xl">
+                  {dna.industry}
                 </span>
-                <p className="text-sm font-extrabold text-slate-900">{classification.industry}</p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                  Business Category
+                <span className="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 text-xs font-extrabold rounded-xl">
+                  {dna.businessType}
                 </span>
-                <p className="text-sm font-extrabold text-slate-900">{classification.businessCategory}</p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                  Business Type
-                </span>
-                <p className="text-sm font-extrabold text-purple-700">{classification.businessType}</p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                  Revenue Model
-                </span>
-                <p className="text-sm font-extrabold text-slate-900">{classification.revenueModel}</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-1">
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                  Scalability
-                </span>
-                <span className="inline-block px-2.5 py-0.5 rounded text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                  {classification.scalability}
+            {/* Grid 1: Industry & Operational DNA */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Industry</span>
+                <p className="text-xs font-extrabold text-slate-900 truncate">{dna.industry}</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Business Category</span>
+                <p className="text-xs font-extrabold text-slate-900 truncate">{dna.businessCategory}</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Revenue Model</span>
+                <p className="text-xs font-extrabold text-purple-700 truncate">{dna.revenueModel}</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Market Scope</span>
+                <p className="text-xs font-extrabold text-slate-900">{dna.marketScope}</p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Investment Level</span>
+                <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                  {dna.investmentLevel}
                 </span>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                  Primary Customer Segment
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Scalability</span>
+                <span className="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                  {dna.scalability}
                 </span>
-                <p className="text-xs font-bold text-slate-800">{classification.primaryCustomerSegment}</p>
+              </div>
+            </div>
+
+            {/* Grid 2: Operational Parameters & Financial Projections */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              {/* USP & Key Advantages */}
+              <div className="p-4 rounded-xl bg-purple-50/50 border border-purple-100 space-y-2">
+                <span className="text-[11px] font-bold text-purple-950 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600" /> Unique Selling Proposition (USP)
+                </span>
+                <p className="text-xs text-slate-800 font-semibold leading-relaxed">&ldquo;{dna.uniqueSellingProposition}&rdquo;</p>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                  Market Scope
+              {/* Required Licenses */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-2">
+                <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-purple-600" /> Required Licenses & Compliance
                 </span>
-                <p className="text-xs font-bold text-slate-800">{classification.marketScope}</p>
+                <ul className="space-y-1 text-xs text-slate-700 font-medium">
+                  {dna.requiredLicenses.map((lic, i) => (
+                    <li key={i} className="flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-600" />
+                      <span>{lic}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
-                  Digital Dependency
+              {/* Execution Timelines */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-2">
+                <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-purple-600" /> Execution Timelines & Team
                 </span>
-                <span className="inline-block px-2.5 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                  {classification.digitalDependency}
-                </span>
+                <div className="space-y-1 text-xs text-slate-700">
+                  <p><span className="font-bold">Initial Est. Investment:</span> {dna.estimatedInitialInvestment}</p>
+                  <p><span className="font-bold">Time to Launch:</span> {dna.estimatedTimeToLaunch}</p>
+                  <p><span className="font-bold">Team Size:</span> {dna.recommendedTeamSize}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -285,80 +309,6 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
                 <p className="text-sm font-semibold text-slate-800 mb-2">{result.businessModel.summary}</p>
                 <p className="text-xs text-slate-500 leading-relaxed">{result.businessModel.details}</p>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 4-Quadrant SWAT Matrix */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <Target className="w-5 h-5 text-purple-600" />
-            SWAT Matrix & Strategic Risk Evaluation
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Strengths */}
-            <div className="bg-white p-6 rounded-2xl border border-emerald-200/80 shadow-sm space-y-3">
-              <h3 className="text-sm font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                Key Strengths
-              </h3>
-              <ul className="space-y-2">
-                {result.strengths.map((item, i) => (
-                  <li key={i} className="text-xs text-slate-700 flex items-start gap-2 bg-emerald-50/50 p-2.5 rounded-lg border border-emerald-100">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Weaknesses */}
-            <div className="bg-white p-6 rounded-2xl border border-amber-200/80 shadow-sm space-y-3">
-              <h3 className="text-sm font-bold text-amber-800 uppercase tracking-wider flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
-                Weaknesses & Gaps
-              </h3>
-              <ul className="space-y-2">
-                {result.weaknesses.map((item, i) => (
-                  <li key={i} className="text-xs text-slate-700 flex items-start gap-2 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Opportunities */}
-            <div className="bg-white p-6 rounded-2xl border border-purple-200/80 shadow-sm space-y-3">
-              <h3 className="text-sm font-bold text-purple-800 uppercase tracking-wider flex items-center gap-2">
-                <Lightbulb className="w-4 h-4 text-purple-600" />
-                Market Opportunities
-              </h3>
-              <ul className="space-y-2">
-                {result.opportunities.map((item, i) => (
-                  <li key={i} className="text-xs text-slate-700 flex items-start gap-2 bg-purple-50/50 p-2.5 rounded-lg border border-purple-100">
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mt-1.5 shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Risks */}
-            <div className="bg-white p-6 rounded-2xl border border-rose-200/80 shadow-sm space-y-3">
-              <h3 className="text-sm font-bold text-rose-800 uppercase tracking-wider flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-rose-600" />
-                External Risks & Pitfalls
-              </h3>
-              <ul className="space-y-2">
-                {result.risks.map((item, i) => (
-                  <li key={i} className="text-xs text-slate-700 flex items-start gap-2 bg-rose-50/50 p-2.5 rounded-lg border border-rose-100">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5 shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>

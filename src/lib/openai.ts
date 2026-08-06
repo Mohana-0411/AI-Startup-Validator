@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { AnalysisResultJSON, BusinessClassification } from "./types";
+import { AnalysisResultJSON, BusinessClassification, BusinessDNA } from "./types";
 
 interface StartupIdeaInput {
   startupName: string;
@@ -121,6 +121,209 @@ export function detectStartupCategory(text: string): StartupCategory {
   return "SOFTWARE_SAAS";
 }
 
+export function inferBusinessDNA(input: StartupIdeaInput): BusinessDNA {
+  const name = input.startupName.trim();
+  const fullText = `${name} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
+  const category = detectStartupCategory(fullText);
+
+  if (category === "FOOD") {
+    const isPuri = fullText.includes("panipuri") || fullText.includes("chaat");
+    return {
+      startupName: name,
+      industry: "Food & Beverage",
+      subIndustry: isPuri ? "Quick Service Street Food" : "Restaurant & Food Service",
+      businessCategory: isPuri ? "Street Food Outlet" : "Quick Service Restaurant",
+      businessType: "Offline Local Business",
+      businessModel: input.businessModel || "Direct Counter Sales & Food App Commissions",
+      revenueModel: "Direct Retail Cash & Digital Payments",
+      businessStage: "Idea",
+      targetCustomers: input.audience || "Students, Office Workers & Local Families",
+      customerPersona: "Budget-conscious food lovers seeking quick, hygienic, and authentic snacks",
+      marketScope: "Local",
+      investmentLevel: "Low",
+      operationalComplexity: "Medium",
+      technologyDependency: "Low",
+      scalability: "Medium",
+      expansionPotential: "Multi-outlet Franchising & Dark Kitchen Delivery Units",
+      fundingRequirement: "$3,000 - $10,000",
+      fundingType: "Self-funded / Bootstrapped",
+      competitionLevel: "High",
+      riskLevel: "Medium",
+      growthPotential: "High",
+      digitalPresenceImportance: "Medium",
+      requiredLicenses: ["FSSAI Food Safety License", "GST Registration", "Municipal Trade Permit"],
+      primarySuccessFactors: [
+        "High Footfall Storefront Location",
+        "Strict Taste & Recipe Consistency",
+        "Hygienic Presentation & Cleanliness",
+        "Fast Counter Customer Service",
+      ],
+      biggestChallenges: [
+        "Perishable raw ingredient management",
+        "Local street vendor competition",
+        "Shift staff training and retention",
+      ],
+      keyAdvantages: [
+        "Low initial capital expenditure (CapEx)",
+        "High 65%+ gross profit margins",
+        "Daily positive cash flow cycle",
+      ],
+      uniqueSellingProposition: isPuri
+        ? "Hygienic panipuri served with mineral water and 6 custom flavored waters"
+        : "Fresh, high-quality food prepared with standardized secret family recipes",
+      estimatedTimeToLaunch: "2-4 weeks",
+      estimatedInitialInvestment: "$3,000 - $8,000",
+      recommendedTeamSize: "2-4 staff",
+      businessPriority: "Location Selection, FSSAI Licensing & Recipe Standardization",
+    };
+  }
+
+  if (category === "FASHION") {
+    return {
+      startupName: name,
+      industry: "Fashion & Apparel",
+      subIndustry: "D2C Apparel & Garments",
+      businessCategory: "D2C Clothing Brand",
+      businessType: "Physical Goods / D2C",
+      businessModel: input.businessModel || "Direct-to-Consumer E-Commerce",
+      revenueModel: "Direct Online Sales & Wholesale Tiering",
+      businessStage: "Idea",
+      targetCustomers: input.audience || "Fashion Conscious Youth & Young Adults",
+      customerPersona: "Trend-driven shoppers seeking premium fabric quality and unique design aesthetics",
+      marketScope: "National",
+      investmentLevel: "Medium",
+      operationalComplexity: "Medium",
+      technologyDependency: "Medium",
+      scalability: "High",
+      expansionPotential: "Global E-Commerce & Retail Multi-brand Store Placements",
+      fundingRequirement: "$15,000 - $50,000",
+      fundingType: "Self-funded / Bootstrapped",
+      competitionLevel: "High",
+      riskLevel: "Medium",
+      growthPotential: "High",
+      digitalPresenceImportance: "High",
+      requiredLicenses: ["GST Registration", "Import-Export Code (IEC)", "Trademark Registration"],
+      primarySuccessFactors: [
+        "Fabric Quality & Stitching Precision",
+        "Instagram & TikTok Viral Short-Form Content",
+        "Low Customer Return Rate (<10%)",
+        "Influencer Product Seeding",
+      ],
+      biggestChallenges: [
+        "Inventory overstock and deadstock risk",
+        "E-commerce return logistics costs",
+        "High Facebook/Instagram ad acquisition costs",
+      ],
+      keyAdvantages: [
+        "Scalable national shipping reach",
+        "High brand equity leverage",
+        "70%+ D2C gross product margins",
+      ],
+      uniqueSellingProposition: "Premium fabric craftsmanship combined with modern street fashion designs",
+      estimatedTimeToLaunch: "4-8 weeks",
+      estimatedInitialInvestment: "$10,000 - $25,000",
+      recommendedTeamSize: "3-5 team members",
+      businessPriority: "Fabric Sourcing, Sample Batch Testing & Social Media Launch",
+    };
+  }
+
+  if (category === "FITNESS") {
+    return {
+      startupName: name,
+      industry: "Fitness & Wellness",
+      subIndustry: "Gym & Health Club",
+      businessCategory: "Fitness Center",
+      businessType: "Offline Local Business",
+      businessModel: input.businessModel || "Monthly & Annual Membership Tiers",
+      revenueModel: "Recurring Membership Subscriptions & Personal Training Fees",
+      businessStage: "Idea",
+      targetCustomers: input.audience || "Fitness Enthusiasts & Working Professionals",
+      customerPersona: "Health-conscious individuals seeking structured workout routines and community support",
+      marketScope: "Local",
+      investmentLevel: "High",
+      operationalComplexity: "Medium",
+      technologyDependency: "Low",
+      scalability: "Medium",
+      expansionPotential: "City-wide Multi-gym Chain Franchising",
+      fundingRequirement: "$40,000 - $120,000",
+      fundingType: "Bank Loan / Angel Investment",
+      competitionLevel: "Medium",
+      riskLevel: "Medium",
+      growthPotential: "High",
+      digitalPresenceImportance: "Medium",
+      requiredLicenses: ["Commercial Space Permit", "Fire Safety Clearance", "GST Registration"],
+      primarySuccessFactors: [
+        "Prime Location & Parking Accessibility",
+        "Modern Machinery & Equipment Maintenance",
+        "Certified Trainer Retention",
+        "Member Trial Offer Conversion",
+      ],
+      biggestChallenges: [
+        "High upfront equipment capital expenditure",
+        "Member churn after initial 3 months",
+        "Peak-hour facility crowding",
+      ],
+      keyAdvantages: [
+        "Upfront annual prepay cash flow",
+        "High customer lifetime value",
+        "Strong local community network",
+      ],
+      uniqueSellingProposition: "State-of-the-art machinery combined with personalized nutrition & workout coaching",
+      estimatedTimeToLaunch: "6-12 weeks",
+      estimatedInitialInvestment: "$35,000 - $80,000",
+      recommendedTeamSize: "4-6 trainers & staff",
+      businessPriority: "Space Finalization, Equipment Leasing & Pre-launch Promotions",
+    };
+  }
+
+  return {
+    startupName: name,
+    industry: "AI SaaS & Software",
+    subIndustry: "B2B Venture Software",
+    businessCategory: "B2B SaaS Platform",
+    businessType: "Digital / Software / SaaS",
+    businessModel: input.businessModel || "Tiered Monthly Subscription",
+    revenueModel: "Recurring SaaS Subscriptions",
+    businessStage: "Idea",
+    targetCustomers: input.audience || "Digital Founders & Enterprise Product Teams",
+    customerPersona: "Tech-savvy founders looking to automate manual business workflows",
+    marketScope: "Global",
+    investmentLevel: "Low",
+    operationalComplexity: "Low",
+    technologyDependency: "High",
+    scalability: "High",
+    expansionPotential: "Global SaaS Distribution & API Integration Partnerships",
+    fundingRequirement: "$20,000 - $100,000",
+    fundingType: "Self-funded / Angel VC",
+    competitionLevel: "Medium",
+    riskLevel: "Low",
+    growthPotential: "Exponential",
+    digitalPresenceImportance: "High",
+    requiredLicenses: ["Company Incorporation", "Terms of Service & Privacy Compliance"],
+    primarySuccessFactors: [
+      "Frictionless Onboarding (< 60s)",
+      "High Product Value & Churn Reduction",
+      "Organic SEO & Outbound Pipeline",
+      "Scalable Cloud Infrastructure",
+    ],
+    biggestChallenges: [
+      "Customer acquisition cost (CAC) optimization",
+      "Feature copying by incumbent platforms",
+      "User activation rate bottlenecks",
+    ],
+    keyAdvantages: [
+      "Zero physical inventory & marginal distribution cost",
+      "85%+ Software gross margins",
+      "Global day-one customer reach",
+    ],
+    uniqueSellingProposition: "Instant AI automated workflow execution with zero setup friction",
+    estimatedTimeToLaunch: "3-6 weeks",
+    estimatedInitialInvestment: "$5,000 - $15,000",
+    recommendedTeamSize: "2-4 engineers & founders",
+    businessPriority: "Customer Discovery Interviews, MVP Prototype & Landing Page Smoke Test",
+  };
+}
+
 export function inferBusinessClassification(input: StartupIdeaInput): BusinessClassification {
   const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
   const category = detectStartupCategory(fullText);
@@ -150,62 +353,6 @@ export function inferBusinessClassification(input: StartupIdeaInput): BusinessCl
       primaryCustomerSegment: input.audience || "Fashion Conscious Youth & Adults",
       marketScope: "National",
       digitalDependency: "Medium",
-    };
-  }
-
-  if (category === "FITNESS") {
-    return {
-      industry: "Fitness & Wellness",
-      businessCategory: "Fitness Gym & Training Center",
-      businessType: "Offline Local Business",
-      revenueModel: input.businessModel || "Membership Subscriptions",
-      scalability: "Medium",
-      businessStage: "Idea",
-      primaryCustomerSegment: input.audience || "Fitness Enthusiasts & Working Professionals",
-      marketScope: "Local",
-      digitalDependency: "Low",
-    };
-  }
-
-  if (category === "EDUCATION") {
-    return {
-      industry: "Education & Training",
-      businessCategory: "Tuition & Coaching Center",
-      businessType: "Offline Local Business",
-      revenueModel: input.businessModel || "Monthly / Term Course Fees",
-      scalability: "Medium",
-      businessStage: "Idea",
-      primaryCustomerSegment: input.audience || "Students & Parents",
-      marketScope: "Local",
-      digitalDependency: "Low",
-    };
-  }
-
-  if (category === "RETAIL_LOCAL") {
-    return {
-      industry: "Retail & Commerce",
-      businessCategory: "Local Retail Store",
-      businessType: "Offline Local Business",
-      revenueModel: input.businessModel || "Direct Retail Sales",
-      scalability: "Medium",
-      businessStage: "Idea",
-      primaryCustomerSegment: input.audience || "Neighborhood Shoppers",
-      marketScope: "Local",
-      digitalDependency: "Low",
-    };
-  }
-
-  if (category === "AGRICULTURE_MANUFACTURING") {
-    return {
-      industry: "Manufacturing & Agriculture",
-      businessCategory: "B2B Manufacturing / Supply Business",
-      businessType: "Physical Goods / D2C",
-      revenueModel: input.businessModel || "Wholesale / Direct Sales",
-      scalability: "High",
-      businessStage: "Idea",
-      primaryCustomerSegment: input.audience || "Commercial Wholesalers & Distributors",
-      marketScope: "Regional",
-      digitalDependency: "Low",
     };
   }
 
@@ -262,13 +409,11 @@ export function isStartupRelatedIntent(message: string): { isStartup: boolean; c
     return { isStartup: true };
   }
 
-  // Allowed greetings
   const greetings = ["hi", "hello", "hey", "help", "good morning", "good evening", "what can you do"];
   if (greetings.some((g) => lower === g || lower.startsWith(g))) {
     return { isStartup: true };
   }
 
-  // Default to non-startup if no startup intent matched
   return { isStartup: false, category: "unrelated topics" };
 }
 
@@ -276,13 +421,14 @@ export async function generateStartupAnalysis(
   input: StartupIdeaInput
 ): Promise<AnalysisResultJSON> {
   const apiKey = process.env.OPENAI_API_KEY;
+  const inferredDNA = inferBusinessDNA(input);
   const inferredClassification = inferBusinessClassification(input);
 
   if (apiKey && apiKey.trim() !== "" && !apiKey.includes("your-api-key")) {
     try {
       const openai = new OpenAI({ apiKey });
 
-      const prompt = `You are an experienced multi-industry business investor.
+      const prompt = `You are an experienced multi-industry venture capitalist.
 
 Analyze this startup idea:
 
@@ -295,35 +441,56 @@ Country/Region: ${input.country}
 Business Model: ${input.businessModel}
 Competitors: ${input.competitors || "Not specified"}
 
-FIRST: Classify this business into the JSON field businessClassification:
-- industry (string, e.g. "Food & Beverage", "Fashion", "AI SaaS", "Fitness", "Education")
-- businessCategory (string, e.g. "Street Food Business", "D2C Clothing Brand", "B2B SaaS Platform")
+FIRST: Construct the complete Business DNA object (businessDNA) representing the central intelligence of this venture:
+- startupName
+- industry
+- subIndustry
+- businessCategory
 - businessType ("Offline Local Business" | "Physical Goods / D2C" | "Digital / Software / SaaS" | "Service / Consulting" | "Hybrid")
-- revenueModel (string, e.g. "Direct Sales", "Subscriptions", "Course Fees")
-- scalability ("Low" | "Medium" | "High")
+- businessModel
+- revenueModel
 - businessStage ("Idea" | "MVP" | "Existing Business")
-- primaryCustomerSegment (string)
+- targetCustomers
+- customerPersona
 - marketScope ("Local" | "Regional" | "National" | "Global")
-- digitalDependency ("Low" | "Medium" | "High")
+- investmentLevel ("Low" | "Medium" | "High")
+- operationalComplexity ("Low" | "Medium" | "High")
+- technologyDependency ("Low" | "Medium" | "High")
+- scalability ("Low" | "Medium" | "High")
+- expansionPotential
+- fundingRequirement
+- fundingType ("Self-funded / Bootstrapped" | "Angel / Seed VC" | "Bank Loan")
+- competitionLevel ("Low" | "Medium" | "High")
+- riskLevel ("Low" | "Medium" | "High")
+- growthPotential ("Medium" | "High" | "Exponential")
+- digitalPresenceImportance ("Low" | "Medium" | "High")
+- requiredLicenses (array of strings)
+- primarySuccessFactors (array of strings)
+- biggestChallenges (array of strings)
+- keyAdvantages (array of strings)
+- uniqueSellingProposition
+- estimatedTimeToLaunch
+- estimatedInitialInvestment
+- recommendedTeamSize
+- businessPriority
 
-IMPORTANT: Do NOT recommend writing code, MVP software, or software metrics for physical businesses (e.g. food stalls, restaurants, retail shops)!
-
-Return JSON only with:
+Return JSON only containing:
 overallScore (integer between 0 and 100)
-businessClassification (object with the above classification fields)
-marketPotential (object with integer score 0-100, concise summary, and details string)
-problemValidation (object with integer score 0-100, concise summary, and details string)
-solutionQuality (object with integer score 0-100, concise summary, and details string)
-competitionLevel (object with integer score 0-100, level: "Low"|"Medium"|"High", concise summary, and details string)
-businessModel (object with integer score 0-100, concise summary, and details string)
-strengths (array of 3-5 concise bullet points)
-weaknesses (array of 3-5 concise bullet points)
-opportunities (array of 3-5 concise bullet points)
-risks (array of 3-5 concise bullet points)
-nextSteps (array of 4-6 practical, actionable steps for the founder tailored to their specific business category)
-investorVerdict (a 2-3 sentence executive summary from a seasoned business partner perspective)
+businessClassification (object)
+businessDNA (object matching above BusinessDNA fields)
+marketPotential (object with score 0-100, summary, details)
+problemValidation (object with score 0-100, summary, details)
+solutionQuality (object with score 0-100, summary, details)
+competitionLevel (object with score 0-100, level: "Low"|"Medium"|"High", summary, details)
+businessModel (object with score 0-100, summary, details)
+strengths (array)
+weaknesses (array)
+opportunities (array)
+risks (array)
+nextSteps (array of actionable steps tailored to this specific Business DNA)
+investorVerdict (string)
 
-Keep answers concise and practical.`;
+Keep answers concise, domain-accurate, and practical.`;
 
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
@@ -331,7 +498,7 @@ Keep answers concise and practical.`;
           {
             role: "system",
             content:
-              "You are an experienced venture capitalist and business advisor. Analyze startup ideas with strict, fair, domain-tailored, and highly actionable JSON analysis.",
+              "You are a top-tier venture capitalist. Analyze startup ideas with strict, domain-tailored Business DNA JSON analysis.",
           },
           {
             role: "user",
@@ -346,9 +513,8 @@ Keep answers concise and practical.`;
       if (content) {
         const parsed = JSON.parse(content) as AnalysisResultJSON;
         parsed.overallScore = Math.min(100, Math.max(0, Math.round(parsed.overallScore)));
-        if (!parsed.businessClassification) {
-          parsed.businessClassification = inferredClassification;
-        }
+        if (!parsed.businessDNA) parsed.businessDNA = inferredDNA;
+        if (!parsed.businessClassification) parsed.businessClassification = inferredClassification;
         return parsed;
       }
     } catch (error) {
@@ -376,60 +542,37 @@ export async function generateMentorChatResponse({
     competitors?: string | null;
     overallScore: number;
     businessClassification?: BusinessClassification | null;
+    businessDNA?: BusinessDNA | null;
   } | null;
 }): Promise<string> {
-  // Step 1: Pre-classification via Intent Classifier
   const classification = isStartupRelatedIntent(userMessage);
   if (!classification.isStartup) {
     return DOMAIN_REFUSAL_MESSAGE;
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
-  const startupText = `${analysisContext?.startupName || ""} ${analysisContext?.idea || ""} ${analysisContext?.businessModel || ""} ${userMessage}`;
-  const category = detectStartupCategory(startupText);
-  const bClass = analysisContext?.businessClassification;
+  const dna = analysisContext?.businessDNA;
 
-  const systemPrompt = `You are an experienced, multi-industry AI Startup Mentor. You advise physical businesses (restaurants, retail, food stalls, panipuri shops, fashion brands, gyms, tuition centers) as well as software/AI startups.
+  const systemPrompt = `You are an experienced, multi-industry AI Startup Mentor acting as an AI Co-Founder.
 
-BUSINESS CLASSIFICATION CONTEXT:
-- Startup Name: "${analysisContext?.startupName || "Startup"}"
-- Industry: ${bClass?.industry || category}
-- Business Category: ${bClass?.businessCategory || "General Business"}
-- Business Type: ${bClass?.businessType || "Offline / Local"}
-- Revenue Model: ${bClass?.revenueModel || analysisContext?.businessModel || "Direct Sales"}
-- Customer Segment: ${bClass?.primaryCustomerSegment || analysisContext?.audience || "Target Customers"}
-- Scalability: ${bClass?.scalability || "Medium"}
+CENTRAL BUSINESS DNA CONTEXT:
+- Startup Name: "${dna?.startupName || analysisContext?.startupName || "Startup"}"
+- Industry: ${dna?.industry || "General Industry"}
+- Sub-Industry: ${dna?.subIndustry || "Business"}
+- Business Category: ${dna?.businessCategory || "Standard Enterprise"}
+- Business Type: ${dna?.businessType || "Offline / Local"}
+- Revenue Model: ${dna?.revenueModel || analysisContext?.businessModel || "Direct Sales"}
+- Target Customers: ${dna?.targetCustomers || analysisContext?.audience || "Target Segment"}
+- Investment Level: ${dna?.investmentLevel || "Low"}
+- Scalability: ${dna?.scalability || "Medium"}
+- Risk Level: ${dna?.riskLevel || "Medium"}
+- Funding Type: ${dna?.fundingType || "Bootstrapped"}
+- USP: ${dna?.uniqueSellingProposition || "Unique Value Proposition"}
+- Priority: ${dna?.businessPriority || "Customer Validation"}
 
-CRITICAL CLASSIFICATION & DOMAIN ADAPTATION INSTRUCTIONS:
-
-STEP 1: Determine whether the user's message is related to business or startups.
-IF THE MESSAGE IS UNRELATED (e.g. Superman, movies, sports, cooking recipes, math homework):
-Respond ONLY with this exact refusal:
-"${DOMAIN_REFUSAL_MESSAGE}"
-
-STEP 2: TAILOR YOUR ADVICE STRICTLY TO THE DETECTED INDUSTRY AND BUSINESS TYPE:
-
-• IF FOOD / RESTAURANT / PANIPURI / STREET FOOD BUSINESS:
-  Focus on: High-footfall location selection, strict hygiene & taste consistency, fresh ingredient sourcing, daily operating costs, food licenses (FSSAI/GST), unit economics & profit margins, local competitors, repeat customer loyalty, food delivery platforms (Zomato/Swiggy), franchise expansion.
-  STRICT PROHIBITION: DO NOT mention writing code, MVP software, APIs, software architecture, customer activation metrics, or North Star metrics!
-
-• IF RETAIL SHOP / LOCAL PHYSICAL STORE:
-  Focus on: Foot traffic, store location, inventory turnover, supplier negotiations, working capital, store presentation, local marketing.
-  STRICT PROHIBITION: DO NOT mention coding or software architecture.
-
-• IF FASHION / CLOTHING BRAND:
-  Focus on: Fabric sourcing, manufacturing costs, inventory management, Instagram/social media marketing, influencer seeding, return rates, brand positioning.
-
-• IF FITNESS / GYM / WELLNESS:
-  Focus on: Location selection, equipment leasing, monthly membership tiers, trainer hiring & retention, member churn, local trial offers.
-
-• IF EDUCATION / TUITION CENTER:
-  Focus on: Teacher quality, student pass rate & success stories, course fee structure, parent trust, seasonal enrollment cycles, local word-of-mouth.
-
-• IF SOFTWARE / AI SAAS / APP:
-  Focus on: MVP development, product validation, pricing tiers, customer discovery, go-to-market, CAC, LTV, retention, scaling, fundraising.
-
-ALWAYS REFERENCE THE USER'S ACTUAL STARTUP NAME ("${analysisContext?.startupName || "your business"}") AND PROVIDE DOMAIN-RELEVANT RECOMMENDATIONS.`;
+INSTRUCTIONS:
+Answer the founder's query using this exact Business DNA context. Provide practical, domain-specific recommendations.
+STRICT RULE: For physical/food/local businesses, NEVER recommend writing code, MVP software, APIs, or software metrics!`;
 
   if (apiKey && apiKey.trim() !== "" && !apiKey.includes("your-api-key")) {
     try {
@@ -454,7 +597,6 @@ ALWAYS REFERENCE THE USER'S ACTUAL STARTUP NAME ("${analysisContext?.startupName
     }
   }
 
-  // Fallback Mentor Engine if OpenAI API key is missing or fails
   return generateFallbackMentorReply(userMessage, analysisContext);
 }
 
@@ -470,6 +612,7 @@ function generateFallbackMentorReply(
     competitors?: string | null;
     overallScore: number;
     businessClassification?: BusinessClassification | null;
+    businessDNA?: BusinessDNA | null;
   } | null
 ): string {
   const classification = isStartupRelatedIntent(msg);
@@ -477,94 +620,51 @@ function generateFallbackMentorReply(
     return DOMAIN_REFUSAL_MESSAGE;
   }
 
-  const name = ctx?.startupName || "your business";
-  const fullText = `${name} ${ctx?.idea || ""} ${ctx?.businessModel || ""} ${msg}`;
-  const category = detectStartupCategory(fullText);
+  const dna = ctx?.businessDNA || (ctx ? inferBusinessDNA(ctx as any) : null);
+  const name = dna?.startupName || ctx?.startupName || "your business";
+  const category = detectStartupCategory(`${name} ${ctx?.idea || ""} ${msg}`);
 
-  // 1. Food / Panipuri / Restaurant Category
   if (category === "FOOD") {
-    return `Here is tailored business advice for **${name}** (Food & Beverage Business):
+    return `Here is Business DNA-guided advice for **${name}** (Industry: Food & Beverage):
 
-1. **Location & Footfall**: Choose a high-traffic spot near colleges, transit hubs, or commercial markets with high evening footfall.
-2. **Hygiene & Taste Consistency**: Standardize your recipes and water quality so every serving delivers identical flavor. Clean, branded presentation builds high trust.
-3. **Unit Economics & Margins**: Maintain raw ingredient costs below 30-35% of selling price to secure healthy 65%+ gross margins.
-4. **Licensing & Compliance**: Secure necessary food authority licenses (FSSAI/Local Municipal permits) and GST registration early.
-5. **Local Delivery & Scaling**: Partner with local food delivery platforms (Zomato/Swiggy) and package items safely to explore franchise model opportunities as brand demand grows.`;
+1. **Location & Footfall**: Choose a high-traffic spot near colleges, transit hubs, or commercial markets.
+2. **Hygiene & Taste Consistency**: Standardize your recipes so every serving delivers identical taste.
+3. **Unit Economics & Margins**: Keep raw ingredient costs below 30-35% of selling price to secure healthy 65%+ gross margins.
+4. **Required Licensing**: FSSAI Food License, GST Registration, and Municipal Permits.
+5. **Local Delivery**: Partner with local food delivery platforms (Zomato/Swiggy) to expand reach.`;
   }
 
-  // 2. Fashion / Clothing Category
   if (category === "FASHION") {
-    return `Here is tailored strategy advice for **${name}** (Fashion & Apparel Brand):
+    return `Here is Business DNA-guided strategy for **${name}** (Industry: Fashion & Apparel):
 
-1. **Supplier & Fabric Sourcing**: Partner directly with reliable textile mills or garment manufacturers to maintain fabric quality and reduce per-piece production cost.
-2. **Branding & Social Proof**: Invest heavily in high-quality Instagram/TikTok reels, influencer seeding, and lifestyle photography targeting ${ctx?.audience || "your target customers"}.
-3. **Inventory Management**: Start with limited-edition batch drops to test demand before placing large inventory orders.
-4. **Return Rate Control**: Provide detailed size guides and fabric care instructions to keep customer return rates below 10%.`;
+1. **Fabric Sourcing**: Partner directly with textile mills to maintain fabric quality and lower unit costs.
+2. **Branding & Social Proof**: Invest in Instagram/TikTok reels and influencer seeding targeting ${dna?.targetCustomers || "your audience"}.
+3. **Inventory Drops**: Start with small batch drops to test demand before placing large orders.
+4. **Return Control**: Provide clear size charts to keep customer returns under 10%.`;
   }
 
-  // 3. Fitness / Gym Category
-  if (category === "FITNESS") {
-    return `Here is tailored execution advice for **${name}** (Fitness & Gym Business):
+  return `Here is Business DNA-guided strategy for **${name}** (Industry: ${dna?.industry || "Software"}):
 
-1. **Facility Location & Space**: Secure a ground/first-floor space with easy parking and ventilation in a residential/office catchment area.
-2. **Equipment Leasing**: Option for equipment leasing to minimize upfront capital expenditure while offering modern machinery.
-3. **Membership Pricing Tiers**: Offer quarterly and annual prepay memberships with free initial personal training consultations to drive cash flow.
-4. **Trainer Hiring & Community**: Hire certified trainers on incentive-based performance models to reduce member churn during renewal months.`;
-  }
-
-  // 4. Education / Tuition Category
-  if (category === "EDUCATION") {
-    return `Here is tailored operational advice for **${name}** (Education & Tuition Center):
-
-1. **Teacher Excellence & Pass Rate**: Hire top subject experts and maintain small batch sizes to ensure high individual student attention and score improvements.
-2. **Parent Trust & Transparency**: Conduct monthly parent-teacher meetings and share detailed progress reports to build strong word-of-mouth referrals.
-3. **Fee Structure & Scholarships**: Structure affordable monthly or term fees with merit scholarships to attract top-performing students.
-4. **Infrastructure & Location**: Ensure quiet, well-lit classrooms equipped with modern digital whiteboards and comfortable seating.`;
-  }
-
-  // 5. Retail / Local Store Category
-  if (category === "RETAIL_LOCAL") {
-    return `Here is tailored retail advice for **${name}** (Local Retail Store):
-
-1. **Prime Storefront Location**: Select a storefront with high visibility and natural foot traffic among ${ctx?.audience || "target shoppers"}.
-2. **Inventory Turnover & Display**: Curate fast-moving stock and arrange high-margin impulse items near the checkout counter.
-3. **Supplier Credit Terms**: Negotiate 30-to-60 day credit terms with distributors to maintain healthy cash flow.
-4. **Customer Loyalty Program**: Launch a simple phone-number based reward program offering discounts on repeat visits.`;
-  }
-
-  // 6. Agriculture / Manufacturing Category
-  if (category === "AGRICULTURE_MANUFACTURING") {
-    return `Here is tailored operational advice for **${name}** (Manufacturing & Supply Business):
-
-1. **Raw Material Sourcing**: Lock in long-term supply contracts to hedge against commodity price fluctuations.
-2. **Quality Assurance & Safety**: Implement strict quality checks at every production stage to ensure zero batch defects.
-3. **Distributor Networks**: Build relationships with regional B2B wholesalers and logistics partners for bulk distribution.
-4. **Capacity Utilization**: Optimize machine uptime and batch processing to reduce overhead costs per unit.`;
-  }
-
-  // 7. Software / AI SaaS Category (Default for tech startups)
-  return `Here is tailored venture strategy for **${name}** (Software & Digital Product):
-
-1. **Customer Discovery & Validation**: Conduct 15 discovery calls with ${ctx?.audience || "target users"} to validate that "${ctx?.problem ? ctx.problem.slice(0, 45) : "the pain point"}" is an urgent priority.
-2. **MVP Iteration**: Build a lightweight prototype or landing page smoke test focusing 100% on the core value proposition.
-3. **Pricing & Unit Economics**: Test value-based pricing tiers for ${ctx?.businessModel || "your business model"} and measure early trial-to-paid conversion.
-4. **Go-to-Market Channels**: Focus on 1 primary acquisition channel (SEO, outbound sales, or content loops) to drive sustainable retention.`;
+1. **Customer Validation**: Conduct 15 discovery calls with ${dna?.targetCustomers || "target users"}.
+2. **MVP Iteration**: Build a lightweight prototype to validate core value conversion.
+3. **Pricing Tiers**: Test value-based subscription tiers for ${dna?.revenueModel || "your business"}.
+4. **Go-to-Market**: Focus on 1 primary acquisition channel for sustainable organic growth.`;
 }
 
 function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
   const name = input.startupName.trim();
+  const inferredDNA = inferBusinessDNA(input);
   const inferredClassification = inferBusinessClassification(input);
-  const category = detectStartupCategory(`${name} ${input.idea} ${input.businessModel} ${input.problem} ${input.solution}`);
+  const category = detectStartupCategory(`${name} ${input.idea} ${input.businessModel}`);
 
   const hasCompetitors = Boolean(input.competitors && input.competitors.length > 5);
   const problemDepth = input.problem.length;
   const solutionDepth = input.solution.length;
 
-  let score = 74;
+  let score = 75;
   if (problemDepth > 60) score += 5;
   if (solutionDepth > 60) score += 5;
   if (hasCompetitors) score += 4;
-  if (category === "FOOD" || category === "RETAIL_LOCAL") score += 3;
 
   const nameHash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   score = (score + (nameHash % 12)) - 5;
@@ -576,112 +676,56 @@ function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
   const competitionScore = hasCompetitors ? 68 : 82;
   const businessModelScore = Math.min(90, score + 1);
 
-  // Industry-specific next steps
-  let customNextSteps: string[] = [];
-  if (category === "FOOD") {
-    customNextSteps = [
-      "Select a high-footfall location near transit hubs or commercial markets",
-      "Standardize recipes and taste consistency to ensure identical daily quality",
-      "Secure required food licenses (FSSAI/Local permits) and GST registration",
-      "Partner with local food delivery platforms (Zomato/Swiggy) for online orders",
-      "Calculate unit economics: keep raw material costs below 30-35% of retail price",
-    ];
-  } else if (category === "FASHION") {
-    customNextSteps = [
-      "Source fabrics directly from garment mills to control per-piece cost",
-      "Produce initial sample batch to test fit, stitching, and material quality",
-      "Launch Instagram/TikTok lifestyle content and influencer seeding campaigns",
-      "Offer clear size guides and return policies to keep returns under 10%",
-      "Analyze gross margins and establish wholesale or D2C pricing tiers",
-    ];
-  } else if (category === "FITNESS") {
-    customNextSteps = [
-      "Finalize accessible location with ground floor access and parking",
-      "Option for commercial equipment leasing to minimize initial CapEx",
-      "Structure monthly, quarterly, and annual membership pricing tiers",
-      "Hire certified trainers on performance-incentive arrangements",
-      "Run pre-launch local promotion with free initial personal training sessions",
-    ];
-  } else if (category === "EDUCATION") {
-    customNextSteps = [
-      "Recruit subject-expert teachers with proven student track records",
-      "Structure competitive monthly course fees and merit scholarships",
-      "Equip classrooms with comfortable seating and digital learning tools",
-      "Organize parent-teacher orientation sessions to build local trust",
-      "Launch local word-of-mouth referral discounts for enrolled students",
-    ];
-  } else if (category === "RETAIL_LOCAL") {
-    customNextSteps = [
-      "Lease high-visibility store location in target shopping area",
-      "Curate fast-moving inventory and display high-margin impulse items near checkout",
-      "Negotiate 30-to-60 day credit payment terms with wholesale distributors",
-      "Implement point-of-sale (POS) software for real-time stock tracking",
-      "Launch customer loyalty phone-number reward program for repeat visits",
-    ];
-  } else {
-    customNextSteps = [
-      "Conduct 15-20 customer discovery interviews with target users",
-      "Build a lightweight landing page or MVP prototype to validate conversion",
-      "Establish early pricing tests to confirm willingness to pay",
-      "Map out primary marketing acquisition channels (SEO, outbound, content)",
-      "Set up key metrics analytics: CAC, LTV, conversion rates, and retention",
-    ];
+  let customNextSteps = inferredDNA.primarySuccessFactors.map((f, i) => `Execute Step ${i + 1}: Focus on ${f}`);
+  if (customNextSteps.length < 4) {
+    customNextSteps.push(`Finalize required permits: ${inferredDNA.requiredLicenses.join(", ")}`);
+    customNextSteps.push(`Conduct customer validation in target region (${input.country})`);
   }
 
   return {
     overallScore: score,
     businessClassification: inferredClassification,
+    businessDNA: inferredDNA,
     marketPotential: {
       score: marketScore,
       summary: `High growth potential in ${input.country} targeting ${input.audience}.`,
-      details: `The market for ${input.idea} shows strong customer demand in ${input.country}.`,
+      details: `The addressable market for ${input.idea} shows strong customer demand.`,
     },
     problemValidation: {
       score: problemScore,
       summary: "Clear pain point identified with high customer intent.",
-      details: `The problem specified ("${input.problem.slice(0, 80)}...") represents a genuine friction point.`,
+      details: `The problem specified ("${input.problem.slice(0, 80)}...") represents a genuine pain point.`,
     },
     solutionQuality: {
       score: solutionScore,
       summary: "Strong product differentiation with actionable execution strategy.",
-      details: `The proposed solution leverages targeted domain positioning tailored to ${input.audience}.`,
+      details: `The solution leverages targeted positioning for ${input.audience}.`,
     },
     competitionLevel: {
       score: competitionScore,
       level: hasCompetitors ? "High" : "Medium",
-      summary: hasCompetitors ? "Established competitors present; clear differentiation is vital." : "Moderate competitive landscape with space for a focused entrant.",
+      summary: hasCompetitors ? "Established competitors present; clear differentiation is vital." : "Moderate competitive landscape.",
       details: input.competitors
-        ? `Existing players (${input.competitors}) hold market share, requiring ${name} to focus heavily on unique value propositions.`
+        ? `Existing players (${input.competitors}) require ${name} to focus heavily on unique value propositions.`
         : `No dominant monopoly identified, offering opportunity to capture early market share.`,
     },
     businessModel: {
       score: businessModelScore,
       summary: `Monetization via ${input.businessModel} provides scalable revenue potential.`,
-      details: `The ${input.businessModel} strategy aligns well with customer expectations in this sector.`,
+      details: `The ${input.businessModel} strategy aligns well with customer expectations.`,
     },
-    strengths: [
-      `Well-defined target audience (${input.audience}) with urgent pain points`,
-      `Scalable ${input.businessModel} model with strong unit economics potential`,
-      `Clear initial geographic focus in ${input.country}`,
-      `Distinct approach to solving ${input.problem.slice(0, 45)}...`,
-    ],
-    weaknesses: [
-      "Initial customer acquisition cost might be high without referral loops",
-      "Requires early customer validation to prove long-term retention",
-      "Execution risk dependent on operational deployment quality",
-    ],
+    strengths: inferredDNA.keyAdvantages,
+    weaknesses: inferredDNA.biggestChallenges,
     opportunities: [
-      `Expand offering tailored specifically to ${input.audience}`,
-      "Form strategic local partnerships and distribution channels",
-      "Capitalize on emerging industry demand & customer trends",
-      `Scale from ${input.country} into adjacent regional markets`,
+      `Expand brand footprint across ${input.country}`,
+      `Capitalize on ${inferredDNA.expansionPotential}`,
+      `Leverage ${inferredDNA.uniqueSellingProposition}`,
     ],
     risks: [
-      "Potential entry of incumbent competitors with existing footprint",
-      "Customer churn if onboarding or service quality drops",
-      "Regulatory or local municipal compliance in target market",
+      "Initial customer acquisition cost without referral loops",
+      "Local market competition and operational execution risks",
     ],
     nextSteps: customNextSteps,
-    investorVerdict: `${name} demonstrates a compelling concept tackling a genuine pain point for ${input.audience}. With disciplined execution and domain-focused operations, this business has strong venture upside.`,
+    investorVerdict: `${name} demonstrates a compelling concept tackling a genuine pain point for ${input.audience}. With disciplined execution around ${inferredDNA.businessPriority}, this business has strong venture upside.`,
   };
 }

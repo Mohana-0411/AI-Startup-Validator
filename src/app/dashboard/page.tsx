@@ -21,6 +21,8 @@ import {
   ShieldAlert,
   Calendar,
   Layers,
+  Dna,
+  Check,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
@@ -51,6 +53,8 @@ export default async function DashboardPage() {
     }
   }
 
+  const dna = latestResult?.businessDNA;
+
   // Fetch roadmap tasks for latest analysis
   const roadmapTasks = latestRecord
     ? await prisma.roadmapTask.findMany({
@@ -71,7 +75,7 @@ export default async function DashboardPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 space-y-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* 1. Top Command Center Banner Card */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm shadow-slate-200/50 hover:shadow-md transition-all duration-200 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -148,7 +152,60 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* 2. Quick Overview Section (5 Metric Cards with Hover Elevation) */}
+        {/* 2. Business DNA Dashboard Showcase Card */}
+        {dna && (
+          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-purple-200/80 shadow-sm space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Dna className="w-5 h-5 text-purple-600" />
+                <h2 className="text-lg font-extrabold text-slate-900">Active Business DNA</h2>
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                  {dna.industry}
+                </span>
+              </div>
+              <Link
+                href={latestRecord ? `/dashboard/analysis/${latestRecord.id}` : "#"}
+                className="text-xs font-bold text-purple-600 hover:underline"
+              >
+                View Full DNA Profile →
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Industry</span>
+                <span className="text-xs font-extrabold text-slate-900 truncate block">{dna.industry}</span>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Business Type</span>
+                <span className="text-xs font-extrabold text-purple-700 truncate block">{dna.businessType}</span>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Revenue Model</span>
+                <span className="text-xs font-extrabold text-slate-900 truncate block">{dna.revenueModel}</span>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Target Market</span>
+                <span className="text-xs font-extrabold text-slate-900 truncate block">{dna.marketScope}</span>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Investment Level</span>
+                <span className="text-xs font-extrabold text-amber-700 truncate block">{dna.investmentLevel}</span>
+              </div>
+
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+                <span className="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Scalability</span>
+                <span className="text-xs font-extrabold text-emerald-700 truncate block">{dna.scalability}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. Quick Overview Section */}
         {latestRecord && latestResult ? (
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -243,7 +300,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* 3. Today's Priorities Card with Elevated Styles */}
+        {/* 4. Today's Priorities Card */}
         {latestResult && (
           <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-sm shadow-slate-200/40 hover:shadow-md transition-all duration-200 space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -275,7 +332,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* 4. Recent Activity Section Grid (3 Elevated Cards) */}
+        {/* 5. Recent Activity Section Grid */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <Clock className="w-5 h-5 text-purple-600" />

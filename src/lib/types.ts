@@ -10,9 +10,44 @@ export interface BusinessClassification {
   digitalDependency: "Low" | "Medium" | "High";
 }
 
+export interface BusinessDNA {
+  startupName: string;
+  industry: string;
+  subIndustry: string;
+  businessCategory: string;
+  businessType: "Offline Local Business" | "Physical Goods / D2C" | "Digital / Software / SaaS" | "Service / Consulting" | "Hybrid";
+  businessModel: string;
+  revenueModel: string;
+  businessStage: "Idea" | "MVP" | "Existing Business";
+  targetCustomers: string;
+  customerPersona: string;
+  marketScope: "Local" | "Regional" | "National" | "Global";
+  investmentLevel: "Low" | "Medium" | "High";
+  operationalComplexity: "Low" | "Medium" | "High";
+  technologyDependency: "Low" | "Medium" | "High";
+  scalability: "Low" | "Medium" | "High";
+  expansionPotential: string;
+  fundingRequirement: string;
+  fundingType: string;
+  competitionLevel: "Low" | "Medium" | "High";
+  riskLevel: "Low" | "Medium" | "High";
+  growthPotential: "Medium" | "High" | "Exponential";
+  digitalPresenceImportance: "Low" | "Medium" | "High";
+  requiredLicenses: string[];
+  primarySuccessFactors: string[];
+  biggestChallenges: string[];
+  keyAdvantages: string[];
+  uniqueSellingProposition: string;
+  estimatedTimeToLaunch: string;
+  estimatedInitialInvestment: string;
+  recommendedTeamSize: string;
+  businessPriority: string;
+}
+
 export interface AnalysisResultJSON {
   overallScore: number;
   businessClassification?: BusinessClassification;
+  businessDNA?: BusinessDNA;
   marketPotential: {
     score: number;
     summary: string;
