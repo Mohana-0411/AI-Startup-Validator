@@ -45,11 +45,11 @@ interface ChatMessage {
 }
 
 const SUGGESTED_PROMPTS = [
-  { label: "Improve my startup", text: "How can I improve my startup idea and validation score?" },
+  { label: "Improve my startup", text: "How can I improve my business idea and validation score?" },
   { label: "Validate my business model", text: "Validate my current business model and suggest improvements." },
   { label: "Suggest pricing", text: "Suggest optimal pricing tiers and monetization strategies." },
   { label: "Find competitors", text: "Who are my top competitors and how do I differentiate?" },
-  { label: "Improve go-to-market strategy", text: "How should I improve my go-to-market customer acquisition strategy?" },
+  { label: "Improve growth strategy", text: "How should I improve my go-to-market customer acquisition strategy?" },
 ];
 
 export function ChatView({ analyses }: { analyses: AnalysisOption[] }) {
@@ -326,10 +326,10 @@ export function ChatView({ analyses }: { analyses: AnalysisOption[] }) {
             </div>
             <div>
               <h2 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                {currentAnalysis?.startupName || "AI Startup Mentor"}
+                {currentAnalysis?.startupName || "AI Mentor"}
                 {currentAnalysis && <ScoreBadge score={currentAnalysis.overallScore} size="sm" />}
               </h2>
-              <p className="text-[11px] text-slate-500">Startup-focused conversational advisor</p>
+              <p className="text-[11px] text-slate-500">Ask startup or business questions. The AI Mentor provides industry-specific guidance based on your business type.</p>
             </div>
           </div>
 
@@ -364,16 +364,16 @@ export function ChatView({ analyses }: { analyses: AnalysisOption[] }) {
               <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto border border-purple-100">
                 <Sparkles className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">No Startup Context Available</h3>
+              <h3 className="text-lg font-bold text-slate-900">No Business Context Available</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
-                Run your first startup analysis to activate the AI Mentor conversation workspace.
+                Run your first analysis to activate the AI Mentor conversation workspace.
               </p>
               <Link
                 href="/dashboard/new"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white font-bold rounded-xl text-xs shadow-md"
               >
                 <Plus className="w-4 h-4" />
-                Analyze Startup Now
+                Analyze Idea Now
               </Link>
             </div>
           ) : messages.length === 0 ? (
@@ -386,7 +386,7 @@ export function ChatView({ analyses }: { analyses: AnalysisOption[] }) {
                   How can I help with {currentAnalysis?.startupName}?
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 max-w-lg mx-auto">
-                  Select a suggested prompt below or type your startup-focused question.
+                  Ask startup or business questions. The AI Mentor provides industry-specific guidance based on your business type.
                 </p>
               </div>
 
@@ -533,7 +533,7 @@ export function ChatView({ analyses }: { analyses: AnalysisOption[] }) {
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder={`Ask AI Mentor about ${currentAnalysis?.startupName || "your startup"}... (Press Enter to send, Shift + Enter for new line)`}
+                  placeholder={`Ask AI Mentor about ${currentAnalysis?.startupName || "your business"}... (Press Enter to send, Shift + Enter for new line)`}
                   disabled={loading || regenerating}
                   className="w-full px-3 py-1.5 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none resize-none leading-relaxed"
                 />

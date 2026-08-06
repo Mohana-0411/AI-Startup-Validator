@@ -83,9 +83,17 @@ export default function NewAnalysisPage() {
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900">Analyze New Startup Idea</h1>
-              <p className="text-xs text-slate-500">Provide details below to generate a structured VC-grade validation report</p>
+              <h1 className="text-2xl font-extrabold text-slate-900">Analyze Any Startup or Business Idea</h1>
+              <p className="text-xs text-slate-600 font-medium mt-1">
+                Describe your startup or business idea. This can be a software startup, local business, retail store, restaurant, manufacturing business, AI product, service business, or any entrepreneurial venture.
+              </p>
             </div>
+          </div>
+
+          {/* Industry Example Ticker */}
+          <div className="mt-4 p-3 bg-purple-50/60 border border-purple-100 rounded-xl text-[11px] text-purple-950 font-semibold">
+            <span className="text-purple-700 font-extrabold mr-1">Examples:</span>
+            • AI Resume Builder • Panipuri Business • Clothing Brand • Organic Farming • Cloud Kitchen • Gym • Tuition Center • Hospital Management Software • Handmade Candle Store • Grocery Delivery App
           </div>
 
           {errorMsg && (
@@ -141,16 +149,16 @@ export default function NewAnalysisPage() {
           )}
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-            {/* Startup Name */}
+            {/* Startup / Business Name */}
             <div>
               <label className="block text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">
-                Startup Name <span className="text-purple-600">*</span>
+                Startup or Business Name <span className="text-purple-600">*</span>
               </label>
               <input
                 type="text"
                 name="startupName"
                 required
-                placeholder="e.g. FreshBox, SmartCart, EcoDelivery, Panipuri Express"
+                placeholder="e.g. Panipuri Express, AI Resume Builder, EcoClothing, GreenFarm"
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all"
               />
             </div>
@@ -164,7 +172,7 @@ export default function NewAnalysisPage() {
                 type="text"
                 name="idea"
                 required
-                placeholder="e.g. Autonomous electric drone delivery for urgent medical supplies in rural areas"
+                placeholder="e.g. Hygienic street food stall with 6 flavored waters OR SaaS platform for ATS resume optimization"
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all"
               />
             </div>
@@ -179,7 +187,7 @@ export default function NewAnalysisPage() {
                   name="problem"
                   required
                   rows={4}
-                  placeholder="Describe the exact pain point customers face. Why is existing alternative inefficient or expensive?"
+                  placeholder="Describe the customer pain point or market gap (e.g. Street food vendors lack hygiene transparency OR Job seekers fail ATS automated filters)"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all resize-none"
                 />
               </div>
@@ -192,7 +200,7 @@ export default function NewAnalysisPage() {
                   name="solution"
                   required
                   rows={4}
-                  placeholder="How does your product solve this problem? What is your core technology or operational model?"
+                  placeholder="How does your business solve this? (e.g. Mineral water counter setup with standardized secret recipe OR AI instant resume keyword scoring)"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all resize-none"
                 />
               </div>
@@ -208,7 +216,7 @@ export default function NewAnalysisPage() {
                   type="text"
                   name="audience"
                   required
-                  placeholder="e.g. Rural hospitals, emergency clinics, local consumers"
+                  placeholder="e.g. College students, local office workers, D2C fashion shoppers, job seekers"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all"
                 />
               </div>
@@ -221,7 +229,7 @@ export default function NewAnalysisPage() {
                   type="text"
                   name="country"
                   required
-                  placeholder="e.g. United States, Global, Germany, India"
+                  placeholder="e.g. India, United States, Germany, Global"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all"
                 />
               </div>
@@ -237,7 +245,7 @@ export default function NewAnalysisPage() {
                   type="text"
                   name="businessModel"
                   required
-                  placeholder="e.g. B2B SaaS Subscription, Direct Retail Sales, 15% Commission"
+                  placeholder="e.g. Direct Cash Counter Sales, B2B SaaS Subscriptions, D2C Online Store"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all"
                 />
               </div>
@@ -249,7 +257,7 @@ export default function NewAnalysisPage() {
                 <input
                   type="text"
                   name="competitors"
-                  placeholder="e.g. Zipline, DHL, Matternet"
+                  placeholder="e.g. Local street stalls, Zomato, Resume.io, Zara"
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:bg-white transition-all"
                 />
               </div>
@@ -263,7 +271,7 @@ export default function NewAnalysisPage() {
                 className="w-full py-4 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-lg shadow-purple-600/30 text-base transition-all flex items-center justify-center gap-2"
               >
                 <Send className="w-5 h-5" />
-                Analyze Startup
+                Analyze Business Idea
               </button>
             </div>
           </form>

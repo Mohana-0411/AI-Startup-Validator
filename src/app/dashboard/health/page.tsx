@@ -78,11 +78,11 @@ export default async function StartupHealthPage() {
           title: "Market Need & Demand",
           score: latestResult.marketPotential.score,
           summary: "Measures willingness-to-pay and initial market pull.",
-          recommendation: "Test problem urgency with landing page smoke tests.",
+          recommendation: "Test problem urgency with target customers.",
           color: "emerald",
         },
         {
-          title: "Solution Innovation",
+          title: "Solution Quality",
           score: latestResult.solutionQuality.score,
           summary: "Evaluates uniqueness and differentiation vs existing alternatives.",
           recommendation: "Highlight your unique selling proposition in customer calls.",
@@ -99,31 +99,31 @@ export default async function StartupHealthPage() {
     } else if (stage === "MVP Stage" || stage === "Launch Stage") {
       metrics = [
         {
-          title: "Product Quality & Architecture",
+          title: "Operational & Product Quality",
           score: latestResult.solutionQuality.score,
-          summary: "Evaluates MVP stability, core feature set, and usability.",
-          recommendation: "Eliminate friction bottlenecks in the main user onboarding flow.",
+          summary: "Evaluates service stability, product quality, and usability.",
+          recommendation: "Eliminate friction bottlenecks in the customer onboarding flow.",
           color: "purple",
         },
         {
-          title: "User Feedback Score",
+          title: "Customer Feedback Score",
           score: Math.round((latestResult.solutionQuality.score + latestResult.problemValidation.score) / 2),
-          summary: "Measures qualitative sentiment from initial beta test users.",
-          recommendation: "Implement rapid weekly product update cycles based on feedback.",
+          summary: "Measures qualitative sentiment from initial customer transactions.",
+          recommendation: "Implement rapid operational updates based on customer feedback.",
           color: "emerald",
         },
         {
-          title: "Usability & Activation Rate",
+          title: "Customer Experience & Satisfaction",
           score: Math.round((latestRecord.overallScore + latestResult.solutionQuality.score) / 2),
-          summary: "Evaluates how quickly users experience first core value.",
-          recommendation: "Target time-to-first-value under 60 seconds.",
+          summary: "Evaluates customer satisfaction and repeat transaction intent.",
+          recommendation: "Focus on delivering instant service value.",
           color: "indigo",
         },
         {
-          title: "Early Customer Acquisition",
+          title: "Customer Acquisition Momentum",
           score: latestResult.marketPotential.score,
-          summary: "Measures initial user acquisition and waitlist conversions.",
-          recommendation: "Scale organic referral loops and launch marketing channels.",
+          summary: "Measures initial customer acquisition and footfall momentum.",
+          recommendation: "Scale organic referral loops and local marketing channels.",
           color: "emerald",
         },
       ];
@@ -133,29 +133,29 @@ export default async function StartupHealthPage() {
         {
           title: "Revenue & Unit Economics",
           score: latestResult.businessModel.score,
-          summary: "Evaluates gross profit margins, CAC payback, and LTV ratio.",
-          recommendation: "Maintain positive unit economics before expanding marketing spend.",
+          summary: "Evaluates gross profit margins, operating costs, and payback period.",
+          recommendation: "Maintain positive gross margins before expanding marketing spend.",
           color: "emerald",
         },
         {
           title: "Team & Operational Capacity",
           score: Math.round((latestRecord.overallScore + latestResult.businessModel.score) / 2),
-          summary: "Measures operational bandwidth and key leadership hires.",
-          recommendation: "Recruit key functional leads across product, sales, and operations.",
+          summary: "Measures operational bandwidth and key staff hiring.",
+          recommendation: "Recruit key functional leads across operations, sales, and management.",
           color: "purple",
         },
         {
-          title: "Scaling & System Automation",
+          title: "Scaling & Workflow Automation",
           score: Math.round((latestResult.marketPotential.score + latestResult.solutionQuality.score) / 2),
-          summary: "Evaluates infrastructure scalability and customer support automation.",
-          recommendation: "Automate repetitive customer support and backend workflows.",
+          summary: "Evaluates workflow efficiency and customer support procedures.",
+          recommendation: "Automate repetitive customer support and operational procedures.",
           color: "indigo",
         },
         {
           title: "Market Expansion Potential",
           score: latestResult.marketPotential.score,
-          summary: "Measures multi-region expansion readiness and market share.",
-          recommendation: "Form strategic distribution partnerships in adjacent regions.",
+          summary: "Measures multi-location or regional expansion readiness.",
+          recommendation: "Form strategic distribution partnerships in adjacent markets.",
           color: "emerald",
         },
       ];
@@ -170,13 +170,13 @@ export default async function StartupHealthPage() {
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100 mb-2">
               <HeartPulse className="w-3.5 h-3.5 text-purple-600" />
-              <span>Stage-Aware Venture Scorecard</span>
+              <span>Multi-Industry Venture Scorecard</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Startup Health Monitor
+              Startup & Business Health Monitor
             </h1>
             <p className="text-xs text-slate-500">
-              Lifecycle-tailored health diagnostic gauges adapting dynamically to your current stage ({stage})
+              Evaluate the health and growth potential of your startup or business using industry-specific metrics.
             </p>
           </div>
 
@@ -185,7 +185,7 @@ export default async function StartupHealthPage() {
             className="px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-md text-xs transition-all flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Analyze New Concept
+            Analyze New Idea
           </Link>
         </div>
 
@@ -194,14 +194,14 @@ export default async function StartupHealthPage() {
             <HeartPulse className="w-12 h-12 text-purple-600 mx-auto" />
             <h3 className="text-lg font-bold text-slate-900">No Health Data Available</h3>
             <p className="text-xs text-slate-500">
-              Run your first startup analysis to generate real-time stage health gauges and recommendations.
+              Run your first analysis to generate real-time health metrics and recommendations.
             </p>
             <Link
               href="/dashboard/new"
               className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white font-bold rounded-xl text-xs"
             >
               <Plus className="w-4 h-4" />
-              Analyze Startup Now
+              Analyze Idea Now
             </Link>
           </div>
         ) : (
@@ -213,7 +213,7 @@ export default async function StartupHealthPage() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                      Concept Under Evaluation
+                      Venture Under Evaluation
                     </span>
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                       {stage}
@@ -247,7 +247,7 @@ export default async function StartupHealthPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-purple-600" />
-                Stage Health Diagnostic Gauges ({stage})
+                Industry Health Diagnostic Gauges ({stage})
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

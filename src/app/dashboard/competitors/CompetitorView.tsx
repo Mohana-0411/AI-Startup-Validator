@@ -144,13 +144,13 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100 mb-2">
               <Trophy className="w-3.5 h-3.5 text-purple-600" />
-              <span>Lifecycle-Aware Competitor Engine</span>
+              <span>Competitor Intelligence Engine</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Competitor Insights & Positioning
             </h1>
             <p className="text-xs text-slate-500">
-              Benchmarking rivals adapted to current stage ({stage})
+              Discover competitors relevant to your specific industry and business type.
             </p>
           </div>
 
@@ -168,14 +168,14 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
             <Trophy className="w-12 h-12 text-purple-600 mx-auto" />
             <h3 className="text-lg font-bold text-slate-900">No Competitor Analysis Available</h3>
             <p className="text-xs text-slate-500">
-              Run your first startup analysis to generate real-time competitor profiles and positioning.
+              Run your first analysis to generate real-time competitor profiles and positioning.
             </p>
             <Link
               href="/dashboard/new"
               className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white font-bold rounded-xl text-xs"
             >
               <Plus className="w-4 h-4" />
-              Analyze Startup Now
+              Analyze Business Now
             </Link>
           </div>
         ) : (
@@ -183,7 +183,7 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
             {/* Context Selection Bar */}
             <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Startup:</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Business:</span>
                 <div className="relative">
                   <select
                     value={selectedId}
@@ -225,7 +225,7 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-purple-600" />
-                  Stage-Aware Competitor Profiles for &ldquo;{currentAnalysis.startupName}&rdquo; ({stage})
+                  Industry Competitor Profiles for &ldquo;{currentAnalysis.startupName}&rdquo;
                 </h2>
               </div>
 

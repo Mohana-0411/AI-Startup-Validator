@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Sparkles, ArrowRight, ShieldCheck, Zap, BarChart3, Target, Compass, CheckCircle2, TrendingUp, Cpu } from "lucide-react";
+import { Sparkles, ArrowRight, ShieldCheck, Zap, BarChart3, Target, Compass, CheckCircle2, Building2, Store, Utensils, Stethoscope, GraduationCap, Factory, ShoppingCart, Briefcase, Cpu } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { demoLoginAction } from "@/app/actions/authActions";
 
@@ -16,27 +16,31 @@ export default function LandingPage() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-semibold mb-8 animate-in fade-in slide-in-from-bottom-3 duration-500">
             <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-            <span>Powered by OpenAI & VC Investor Scored Matrix</span>
+            <span>AI Startup Validator • Multi-Industry AI Business Analysis Engine</span>
           </div>
 
           {/* Main Headline */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight max-w-4xl mx-auto leading-[1.15] mb-6">
-            Validate Your Startup Idea <br />
-            <span className="purple-gradient-text">With AI Investor Precision</span>
+            AI Startup Validator
           </h1>
 
           {/* Subheadline */}
-          <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
-            Stop guessing your market potential. Get an instant, structured validation report covering market size, SWAT risks, business model scalability, and actionable next steps.
+          <p className="text-lg sm:text-xl text-slate-700 max-w-3xl mx-auto mb-4 leading-relaxed font-semibold">
+            Validate any startup or business idea with AI-powered analysis, industry-specific insights, competitor intelligence, health scoring, and actionable execution roadmaps.
+          </p>
+
+          {/* Short Description */}
+          <p className="text-sm sm:text-base text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Analyze startups, small businesses, local businesses, digital products, and traditional business ideas using AI.
           </p>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
             <Link
               href="/signup"
               className="w-full sm:w-auto px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg shadow-purple-600/30 transition-all hover:scale-[1.02] flex items-center justify-center gap-2 text-base"
             >
-              Analyze Your Startup Free
+              Analyze Your Business Idea Free
               <ArrowRight className="w-5 h-5" />
             </Link>
 
@@ -51,6 +55,21 @@ export default function LandingPage() {
             </form>
           </div>
 
+          {/* Supported Business Types Pill Carousel */}
+          <div className="max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-2 mb-16 text-xs font-semibold text-slate-600 bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80">
+            <span className="text-purple-700 font-extrabold mr-2">Supports:</span>
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 shadow-2xs">✓ Tech Startups</span>
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 shadow-2xs">✓ Local Businesses</span>
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 shadow-2xs">✓ Retail</span>
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 shadow-2xs">✓ Food & Beverage</span>
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 shadow-2xs">✓ Healthcare</span>
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 shadow-2xs">✓ Education</span>
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 shadow-2xs">✓ Manufacturing</span>
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 shadow-2xs">✓ E-Commerce</span>
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 shadow-2xs">✓ Service Businesses</span>
+            <span className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-slate-800 shadow-2xs">✓ AI Products</span>
+          </div>
+
           {/* Interactive Live Sample Card Preview */}
           <div className="max-w-4xl mx-auto bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xl shadow-slate-200/50 text-left relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-purple-500 via-purple-600 to-indigo-600" />
@@ -58,44 +77,44 @@ export default function LandingPage() {
             <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-100">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-bold text-slate-900">Sample Analysis: EcoPack AI</h3>
+                  <h3 className="text-xl font-bold text-slate-900">Sample Analysis: Artisanal Panipuri Express</h3>
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Score 88/100
+                    Score 86/100
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Biodegradable smart packaging for direct-to-consumer ecommerce</p>
+                <p className="text-xs text-slate-500 mt-1">Hygienic quick-service street food counter with standardized recipes & FSSAI licensing</p>
               </div>
               <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
                 <ShieldCheck className="w-4 h-4 text-purple-600" />
-                Verified VC Matrix
+                Food Business Consultant Verified
               </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-b border-slate-100">
               <div className="bg-purple-50/50 p-3 rounded-xl border border-purple-100">
-                <p className="text-[11px] font-semibold text-purple-900 uppercase">Market Potential</p>
+                <p className="text-[11px] font-semibold text-purple-900 uppercase">Footfall & Location</p>
                 <p className="text-lg font-bold text-purple-700">92/100</p>
-                <p className="text-[11px] text-slate-500">High TAM growth</p>
+                <p className="text-[11px] text-slate-500">High daily traffic</p>
               </div>
               <div className="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
-                <p className="text-[11px] font-semibold text-emerald-900 uppercase">Problem Validation</p>
+                <p className="text-[11px] font-semibold text-emerald-900 uppercase">Gross Margins</p>
                 <p className="text-lg font-bold text-emerald-700">90/100</p>
-                <p className="text-[11px] text-slate-500">Acute pain point</p>
+                <p className="text-[11px] text-slate-500">68%+ Gross Margin</p>
               </div>
               <div className="bg-purple-50/50 p-3 rounded-xl border border-purple-100">
-                <p className="text-[11px] font-semibold text-purple-900 uppercase">Solution Quality</p>
-                <p className="text-lg font-bold text-purple-700">85/100</p>
-                <p className="text-[11px] text-slate-500">Proprietary IP</p>
+                <p className="text-[11px] font-semibold text-purple-900 uppercase">Recipe Taste Standards</p>
+                <p className="text-lg font-bold text-purple-700">88/100</p>
+                <p className="text-[11px] text-slate-500">Standardized flavor</p>
               </div>
               <div className="bg-amber-50/50 p-3 rounded-xl border border-amber-100">
-                <p className="text-[11px] font-semibold text-amber-900 uppercase">Competition Level</p>
-                <p className="text-lg font-bold text-amber-700">74/100</p>
-                <p className="text-[11px] text-slate-500">Medium Rivalry</p>
+                <p className="text-[11px] font-semibold text-amber-900 uppercase">Licensing Readiness</p>
+                <p className="text-lg font-bold text-amber-700">82/100</p>
+                <p className="text-[11px] text-slate-500">FSSAI Compliant</p>
               </div>
             </div>
 
             <div className="pt-4 flex items-center justify-between text-xs text-slate-500">
-              <span>Included: 5 Strengths, 3 SWAT Risks, 5 Actionable Next Steps</span>
+              <span>Included: FSSAI License Roadmap, Taste Standardization Guide, Footfall Analysis</span>
               <Link href="/signup" className="text-purple-600 font-semibold hover:underline flex items-center gap-1">
                 Run your own analysis →
               </Link>
@@ -110,10 +129,10 @@ export default function LandingPage() {
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-xs font-extrabold uppercase tracking-widest text-purple-600 mb-2">Features</h2>
             <p className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
-              Everything You Need to Pitch & Execute With Confidence
+              Tailored Intelligence for Every Business Category
             </p>
             <p className="text-base text-slate-600 mt-3">
-              Built on institutional venture capital scoring criteria used by top silicon valley seed funds.
+              Our AI automatically adapts advice for tech startups, local shops, restaurants, manufacturing plants, and service businesses.
             </p>
           </div>
 
@@ -122,9 +141,9 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 mb-6 border border-purple-100">
                 <BarChart3 className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Overall Score (/100) & Sub-Metrics</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Overall Score & Industry Sub-Metrics</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Color-coded score breakdown across Market Potential, Problem Urgency, Solution Viability, and Unit Economics.
+                Color-coded score breakdown evaluating market size, location footfall, gross profit margins, and operational complexity.
               </p>
             </div>
 
@@ -132,9 +151,9 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 mb-6 border border-purple-100">
                 <Target className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">SWAT Matrix & Risk Assessment</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Industry Competitors & Moat Analysis</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Identify hidden weaknesses, market threats, key competitive moats, and growth opportunities before spending capital.
+                Benchmark your venture against real local, regional, or global competitors with clear differentiation strategies.
               </p>
             </div>
 
@@ -142,22 +161,22 @@ export default function LandingPage() {
               <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 mb-6 border border-purple-100">
                 <Compass className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Actionable Execution Roadmap</h3>
+              <h3 className="text-xl font-bold text-slate-900 mb-3">Custom Execution Roadmap</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Get step-by-step next steps covering user interviews, landing page MVP setup, pricing tests, and channel strategy.
+                Step-by-step milestones covering land lease locking, machinery procurement, FSSAI permits, D2C drops, or tech stack builds.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* Process Section */}
       <section id="how-it-works" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-xs font-extrabold uppercase tracking-widest text-purple-600 mb-2">Process</h2>
             <p className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
-              3 Steps From Idea to Structured Insights
+              3 Steps From Concept to Execution Plan
             </p>
           </div>
 
@@ -166,9 +185,9 @@ export default function LandingPage() {
               <div className="w-14 h-14 rounded-2xl bg-purple-600 text-white font-extrabold text-xl flex items-center justify-center shadow-lg shadow-purple-600/20 mb-6">
                 1
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Input Startup Details</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Input Business Details</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Fill in your startup name, core problem, proposed solution, target audience, business model, and competitors.
+                Describe your startup name, core problem, solution, target audience, business model, and region.
               </p>
             </div>
 
@@ -176,9 +195,9 @@ export default function LandingPage() {
               <div className="w-14 h-14 rounded-2xl bg-purple-600 text-white font-extrabold text-xl flex items-center justify-center shadow-lg shadow-purple-600/20 mb-6">
                 2
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">AI Investor Processing</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">AI Business Expert Classification</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                OpenAI parses your inputs through VC investor criteria, calculating risk factors and market potential.
+                AI classifies your venture and selects the ideal domain consultant persona (e.g. Restaurant, Retail, Agribusiness, SaaS).
               </p>
             </div>
 
@@ -186,23 +205,21 @@ export default function LandingPage() {
               <div className="w-14 h-14 rounded-2xl bg-purple-600 text-white font-extrabold text-xl flex items-center justify-center shadow-lg shadow-purple-600/20 mb-6">
                 3
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Get Actionable Report</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">Get Industry-Specific Analysis</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Receive your color-coded scorecards, detailed SWAT analysis, and step-by-step roadmap to start building.
+                Receive customized scorecards, Business DNA, stage progress timeline, competitor matrix, and execution steps.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-
-
       {/* CTA Banner */}
       <section className="py-16 bg-purple-600 text-white text-center relative overflow-hidden">
         <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl font-extrabold mb-4">Ready to Validate Your Next Big Idea?</h2>
+          <h2 className="text-3xl font-extrabold mb-4">Ready to Validate Your Startup or Business Idea?</h2>
           <p className="text-purple-100 text-base mb-8 max-w-xl mx-auto">
-            Join thousands of founders using AI Startup Analyzer to turn raw concepts into venture-ready startups.
+            Join founders and small business owners using AI Startup Validator to turn ideas into structured, profitable ventures.
           </p>
           <Link
             href="/signup"

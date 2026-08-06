@@ -46,9 +46,9 @@ interface TaskItem {
 
 const PHASES = [
   "Phase 1: Idea Validation",
-  "Phase 2: MVP Development",
-  "Phase 3: Growth",
-  "Phase 4: Scale",
+  "Phase 2: Product / Setup Launch",
+  "Phase 3: Operations & Growth",
+  "Phase 4: Scaling & Expansion",
 ];
 
 export function RoadmapView({ analyses }: { analyses: AnalysisOption[] }) {
@@ -59,7 +59,7 @@ export function RoadmapView({ analyses }: { analyses: AnalysisOption[] }) {
   const [loading, setLoading] = useState(true);
 
   // Modal / Form state for Add / Edit
-  const [isAdding, setIsAdding] = useState<string | null>(null); // phase name if adding
+  const [isAdding, setIsAdding] = useState<string | null>(null);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
 
   const [formTitle, setFormTitle] = useState("");
@@ -176,14 +176,14 @@ export function RoadmapView({ analyses }: { analyses: AnalysisOption[] }) {
               Execution Roadmap
             </h1>
             <p className="text-xs text-slate-500">
-              Phase-by-phase execution plan generated dynamically from your startup scorecard
+              Receive a personalized execution roadmap tailored to your startup or business category.
             </p>
           </div>
 
           {/* Startup Selector */}
           {analyses.length > 0 && (
             <div className="flex items-center gap-3">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Startup:</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Business:</span>
               <div className="relative">
                 <select
                   value={selectedAnalysisId}
@@ -207,14 +207,14 @@ export function RoadmapView({ analyses }: { analyses: AnalysisOption[] }) {
             <Map className="w-12 h-12 text-purple-600 mx-auto" />
             <h3 className="text-lg font-bold text-slate-900">No Roadmap Available</h3>
             <p className="text-xs text-slate-500">
-              Run your first startup analysis to generate a phase-by-phase execution roadmap.
+              Run your first analysis to generate a customized execution roadmap.
             </p>
             <Link
               href="/dashboard/new"
               className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white font-bold rounded-xl text-xs"
             >
               <Plus className="w-4 h-4" />
-              Analyze Startup Now
+              Analyze Idea Now
             </Link>
           </div>
         ) : (
@@ -408,7 +408,7 @@ export function RoadmapView({ analyses }: { analyses: AnalysisOption[] }) {
                   type="text"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="e.g. Interview 20 target users"
+                  placeholder="e.g. Confirm location footfall count"
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-600"
                 />
               </div>
