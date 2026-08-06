@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { AnalysisResultJSON } from "./types";
+import { AnalysisResultJSON, BusinessClassification } from "./types";
 
 interface StartupIdeaInput {
   startupName: string;
@@ -121,6 +121,107 @@ export function detectStartupCategory(text: string): StartupCategory {
   return "SOFTWARE_SAAS";
 }
 
+export function inferBusinessClassification(input: StartupIdeaInput): BusinessClassification {
+  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
+  const category = detectStartupCategory(fullText);
+
+  if (category === "FOOD") {
+    return {
+      industry: "Food & Beverage",
+      businessCategory: fullText.includes("panipuri") || fullText.includes("chaat") ? "Street Food Business" : fullText.includes("cafe") ? "Cafe / Quick Service Restaurant" : "Food & Restaurant Business",
+      businessType: "Offline Local Business",
+      revenueModel: input.businessModel || "Direct Sales",
+      scalability: "Medium",
+      businessStage: "Idea",
+      primaryCustomerSegment: input.audience || "Local Residents, Students & Office Employees",
+      marketScope: "Local",
+      digitalDependency: "Low",
+    };
+  }
+
+  if (category === "FASHION") {
+    return {
+      industry: "Fashion & Apparel",
+      businessCategory: "D2C Clothing Brand",
+      businessType: "Physical Goods / D2C",
+      revenueModel: input.businessModel || "Direct-to-Consumer E-Commerce",
+      scalability: "High",
+      businessStage: "Idea",
+      primaryCustomerSegment: input.audience || "Fashion Conscious Youth & Adults",
+      marketScope: "National",
+      digitalDependency: "Medium",
+    };
+  }
+
+  if (category === "FITNESS") {
+    return {
+      industry: "Fitness & Wellness",
+      businessCategory: "Fitness Gym & Training Center",
+      businessType: "Offline Local Business",
+      revenueModel: input.businessModel || "Membership Subscriptions",
+      scalability: "Medium",
+      businessStage: "Idea",
+      primaryCustomerSegment: input.audience || "Fitness Enthusiasts & Working Professionals",
+      marketScope: "Local",
+      digitalDependency: "Low",
+    };
+  }
+
+  if (category === "EDUCATION") {
+    return {
+      industry: "Education & Training",
+      businessCategory: "Tuition & Coaching Center",
+      businessType: "Offline Local Business",
+      revenueModel: input.businessModel || "Monthly / Term Course Fees",
+      scalability: "Medium",
+      businessStage: "Idea",
+      primaryCustomerSegment: input.audience || "Students & Parents",
+      marketScope: "Local",
+      digitalDependency: "Low",
+    };
+  }
+
+  if (category === "RETAIL_LOCAL") {
+    return {
+      industry: "Retail & Commerce",
+      businessCategory: "Local Retail Store",
+      businessType: "Offline Local Business",
+      revenueModel: input.businessModel || "Direct Retail Sales",
+      scalability: "Medium",
+      businessStage: "Idea",
+      primaryCustomerSegment: input.audience || "Neighborhood Shoppers",
+      marketScope: "Local",
+      digitalDependency: "Low",
+    };
+  }
+
+  if (category === "AGRICULTURE_MANUFACTURING") {
+    return {
+      industry: "Manufacturing & Agriculture",
+      businessCategory: "B2B Manufacturing / Supply Business",
+      businessType: "Physical Goods / D2C",
+      revenueModel: input.businessModel || "Wholesale / Direct Sales",
+      scalability: "High",
+      businessStage: "Idea",
+      primaryCustomerSegment: input.audience || "Commercial Wholesalers & Distributors",
+      marketScope: "Regional",
+      digitalDependency: "Low",
+    };
+  }
+
+  return {
+    industry: "AI SaaS & Software",
+    businessCategory: "B2B / B2C Software Platform",
+    businessType: "Digital / Software / SaaS",
+    revenueModel: input.businessModel || "SaaS Subscription Tiers",
+    scalability: "High",
+    businessStage: "Idea",
+    primaryCustomerSegment: input.audience || "Digital Founders & Enterprise Teams",
+    marketScope: "Global",
+    digitalDependency: "High",
+  };
+}
+
 export function isStartupRelatedIntent(message: string): { isStartup: boolean; category?: string } {
   const lower = message.toLowerCase().trim();
 
@@ -175,6 +276,7 @@ export async function generateStartupAnalysis(
   input: StartupIdeaInput
 ): Promise<AnalysisResultJSON> {
   const apiKey = process.env.OPENAI_API_KEY;
+  const inferredClassification = inferBusinessClassification(input);
 
   if (apiKey && apiKey.trim() !== "" && !apiKey.includes("your-api-key")) {
     try {
@@ -193,12 +295,22 @@ Country/Region: ${input.country}
 Business Model: ${input.businessModel}
 Competitors: ${input.competitors || "Not specified"}
 
-IMPORTANT: First identify if this business is a physical/local business (e.g. food stall, restaurant, panipuri shop, retail store, gym, fashion brand) or a software/digital startup. Tailor your analysis and next steps specifically to that business type. Do NOT recommend writing code or software metrics for physical businesses!
+FIRST: Classify this business into the JSON field businessClassification:
+- industry (string, e.g. "Food & Beverage", "Fashion", "AI SaaS", "Fitness", "Education")
+- businessCategory (string, e.g. "Street Food Business", "D2C Clothing Brand", "B2B SaaS Platform")
+- businessType ("Offline Local Business" | "Physical Goods / D2C" | "Digital / Software / SaaS" | "Service / Consulting" | "Hybrid")
+- revenueModel (string, e.g. "Direct Sales", "Subscriptions", "Course Fees")
+- scalability ("Low" | "Medium" | "High")
+- businessStage ("Idea" | "MVP" | "Existing Business")
+- primaryCustomerSegment (string)
+- marketScope ("Local" | "Regional" | "National" | "Global")
+- digitalDependency ("Low" | "Medium" | "High")
 
-Return JSON only.
+IMPORTANT: Do NOT recommend writing code, MVP software, or software metrics for physical businesses (e.g. food stalls, restaurants, retail shops)!
 
-Include:
+Return JSON only with:
 overallScore (integer between 0 and 100)
+businessClassification (object with the above classification fields)
 marketPotential (object with integer score 0-100, concise summary, and details string)
 problemValidation (object with integer score 0-100, concise summary, and details string)
 solutionQuality (object with integer score 0-100, concise summary, and details string)
@@ -234,6 +346,9 @@ Keep answers concise and practical.`;
       if (content) {
         const parsed = JSON.parse(content) as AnalysisResultJSON;
         parsed.overallScore = Math.min(100, Math.max(0, Math.round(parsed.overallScore)));
+        if (!parsed.businessClassification) {
+          parsed.businessClassification = inferredClassification;
+        }
         return parsed;
       }
     } catch (error) {
@@ -260,6 +375,7 @@ export async function generateMentorChatResponse({
     businessModel: string;
     competitors?: string | null;
     overallScore: number;
+    businessClassification?: BusinessClassification | null;
   } | null;
 }): Promise<string> {
   // Step 1: Pre-classification via Intent Classifier
@@ -271,8 +387,18 @@ export async function generateMentorChatResponse({
   const apiKey = process.env.OPENAI_API_KEY;
   const startupText = `${analysisContext?.startupName || ""} ${analysisContext?.idea || ""} ${analysisContext?.businessModel || ""} ${userMessage}`;
   const category = detectStartupCategory(startupText);
+  const bClass = analysisContext?.businessClassification;
 
   const systemPrompt = `You are an experienced, multi-industry AI Startup Mentor. You advise physical businesses (restaurants, retail, food stalls, panipuri shops, fashion brands, gyms, tuition centers) as well as software/AI startups.
+
+BUSINESS CLASSIFICATION CONTEXT:
+- Startup Name: "${analysisContext?.startupName || "Startup"}"
+- Industry: ${bClass?.industry || category}
+- Business Category: ${bClass?.businessCategory || "General Business"}
+- Business Type: ${bClass?.businessType || "Offline / Local"}
+- Revenue Model: ${bClass?.revenueModel || analysisContext?.businessModel || "Direct Sales"}
+- Customer Segment: ${bClass?.primaryCustomerSegment || analysisContext?.audience || "Target Customers"}
+- Scalability: ${bClass?.scalability || "Medium"}
 
 CRITICAL CLASSIFICATION & DOMAIN ADAPTATION INSTRUCTIONS:
 
@@ -281,10 +407,7 @@ IF THE MESSAGE IS UNRELATED (e.g. Superman, movies, sports, cooking recipes, mat
 Respond ONLY with this exact refusal:
 "${DOMAIN_REFUSAL_MESSAGE}"
 
-STEP 2: IDENTIFY THE BUSINESS CATEGORY FROM CONTEXT:
-Active Category Detected: ${category}
-
-STEP 3: TAILOR YOUR ADVICE STRICTLY TO THE DETECTED CATEGORY:
+STEP 2: TAILOR YOUR ADVICE STRICTLY TO THE DETECTED INDUSTRY AND BUSINESS TYPE:
 
 • IF FOOD / RESTAURANT / PANIPURI / STREET FOOD BUSINESS:
   Focus on: High-footfall location selection, strict hygiene & taste consistency, fresh ingredient sourcing, daily operating costs, food licenses (FSSAI/GST), unit economics & profit margins, local competitors, repeat customer loyalty, food delivery platforms (Zomato/Swiggy), franchise expansion.
@@ -346,6 +469,7 @@ function generateFallbackMentorReply(
     businessModel: string;
     competitors?: string | null;
     overallScore: number;
+    businessClassification?: BusinessClassification | null;
   } | null
 ): string {
   const classification = isStartupRelatedIntent(msg);
@@ -354,7 +478,6 @@ function generateFallbackMentorReply(
   }
 
   const name = ctx?.startupName || "your business";
-  const score = ctx?.overallScore || 78;
   const fullText = `${name} ${ctx?.idea || ""} ${ctx?.businessModel || ""} ${msg}`;
   const category = detectStartupCategory(fullText);
 
@@ -430,9 +553,8 @@ function generateFallbackMentorReply(
 
 function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
   const name = input.startupName.trim();
-  const fullText = `${name} ${input.idea} ${input.businessModel} ${input.problem} ${input.solution}`;
-  const category = detectStartupCategory(fullText);
-  const isSoftware = category === "SOFTWARE_SAAS";
+  const inferredClassification = inferBusinessClassification(input);
+  const category = detectStartupCategory(`${name} ${input.idea} ${input.businessModel} ${input.problem} ${input.solution}`);
 
   const hasCompetitors = Boolean(input.competitors && input.competitors.length > 5);
   const problemDepth = input.problem.length;
@@ -508,6 +630,7 @@ function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
 
   return {
     overallScore: score,
+    businessClassification: inferredClassification,
     marketPotential: {
       score: marketScore,
       summary: `High growth potential in ${input.country} targeting ${input.audience}.`,

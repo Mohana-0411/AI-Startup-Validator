@@ -17,12 +17,14 @@ import {
   Lightbulb,
   Crosshair,
   Award,
+  Building2,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { ScoreRing } from "@/components/ScoreRing";
 import { AnalysisResultJSON } from "@/lib/types";
+import { detectStartupCategory } from "@/lib/openai";
 
 export default async function StartupHealthPage() {
   const user = await getCurrentUser();
@@ -50,72 +52,149 @@ export default async function StartupHealthPage() {
     ? Math.round(analyses.reduce((acc, curr) => acc + curr.overallScore, 0) / totalCount)
     : 0;
 
-  // Calculate 9 Exact Startup Health Metrics from latest analysis
-  const metrics = latestResult && latestRecord ? [
-    {
-      title: "Overall Startup Health",
-      score: latestRecord.overallScore,
-      summary: latestRecord.overallScore >= 80 ? "Venture-ready concept with high growth potential." : "Solid foundation requiring key validation steps.",
-      recommendation: "Focus on executing top priority customer validation interviews.",
-      color: latestRecord.overallScore >= 80 ? "emerald" : latestRecord.overallScore >= 60 ? "amber" : "rose",
-    },
-    {
-      title: "Market Health",
-      score: latestResult.marketPotential.score,
-      summary: latestResult.marketPotential.summary,
-      recommendation: `Conduct 15 customer discovery calls targeting ${latestRecord.audience} in ${latestRecord.country}.`,
-      color: latestResult.marketPotential.score >= 80 ? "emerald" : "amber",
-    },
-    {
-      title: "Problem Validation",
-      score: latestResult.problemValidation.score,
-      summary: latestResult.problemValidation.summary,
-      recommendation: "Run a smoke-test landing page to measure pre-order intent.",
-      color: latestResult.problemValidation.score >= 80 ? "emerald" : "amber",
-    },
-    {
-      title: "Solution Strength",
-      score: latestResult.solutionQuality.score,
-      summary: latestResult.solutionQuality.summary,
-      recommendation: "Reduce time-to-value onboarding friction to under 60 seconds.",
-      color: latestResult.solutionQuality.score >= 80 ? "emerald" : "purple",
-    },
-    {
-      title: "Business Model",
-      score: latestResult.businessModel.score,
-      summary: latestResult.businessModel.summary,
-      recommendation: `Test tiered pricing for ${latestRecord.businessModel} with annual prepayment discounts.`,
-      color: latestResult.businessModel.score >= 80 ? "emerald" : "indigo",
-    },
-    {
-      title: "Competition Risk",
-      score: latestResult.competitionLevel.score,
-      summary: `Rivalry Level: ${latestResult.competitionLevel.level}. ${latestResult.competitionLevel.summary}`,
-      recommendation: "Build proprietary data network effects and exclusive distribution moats.",
-      color: latestResult.competitionLevel.level === "High" ? "rose" : latestResult.competitionLevel.level === "Medium" ? "amber" : "emerald",
-    },
-    {
-      title: "Go-To-Market Readiness",
-      score: Math.round((latestResult.problemValidation.score + latestResult.solutionQuality.score) / 2),
-      summary: "Evaluates product alignment with customer acquisition channels.",
-      recommendation: "Map primary acquisition channels (SEO, LinkedIn outbound, and content marketing).",
-      color: "purple",
-    },
-    {
-      title: "Funding Readiness",
-      score: Math.round((latestRecord.overallScore + latestResult.businessModel.score) / 2),
-      summary: "Measures readiness to present to angel investors and VC partners.",
-      recommendation: "Prepare 10-slide YC investor pitch deck and 3-year unit economics model.",
-      color: "indigo",
-    },
-    {
-      title: "Growth Potential",
-      score: Math.round((latestResult.marketPotential.score + latestResult.solutionQuality.score) / 2),
-      summary: "Scalability potential across market expansion and viral retention loops.",
-      recommendation: "Explore B2B partnerships and adjacent international market entry points.",
-      color: "emerald",
-    },
-  ] : [];
+  const fullText = latestRecord ? `${latestRecord.startupName} ${latestRecord.idea} ${latestRecord.businessModel} ${latestRecord.problem}` : "";
+  const category = latestResult?.businessClassification?.industry
+    ? (latestResult.businessClassification.industry.toUpperCase().includes("FOOD") ? "FOOD" : detectStartupCategory(fullText))
+    : detectStartupCategory(fullText);
+
+  // Industry-Tailored 9 Health Diagnostic Metrics
+  let metrics: { title: string; score: number; summary: string; recommendation: string; color: string }[] = [];
+
+  if (latestResult && latestRecord) {
+    if (category === "FOOD") {
+      metrics = [
+        {
+          title: "Taste & Recipe Consistency",
+          score: latestResult.solutionQuality.score,
+          summary: "Evaluates culinary quality, recipe standardization, and flavor consistency.",
+          recommendation: "Standardize ingredient measurements so every shift delivers identical flavor.",
+          color: "emerald",
+        },
+        {
+          title: "Location & Footfall",
+          score: latestResult.marketPotential.score,
+          summary: "Evaluates foot traffic density near transit hubs, colleges, and commercial markets.",
+          recommendation: "Finalize high-visibility storefront space with strong evening footfall.",
+          color: "emerald",
+        },
+        {
+          title: "Gross Margins & Unit Economics",
+          score: latestResult.businessModel.score,
+          summary: "Measures raw ingredient cost vs selling price ratio.",
+          recommendation: "Keep ingredient COGS below 30-35% of retail price for healthy 65%+ gross margins.",
+          color: "emerald",
+        },
+        {
+          title: "Hygiene & Food Licensing",
+          score: latestResult.problemValidation.score,
+          summary: "Measures FSSAI/municipal permit compliance and food safety protocols.",
+          recommendation: "Secure food authority licenses and install stainless steel hygienic counter layout.",
+          color: "amber",
+        },
+        {
+          title: "Supplier Stability & Sourcing",
+          score: Math.round((latestResult.solutionQuality.score + latestResult.businessModel.score) / 2),
+          summary: "Evaluates wholesale raw material supply reliability and fresh inventory access.",
+          recommendation: "Establish backup contracts with regional wholesale distributors.",
+          color: "indigo",
+        },
+        {
+          title: "Local Competition Risk",
+          score: latestResult.competitionLevel.score,
+          summary: `Rivalry Level: ${latestResult.competitionLevel.level}. Evaluates street vendor and restaurant density.`,
+          recommendation: "Differentiate with clean presentation, distinct signature sauces, and fast service.",
+          color: latestResult.competitionLevel.level === "High" ? "rose" : "amber",
+        },
+        {
+          title: "Repeat Customer Loyalty",
+          score: Math.round((latestResult.problemValidation.score + latestResult.marketPotential.score) / 2),
+          summary: "Measures customer retention and local word-of-mouth referral rate.",
+          recommendation: "Introduce phone-number stamp cards or discount perks for frequent visitors.",
+          color: "purple",
+        },
+        {
+          title: "Delivery Platform Integration",
+          score: Math.round((latestRecord.overallScore + latestResult.solutionQuality.score) / 2),
+          summary: "Evaluates merchant presence on Zomato, Swiggy, and local delivery apps.",
+          recommendation: "Optimize delivery menu packaging to keep food hot and fresh during transit.",
+          color: "purple",
+        },
+        {
+          title: "Franchise & Multi-Outlet Growth",
+          score: Math.round((latestResult.marketPotential.score + latestResult.solutionQuality.score) / 2),
+          summary: "Measures readiness to scale from 1 counter to a multi-outlet franchise model.",
+          recommendation: "Document daily operating SOPs for kitchen management and inventory audits.",
+          color: "emerald",
+        },
+      ];
+    } else {
+      metrics = [
+        {
+          title: "Overall Startup Health",
+          score: latestRecord.overallScore,
+          summary: latestRecord.overallScore >= 80 ? "Venture-ready concept with high growth potential." : "Solid foundation requiring key validation steps.",
+          recommendation: "Focus on executing top priority customer validation interviews.",
+          color: latestRecord.overallScore >= 80 ? "emerald" : latestRecord.overallScore >= 60 ? "amber" : "rose",
+        },
+        {
+          title: "Market Health",
+          score: latestResult.marketPotential.score,
+          summary: latestResult.marketPotential.summary,
+          recommendation: `Conduct 15 customer discovery calls targeting ${latestRecord.audience} in ${latestRecord.country}.`,
+          color: latestResult.marketPotential.score >= 80 ? "emerald" : "amber",
+        },
+        {
+          title: "Problem Validation",
+          score: latestResult.problemValidation.score,
+          summary: latestResult.problemValidation.summary,
+          recommendation: "Run a smoke-test landing page to measure pre-order intent.",
+          color: latestResult.problemValidation.score >= 80 ? "emerald" : "amber",
+        },
+        {
+          title: "Solution Strength",
+          score: latestResult.solutionQuality.score,
+          summary: latestResult.solutionQuality.summary,
+          recommendation: "Reduce time-to-value onboarding friction to under 60 seconds.",
+          color: latestResult.solutionQuality.score >= 80 ? "emerald" : "purple",
+        },
+        {
+          title: "Business Model",
+          score: latestResult.businessModel.score,
+          summary: latestResult.businessModel.summary,
+          recommendation: `Test tiered pricing for ${latestRecord.businessModel} with annual prepayment discounts.`,
+          color: latestResult.businessModel.score >= 80 ? "emerald" : "indigo",
+        },
+        {
+          title: "Competition Risk",
+          score: latestResult.competitionLevel.score,
+          summary: `Rivalry Level: ${latestResult.competitionLevel.level}. ${latestResult.competitionLevel.summary}`,
+          recommendation: "Build proprietary data network effects and exclusive distribution moats.",
+          color: latestResult.competitionLevel.level === "High" ? "rose" : latestResult.competitionLevel.level === "Medium" ? "amber" : "emerald",
+        },
+        {
+          title: "Go-To-Market Readiness",
+          score: Math.round((latestResult.problemValidation.score + latestResult.solutionQuality.score) / 2),
+          summary: "Evaluates product alignment with customer acquisition channels.",
+          recommendation: "Map primary acquisition channels (SEO, outbound sales, and content loops).",
+          color: "purple",
+        },
+        {
+          title: "Funding Readiness",
+          score: Math.round((latestRecord.overallScore + latestResult.businessModel.score) / 2),
+          summary: "Measures readiness to present to angel investors and VC partners.",
+          recommendation: "Prepare 10-slide investor pitch deck and 3-year unit economics model.",
+          color: "indigo",
+        },
+        {
+          title: "Growth Potential",
+          score: Math.round((latestResult.marketPotential.score + latestResult.solutionQuality.score) / 2),
+          summary: "Scalability potential across market expansion and retention loops.",
+          recommendation: "Explore B2B partnerships and adjacent market entry points.",
+          color: "emerald",
+        },
+      ];
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 space-y-8">
@@ -131,7 +210,7 @@ export default async function StartupHealthPage() {
               Startup Health Monitor
             </h1>
             <p className="text-xs text-slate-500">
-              Calculated health diagnostic metrics, risk analysis, and AI priorities for your startup
+              Industry-tailored health diagnostic metrics, risk analysis, and AI priorities for your startup
             </p>
           </div>
 
@@ -183,8 +262,8 @@ export default async function StartupHealthPage() {
                   <p className="text-xl font-extrabold text-slate-900">{avgOverallScore}/100</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-400 font-bold uppercase">Analyzed Ideas</p>
-                  <p className="text-xl font-extrabold text-slate-900">{totalCount}</p>
+                  <p className="text-xs text-slate-400 font-bold uppercase">Industry Type</p>
+                  <p className="text-sm font-extrabold text-purple-700">{latestResult.businessClassification?.industry || category}</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-400 font-bold uppercase">Competitor Rivalry</p>
@@ -197,7 +276,7 @@ export default async function StartupHealthPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-purple-600" />
-                9 Key Health Diagnostic Metrics
+                9 Industry Health Diagnostic Metrics ({latestResult.businessClassification?.industry || category})
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -314,87 +393,6 @@ export default async function StartupHealthPage() {
                 </div>
               </div>
             </div>
-
-            {/* Strengths, Weaknesses & Opportunities Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Strengths Cards */}
-              <div className="bg-white p-6 rounded-2xl border border-emerald-200/80 shadow-sm space-y-3">
-                <h3 className="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Key Venture Strengths
-                </h3>
-                <ul className="space-y-2">
-                  {latestResult.strengths.map((s, i) => (
-                    <li key={i} className="text-xs text-slate-700 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100">
-                      {s}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Weaknesses Cards */}
-              <div className="bg-white p-6 rounded-2xl border border-amber-200/80 shadow-sm space-y-3">
-                <h3 className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600" /> Core Weaknesses
-                </h3>
-                <ul className="space-y-2">
-                  {latestResult.weaknesses.map((w, i) => (
-                    <li key={i} className="text-xs text-slate-700 bg-amber-50/50 p-2.5 rounded-xl border border-amber-100">
-                      {w}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Opportunity Cards */}
-              <div className="bg-white p-6 rounded-2xl border border-purple-200/80 shadow-sm space-y-3">
-                <h3 className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-purple-600" /> Market Opportunities
-                </h3>
-                <ul className="space-y-2">
-                  {latestResult.opportunities.map((o, i) => (
-                    <li key={i} className="text-xs text-slate-700 bg-purple-50/50 p-2.5 rounded-xl border border-purple-100">
-                      {o}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Historical Score Comparison Trend Chart */}
-            {totalCount > 1 && (
-              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                  <div>
-                    <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-purple-600" />
-                      Historical Score Comparison Across Evaluated Ideas
-                    </h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Trajectory of overall health scores across your startup portfolio</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {analyses.map((item) => (
-                    <div key={item.id} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs font-semibold">
-                        <Link href={`/dashboard/analysis/${item.id}`} className="text-slate-900 hover:text-purple-600">
-                          {item.startupName}
-                        </Link>
-                        <ScoreBadge score={item.overallScore} size="sm" />
-                      </div>
-                      <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ${
-                            item.overallScore >= 80 ? "bg-emerald-500" : item.overallScore >= 60 ? "bg-amber-500" : "bg-rose-500"
-                          }`}
-                          style={{ width: `${item.overallScore}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>

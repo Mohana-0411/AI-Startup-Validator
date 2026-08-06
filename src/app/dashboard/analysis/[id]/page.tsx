@@ -11,12 +11,13 @@ import {
   AlertTriangle,
   Lightbulb,
   Crosshair,
-  Share2,
-  Printer,
   Building2,
   Globe2,
   DollarSign,
   Users,
+  Sliders,
+  Layers,
+  Layers3,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
@@ -47,13 +48,7 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
 
   const result: AnalysisResultJSON = JSON.parse(record.analysisResult);
   const overallScore = record.overallScore;
-
-  // Helper for metric score border color coding
-  const getBorderColor = (score: number) => {
-    if (score >= 80) return "border-emerald-200 bg-emerald-50/30 text-emerald-900";
-    if (score >= 60) return "border-amber-200 bg-amber-50/30 text-amber-900";
-    return "border-rose-200 bg-rose-50/30 text-rose-900";
-  };
+  const classification = result.businessClassification;
 
   return (
     <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8">
@@ -135,6 +130,90 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
           )}
         </div>
 
+        {/* Business Classification Section */}
+        {classification && (
+          <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+            <div className="border-b border-slate-100 pb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-purple-600" />
+                  Business Classification & Industry Profile
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Industry classification layer used across AI Mentor, Roadmap, and Competitor Insights
+                </p>
+              </div>
+              <span className="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 text-xs font-extrabold rounded-full">
+                {classification.industry}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                  Industry
+                </span>
+                <p className="text-sm font-extrabold text-slate-900">{classification.industry}</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                  Business Category
+                </span>
+                <p className="text-sm font-extrabold text-slate-900">{classification.businessCategory}</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                  Business Type
+                </span>
+                <p className="text-sm font-extrabold text-purple-700">{classification.businessType}</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                  Revenue Model
+                </span>
+                <p className="text-sm font-extrabold text-slate-900">{classification.revenueModel}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-1">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                  Scalability
+                </span>
+                <span className="inline-block px-2.5 py-0.5 rounded text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                  {classification.scalability}
+                </span>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                  Primary Customer Segment
+                </span>
+                <p className="text-xs font-bold text-slate-800">{classification.primaryCustomerSegment}</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                  Market Scope
+                </span>
+                <p className="text-xs font-bold text-slate-800">{classification.marketScope}</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">
+                  Digital Dependency
+                </span>
+                <span className="inline-block px-2.5 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                  {classification.digitalDependency}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 5 Core Metric Cards */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -210,7 +289,7 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* 4-Quadrant SWAT Matrix (Strengths, Weaknesses, Opportunities, Risks) */}
+        {/* 4-Quadrant SWAT Matrix */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
             <Target className="w-5 h-5 text-purple-600" />
