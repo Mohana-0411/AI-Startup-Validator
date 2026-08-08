@@ -52,78 +52,176 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
   }
 
   const stage = result?.startupLifecycle?.currentStage || "Validation Stage";
+  const vContext = result?.ventureContext;
+  const industry = vContext?.industry || result?.industryProfile?.detectedIndustry || "General Industry";
 
-  // Parse competitors or construct real/similar market competitor profiles
+  // Parse explicit user competitors or construct real industry-specific competitor profiles
   const rawCompetitorList = currentAnalysis?.competitors
     ? currentAnalysis.competitors.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean)
     : [];
 
-  const competitorProfiles = rawCompetitorList.length > 0
-    ? rawCompetitorList.map((comp, idx) => ({
-        name: comp,
-        category: idx % 2 === 0 ? "Incumbent Platform" : "Niche Alternative",
-        description: `Established market alternative competing in ${currentAnalysis.country} targeting ${currentAnalysis.audience}. (Estimated)`,
-        targetAudience: currentAnalysis.audience,
-        strengths: ["Established brand awareness & customer trust", "Extensive feature set", "Existing enterprise distribution networks"],
-        weaknesses: ["Higher legacy pricing structure", "Complex onboarding setup", "Slower feature release velocity"],
-        pricingModel: "Enterprise Tiered Subscription (Estimated)",
-        differentiation: `Position ${currentAnalysis.startupName} with specialized ${currentAnalysis.businessModel} model and faster onboarding.`,
-        marketPosition: idx === 0 ? "Market Leader" : "Challenger",
-        keyFeatures: "Core legacy suite, manual workflows, standard reporting",
-      }))
-    : stage === "Idea Stage" || stage === "Validation Stage"
-    ? [
-        {
-          name: "Existing Manual Workflows & Spreadsheets",
-          category: "Conceptual Alternatives",
-          description: `Current manual methods and spreadsheets used by ${currentAnalysis?.audience || "target users"} before adopting ${currentAnalysis?.startupName || "this idea"}.`,
-          targetAudience: currentAnalysis?.audience || "Early Adopters",
-          strengths: ["Zero financial cost", "Familiarity among legacy teams"],
-          weaknesses: ["High manual effort", "Prone to errors", "No automated AI speed"],
-          pricingModel: "Free / Manual labor cost",
-          differentiation: `10x speed improvement over manual spreadsheet processes.`,
-          marketPosition: "Status Quo",
-          keyFeatures: "Manual data entry, fragmented emails",
-        },
-        {
-          name: "Unfocused Generalist Tools",
-          category: "Broad Platforms",
-          description: "Over-complicated platforms missing specialized workflows for this specific problem.",
-          targetAudience: currentAnalysis?.audience || "General Market",
-          strengths: ["Large feature catalog"],
-          weaknesses: ["High friction", "Irrelevant clutter"],
-          pricingModel: "$99/mo standard fee",
-          differentiation: `Hyper-focused workflow tailored specifically for ${currentAnalysis?.startupName || "this market"}.`,
-          marketPosition: "Generalist Challenger",
-          keyFeatures: "Generic dashboard, heavy setup",
-        },
-      ]
-    : [
-        {
-          name: "Legacy Incumbent Systems",
-          category: "Market Leaders",
-          description: "Dominant enterprise platforms holding primary market share in target category.",
-          targetAudience: currentAnalysis?.audience || "Enterprise Customers",
-          strengths: ["Massive customer base", "Global brand recognition"],
-          weaknesses: ["High cost", "Slow product iteration"],
-          pricingModel: "$500+ / month enterprise tiers",
-          differentiation: `Modern AI automation with 1-minute time-to-value onboarding.`,
-          marketPosition: "Market Leader",
-          keyFeatures: "Enterprise suite, legacy database integrations",
-        },
-        {
-          name: "High-Growth Challenger Platforms",
-          category: "Direct Competitors",
-          description: "Venture-backed fast-growing challengers competing on modern UI and feature depth.",
-          targetAudience: currentAnalysis?.audience || "SMB & Mid-Market",
-          strengths: ["Fast release cadence", "Modern user interface"],
-          weaknesses: ["Aggressive pricing increases", "Limited niche customization"],
-          pricingModel: "$49 - $199 / month",
-          differentiation: `Superior unit economics and specialized category moats.`,
-          marketPosition: "Fast Challenger",
-          keyFeatures: "Cloud APIs, modern UI components",
-        },
-      ];
+  let competitorProfiles: {
+    name: string;
+    category: string;
+    description: string;
+    targetAudience: string;
+    strengths: string[];
+    weaknesses: string[];
+    pricingModel: string;
+    differentiation: string;
+    marketPosition: string;
+    keyFeatures: string;
+  }[] = [];
+
+  if (rawCompetitorList.length > 0) {
+    competitorProfiles = rawCompetitorList.map((comp, idx) => ({
+      name: comp,
+      category: idx % 2 === 0 ? "Local / Regional Competitor" : "Niche Alternative",
+      description: `Established market alternative competing in ${currentAnalysis.country} targeting ${currentAnalysis.audience}.`,
+      targetAudience: currentAnalysis.audience,
+      strengths: ["Established customer trust & location presence", "Known local brand recognition", "Existing customer base"],
+      weaknesses: ["Higher pricing structure", "Inconsistent customer service", "Slower operational updates"],
+      pricingModel: "Standard Market Pricing",
+      differentiation: `Position ${currentAnalysis.startupName} with specialized ${currentAnalysis.businessModel} model and higher quality service.`,
+      marketPosition: idx === 0 ? "Market Leader" : "Challenger",
+      keyFeatures: "Core standard offering, traditional customer service",
+    }));
+  } else if (industry === "Food & Beverage") {
+    competitorProfiles = [
+      {
+        name: "Nearby Local Street Stalls",
+        category: "Direct Local Competitors",
+        description: `Existing street food stalls and snack counters operating in the immediate neighborhood near ${currentAnalysis?.audience || "local customers"}.`,
+        targetAudience: currentAnalysis?.audience || "Local Evening Pedestrians & Students",
+        strengths: ["Established daily footfall location", "Low operational overhead"],
+        weaknesses: ["Inconsistent oil quality & hygiene", "Limited chutney/flavor variety", "Unstandardized plate portions"],
+        pricingModel: "Low Cash Counter Pricing ($0.50 - $1.50 / plate)",
+        differentiation: `Position ${currentAnalysis?.startupName || "this stall"} with 100% mineral water hygiene, 3 custom chutneys, and consistent hot crispiness.`,
+        marketPosition: "Incumbent Vendor",
+        keyFeatures: "Basic fried snacks, traditional chutney",
+      },
+      {
+        name: "Neighborhood Snack & Tea Outlets",
+        category: "Indirect Alternatives",
+        description: "Fixed commercial tea stalls and sweet shops offering fried snacks and samosas.",
+        targetAudience: currentAnalysis?.audience || "Office Workers & Shoppers",
+        strengths: ["Fixed seating or shelter", "Established morning/evening tea traffic"],
+        weaknesses: ["Higher price point", "Samosa/pakoda focus rather than specialized bajjis"],
+        pricingModel: "Standard Counter Pricing ($1.00 - $2.50 / item)",
+        differentiation: `Specialized hot bajji counter focused strictly on instant fresh frying during peak 4 PM - 8 PM hours.`,
+        marketPosition: "Established Shop",
+        keyFeatures: "Tea & bakery items, pre-fried snacks",
+      },
+    ];
+  } else if (industry === "Manufacturing & Processing") {
+    competitorProfiles = [
+      {
+        name: "Established Paper Products Factories",
+        category: "Industrial Wholesale Leaders",
+        description: "High-capacity paper cup and disposable packaging manufacturing units.",
+        targetAudience: currentAnalysis?.audience || "B2B Wholesalers & Distributors",
+        strengths: ["Massive daily machinery capacity", "Established B2B distributor networks"],
+        weaknesses: ["High minimum order quantities (MOQs)", "Rigid wholesale pricing terms"],
+        pricingModel: "Bulk Wholesale Tiered Pricing (per 1,000 units)",
+        differentiation: `Offer flexible B2B order tiers and zero-leakage sturdy rim quality guarantees.`,
+        marketPosition: "Market Leader",
+        keyFeatures: "Bulk paper cup forming lines, standard PE paper stock",
+      },
+      {
+        name: "Regional Disposable Goods Wholesalers",
+        category: "Regional Trade Competitors",
+        description: "B2B distributors sourcing from multiple factories to supply local tea stalls and caterers.",
+        targetAudience: currentAnalysis?.audience || "Tea Stalls & Food Outlets",
+        strengths: ["Local distribution logistics", "Bundled product offerings"],
+        weaknesses: ["Middleman markup margins", "Inconsistent inventory availability"],
+        pricingModel: "Distributor Wholesale Rates",
+        differentiation: `Direct factory-to-outlet supply with lower wholesale unit pricing.`,
+        marketPosition: "Distributor Challenger",
+        keyFeatures: "Multi-brand disposable goods inventory",
+      },
+    ];
+  } else if (industry === "Healthcare & Medical Services") {
+    competitorProfiles = [
+      {
+        name: "Established Neighborhood Dental Clinics",
+        category: "Direct Clinical Competitors",
+        description: "Senior dental practitioners and private clinics with established local patient bases.",
+        targetAudience: currentAnalysis?.audience || "Local Residents & Families",
+        strengths: ["Long-standing patient trust", "Senior doctor reputation"],
+        weaknesses: ["Legacy diagnostic equipment", "Manual phone appointment scheduling"],
+        pricingModel: "Standard Clinical Fee-for-Service",
+        differentiation: `Position ${currentAnalysis?.startupName || "this clinic"} with digital X-ray diagnostics, painless procedure tools, and automated appointment reminders.`,
+        marketPosition: "Local Leader",
+        keyFeatures: "General dentistry, manual patient records",
+      },
+      {
+        name: "Corporate Chain Dental Hospitals",
+        category: "Multi-Specialty Chains",
+        description: "Regional corporate dental chains with high advertising budgets.",
+        targetAudience: currentAnalysis?.audience || "Corporate & High-Income Patients",
+        strengths: ["High brand visibility", "Multi-specialist availability"],
+        weaknesses: ["High treatment fees", "Impersonal corporate patient experience"],
+        pricingModel: "Premium Tiered Dental Procedures",
+        differentiation: `Provide compassionate, high-precision personalized care at transparent family pricing.`,
+        marketPosition: "Corporate Leader",
+        keyFeatures: "Multi-specialty suites, insurance billing",
+      },
+    ];
+  } else if (industry === "Agriculture & Agribusiness") {
+    competitorProfiles = [
+      {
+        name: "Traditional Non-Organic Farmers",
+        category: "Conventional Produce Suppliers",
+        description: "High-yield commercial farms supplying standard APMC mandi wholesalers.",
+        targetAudience: currentAnalysis?.audience || "Mandi Wholesalers & Supermarkets",
+        strengths: ["High volume production", "Lower initial farm cost"],
+        weaknesses: ["Synthetic pesticide usage", "Lower wholesale premium pricing"],
+        pricingModel: "Standard Commodity Mandi Rates",
+        differentiation: `100% NPOP certified pesticide-free organic produce with 24-hour post-harvest delivery.`,
+        marketPosition: "Volume Leader",
+        keyFeatures: "Conventional crop production, bulk mandi trading",
+      },
+      {
+        name: "Regional Organic Produce Brands",
+        category: "Specialty Organic Competitors",
+        description: "Organic produce suppliers servicing high-end supermarkets and subscription buyers.",
+        targetAudience: currentAnalysis?.audience || "Health-Conscious Consumers",
+        strengths: ["Established organic brand recognition"],
+        weaknesses: ["High retail price markup", "Frequent stockouts during off-seasons"],
+        pricingModel: "Premium Organic Retail Pricing",
+        differentiation: `Consistent year-round crop availability backed by drip irrigation and cold storage preservation.`,
+        marketPosition: "Organic Challenger",
+        keyFeatures: "Certified organic packaging, direct delivery",
+      },
+    ];
+  } else {
+    competitorProfiles = [
+      {
+        name: "Legacy Incumbent Systems",
+        category: "Market Leaders",
+        description: "Dominant platforms holding primary market share in target category.",
+        targetAudience: currentAnalysis?.audience || "Enterprise Customers",
+        strengths: ["Massive customer base", "Global brand recognition"],
+        weaknesses: ["High cost", "Slow product iteration"],
+        pricingModel: "Enterprise Tiered Subscription",
+        differentiation: `Modern workflow automation with 1-minute time-to-value onboarding.`,
+        marketPosition: "Market Leader",
+        keyFeatures: "Enterprise suite, legacy database integrations",
+      },
+      {
+        name: "High-Growth Challenger Platforms",
+        category: "Direct Competitors",
+        description: "Venture-backed fast-growing challengers competing on modern UI and feature depth.",
+        targetAudience: currentAnalysis?.audience || "SMB & Mid-Market",
+        strengths: ["Fast release cadence", "Modern user interface"],
+        weaknesses: ["Aggressive pricing increases", "Limited niche customization"],
+        pricingModel: "$49 - $199 / month",
+        differentiation: `Superior unit economics and specialized category moats.`,
+        marketPosition: "Fast Challenger",
+        keyFeatures: "Cloud APIs, modern UI components",
+      },
+    ];
+  }
 
   // Search & Filter filter logic
   const filteredCompetitors = competitorProfiles.filter((c) => {
@@ -150,7 +248,7 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
               Competitor Insights & Positioning
             </h1>
             <p className="text-xs text-slate-500">
-              Discover competitors relevant to your specific industry and business type.
+              Discover competitors relevant to your specific industry ({industry}) and business type.
             </p>
           </div>
 
@@ -225,7 +323,7 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-purple-600" />
-                  Industry Competitor Profiles for &ldquo;{currentAnalysis.startupName}&rdquo;
+                  Industry Competitor Profiles for &ldquo;{currentAnalysis.startupName}&rdquo; ({industry})
                 </h2>
               </div>
 

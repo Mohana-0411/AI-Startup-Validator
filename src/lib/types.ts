@@ -35,8 +35,33 @@ export interface IndustryProfile {
   keyOperatingMetrics: string[];
 }
 
+export interface VentureContext {
+  ventureName: string;
+  description: string;
+  industry: string;
+  subIndustry: string;
+  businessType: string;
+  categoryKind:
+    | "Local Food Business / Street Food"
+    | "Physical Storefront / Retail"
+    | "Offline Business"
+    | "Healthcare Service"
+    | "Manufacturing & Industrial"
+    | "Agriculture & Agribusiness"
+    | "Technology Startup / SaaS"
+    | "Professional Service";
+  operatingModel: "Offline" | "Online" | "Hybrid" | "D2C" | "B2B Wholesale";
+  revenueModel: string;
+  targetAudience: string;
+  marketScope: string;
+  problem: string;
+  solution: string;
+  competitors?: string | null;
+  isTechnologyProduct: boolean;
+}
+
 export interface StartupLifecycle {
-  currentStage: LifecycleStage;
+  currentStage: string;
   confidenceScore: number;
   reason: string;
   nextMilestone: string;
@@ -46,6 +71,7 @@ export interface StartupLifecycle {
   successProbability: number;
   potentialBlockers: string[];
   suggestedPriorities: string[];
+  stageTimeline?: string[];
 }
 
 export interface BusinessClassification {
@@ -98,6 +124,7 @@ export interface BusinessDNA {
 
 export interface AnalysisResultJSON {
   overallScore: number;
+  ventureContext?: VentureContext;
   industryProfile?: IndustryProfile;
   businessClassification?: BusinessClassification;
   businessDNA?: BusinessDNA;

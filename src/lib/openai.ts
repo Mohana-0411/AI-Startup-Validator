@@ -4,9 +4,9 @@ import {
   BusinessClassification,
   BusinessDNA,
   StartupLifecycle,
-  LifecycleStage,
   IdeaTypeKind,
   IndustryProfile,
+  VentureContext,
 } from "./types";
 
 interface StartupIdeaInput {
@@ -20,16 +20,16 @@ interface StartupIdeaInput {
   competitors?: string | null;
 }
 
-const DOMAIN_REFUSAL_MESSAGE = `I'm designed specifically to help with startups and business ventures.
+const DOMAIN_REFUSAL_MESSAGE = `I'm designed specifically to help with business ventures and entrepreneurial ideas.
 
 I can't provide reliable answers outside that domain.
 
 Ask me anything about:
 
-• Business validation & market demand
-• Operations, licensing & location selection
-• Revenue models & unit economics
-• Execution roadmap & competitor analysis
+• Business validation & customer demand
+• Location selection, footfall & local permits
+• Unit economics, pricing & gross margins
+• Execution roadmaps & competitor analysis
 • Growth strategy & expansion`;
 
 export type DetailedStartupCategory =
@@ -40,6 +40,7 @@ export type DetailedStartupCategory =
   | "EDUCATION"
   | "MANUFACTURING"
   | "AGRICULTURE"
+  | "ENERGY_EV"
   | "RETAIL_LOCAL"
   | "SOFTWARE_SAAS";
 
@@ -55,6 +56,257 @@ export interface ClarificationCheckResult {
   needsClarification: boolean;
   questions?: string[];
   message?: string;
+}
+
+export function detectDetailedStartupCategory(text: string): DetailedStartupCategory {
+  const lower = text.toLowerCase();
+
+  // Software SaaS explicit check (e.g. Hospital Management Software, AI Resume Builder)
+  if (
+    lower.includes("software") ||
+    lower.includes("saas") ||
+    lower.includes("platform app") ||
+    lower.includes("resume builder") ||
+    lower.includes("web app")
+  ) {
+    return "SOFTWARE_SAAS";
+  }
+
+  // 1. Food & Beverage (Bajji stall, Panipuri, Bakery, Cloud Kitchen, Restaurant)
+  if (
+    lower.includes("bajji") ||
+    lower.includes("panipuri") ||
+    lower.includes("puri") ||
+    lower.includes("chaat") ||
+    lower.includes("pakoda") ||
+    lower.includes("restaurant") ||
+    lower.includes("food") ||
+    lower.includes("cafe") ||
+    lower.includes("kitchen") ||
+    lower.includes("bakery") ||
+    lower.includes("catering") ||
+    lower.includes("snack") ||
+    lower.includes("dhaba") ||
+    lower.includes("dining") ||
+    lower.includes("biryani") ||
+    lower.includes("beverage")
+  ) {
+    return "FOOD";
+  }
+
+  // 2. Healthcare & Medical (Dental clinic, Hospital, Clinic, Doctor)
+  if (
+    lower.includes("hospital") ||
+    lower.includes("healthcare") ||
+    lower.includes("clinic") ||
+    lower.includes("dental") ||
+    lower.includes("doctor") ||
+    lower.includes("medical") ||
+    lower.includes("patient") ||
+    lower.includes("nursing") ||
+    lower.includes("pharma")
+  ) {
+    return "HEALTHCARE";
+  }
+
+  // 3. Agriculture & Farming (Organic vegetable farm, Crops)
+  if (
+    lower.includes("farm") ||
+    lower.includes("crop") ||
+    lower.includes("agri") ||
+    lower.includes("organic vegetable") ||
+    lower.includes("harvest") ||
+    lower.includes("fertilizer") ||
+    lower.includes("organic farming")
+  ) {
+    return "AGRICULTURE";
+  }
+
+  // 4. Manufacturing & Industrial (Paper cup manufacturing, Rice mill, Factory)
+  if (
+    lower.includes("paper cup") ||
+    lower.includes("rice mill") ||
+    lower.includes("mill") ||
+    lower.includes("factory") ||
+    lower.includes("plant") ||
+    lower.includes("manufactur") ||
+    lower.includes("assembly") ||
+    lower.includes("industrial") ||
+    lower.includes("processing unit")
+  ) {
+    return "MANUFACTURING";
+  }
+
+  // 5. Energy & EV Infrastructure (EV charging station, Solar)
+  if (
+    lower.includes("ev charging") ||
+    lower.includes("charging station") ||
+    lower.includes("electric vehicle") ||
+    lower.includes("solar") ||
+    lower.includes("renewable energy")
+  ) {
+    return "ENERGY_EV";
+  }
+
+  // 6. Fashion & Apparel (Clothing store, Garments)
+  if (
+    lower.includes("clothing") ||
+    lower.includes("fashion") ||
+    lower.includes("apparel") ||
+    lower.includes("garment") ||
+    lower.includes("textile") ||
+    lower.includes("shoe") ||
+    lower.includes("wear") ||
+    lower.includes("boutique") ||
+    lower.includes("jewelry")
+  ) {
+    return "FASHION";
+  }
+
+  // 7. Fitness & Gym
+  if (
+    lower.includes("gym") ||
+    lower.includes("fitness") ||
+    lower.includes("workout") ||
+    lower.includes("yoga") ||
+    lower.includes("trainer") ||
+    lower.includes("crossfit") ||
+    lower.includes("wellness center")
+  ) {
+    return "FITNESS";
+  }
+
+  // 8. Education & Academy
+  if (
+    lower.includes("school") ||
+    lower.includes("coaching") ||
+    lower.includes("tuition") ||
+    lower.includes("academy") ||
+    lower.includes("institute") ||
+    lower.includes("tutor") ||
+    lower.includes("education")
+  ) {
+    return "EDUCATION";
+  }
+
+  // 9. Retail & Local Shop
+  if (
+    lower.includes("shop") ||
+    lower.includes("store") ||
+    lower.includes("retail") ||
+    lower.includes("supermarket") ||
+    lower.includes("grocery") ||
+    lower.includes("salon") ||
+    lower.includes("laundry")
+  ) {
+    return "RETAIL_LOCAL";
+  }
+
+  return "SOFTWARE_SAAS";
+}
+
+export const detectStartupCategory = detectDetailedStartupCategory;
+
+export function buildVentureContext(input: StartupIdeaInput): VentureContext {
+  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
+  const category = detectDetailedStartupCategory(fullText);
+
+  const isSoftware =
+    fullText.includes("software") ||
+    fullText.includes("saas") ||
+    fullText.includes("platform app") ||
+    fullText.includes("resume builder") ||
+    category === "SOFTWARE_SAAS";
+
+  let industry = "Technology & Software";
+  let subIndustry = "B2B SaaS / Web App";
+  let businessType = "Digital Software Platform";
+  let categoryKind: VentureContext["categoryKind"] = "Technology Startup / SaaS";
+  let operatingModel: VentureContext["operatingModel"] = "Online";
+
+  if (category === "FOOD") {
+    industry = "Food & Beverage";
+    const isBajjiOrPuri = fullText.includes("bajji") || fullText.includes("panipuri") || fullText.includes("chaat") || fullText.includes("street");
+    const isCloudKitchen = fullText.includes("cloud kitchen") || fullText.includes("dark kitchen");
+    const isBakery = fullText.includes("bakery") || fullText.includes("cake");
+
+    subIndustry = isBajjiOrPuri
+      ? "Street Food / Quick Service Counter"
+      : isCloudKitchen
+      ? "Cloud Kitchen Delivery"
+      : isBakery
+      ? "Artisanal Bakery Shop"
+      : "Restaurant & Catering";
+
+    businessType = isBajjiOrPuri ? "Local Street Food Counter" : isCloudKitchen ? "Cloud Kitchen Outlet" : "Food & Restaurant Outlet";
+    categoryKind = "Local Food Business / Street Food";
+    operatingModel = isCloudKitchen ? "Hybrid" : "Offline";
+  } else if (category === "FASHION") {
+    industry = "Fashion & Apparel";
+    subIndustry = "D2C Apparel & Retail Store";
+    businessType = "Clothing & Fashion Store";
+    categoryKind = "Physical Storefront / Retail";
+    operatingModel = "D2C";
+  } else if (category === "FITNESS") {
+    industry = "Fitness & Wellness";
+    subIndustry = "Gym & Commercial Health Club";
+    businessType = "Fitness Center";
+    categoryKind = "Offline Business";
+    operatingModel = "Offline";
+  } else if (category === "HEALTHCARE") {
+    industry = "Healthcare & Medical Services";
+    subIndustry = isSoftware ? "HealthTech Software" : "Clinical Care & Clinic";
+    businessType = isSoftware ? "Healthcare Software Platform" : "Dental / Medical Clinic";
+    categoryKind = isSoftware ? "Technology Startup / SaaS" : "Healthcare Service";
+    operatingModel = isSoftware ? "Online" : "Offline";
+  } else if (category === "MANUFACTURING") {
+    industry = "Manufacturing & Processing";
+    subIndustry = fullText.includes("paper cup") ? "Paper Cup & Disposable Manufacturing" : "Industrial Milling & Plant";
+    businessType = "Manufacturing Factory";
+    categoryKind = "Manufacturing & Industrial";
+    operatingModel = "B2B Wholesale";
+  } else if (category === "AGRICULTURE") {
+    industry = "Agriculture & Agribusiness";
+    subIndustry = "Organic Vegetable Farming & Crop Production";
+    businessType = "Organic Commercial Farm";
+    categoryKind = "Agriculture & Agribusiness";
+    operatingModel = "B2B Wholesale";
+  } else if (category === "ENERGY_EV") {
+    industry = "Energy & EV Infrastructure";
+    subIndustry = "EV Charging Station & Power Infrastructure";
+    businessType = "EV Charging Station Outlet";
+    categoryKind = "Offline Business";
+    operatingModel = "Offline";
+  } else if (category === "EDUCATION") {
+    industry = "Education & Training";
+    subIndustry = "Coaching Institute & Academy";
+    businessType = "Education Center";
+    categoryKind = "Professional Service";
+    operatingModel = "Offline";
+  } else if (category === "RETAIL_LOCAL") {
+    industry = "Retail & Storefront";
+    subIndustry = "Retail Shop & Goods Store";
+    businessType = "Retail Storefront";
+    categoryKind = "Physical Storefront / Retail";
+    operatingModel = "Offline";
+  }
+
+  return {
+    ventureName: input.startupName.trim(),
+    description: input.idea.trim(),
+    industry,
+    subIndustry,
+    businessType,
+    categoryKind,
+    operatingModel,
+    revenueModel: input.businessModel || "Direct Commercial Sales",
+    targetAudience: input.audience || "Local Consumers & Target Market",
+    marketScope: input.country || "Local Market",
+    problem: input.problem.trim(),
+    solution: input.solution.trim(),
+    competitors: input.competitors || null,
+    isTechnologyProduct: isSoftware,
+  };
 }
 
 export function detectIdeaTypeKind(text: string, category: DetailedStartupCategory): IdeaTypeKind {
@@ -75,70 +327,39 @@ export function detectIdeaTypeKind(text: string, category: DetailedStartupCatego
 }
 
 export function inferIndustryProfile(input: StartupIdeaInput): IndustryProfile {
-  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
-  const category = detectDetailedStartupCategory(fullText);
+  const vContext = buildVentureContext(input);
 
-  let detectedIndustry = "Technology & Software";
-  let subIndustry = "B2B SaaS / Web App";
-  let categoryKind: IndustryProfile["businessCategoryKind"] = "Technology Startup";
   let regulatoryBody = "Standard Corporate Regulations";
   let metrics = ["Monthly Recurring Revenue (MRR)", "Customer Acquisition Cost (CAC)", "User Activation Rate"];
 
-  if (category === "FOOD") {
-    detectedIndustry = "Food & Beverage";
-    subIndustry = fullText.includes("panipuri") ? "Street Food / Quick Service Counter" : "Restaurant & Food Service";
-    categoryKind = fullText.includes("panipuri") ? "Local Business" : "Offline Business";
-    regulatoryBody = "FSSAI Food Safety & Municipal Trade Licensing";
-    metrics = ["Daily Counter Footfall", "Average Transaction Value", "Gross Ingredient Profit Margin (65%+)"];
-  } else if (category === "FASHION") {
-    detectedIndustry = "Fashion & Apparel";
-    subIndustry = "D2C Apparel & Clothing Brand";
-    categoryKind = "Product Business";
+  if (vContext.industry === "Food & Beverage") {
+    regulatoryBody = "FSSAI Food Safety & Municipal Trade Permit";
+    metrics = ["Daily Counter Footfall", "Average Plate Transaction Value", "Gross Ingredient Profit Margin (65%+)"];
+  } else if (vContext.industry === "Fashion & Apparel") {
     regulatoryBody = "GST & Textile Standards Authority";
-    metrics = ["Fabric Sample Testing Pass Rate", "Return Rate (<10%)", "Gross Merchandise Value (GMV)"];
-  } else if (category === "FITNESS") {
-    detectedIndustry = "Fitness & Wellness";
-    subIndustry = "Health Club & Commercial Gym";
-    categoryKind = "Local Business";
-    regulatoryBody = "Municipal Trade Permit & Commercial Fire Clearance";
+    metrics = ["Fabric Sample Testing Pass Rate", "Return Rate (<8%)", "Gross Merchandise Value (GMV)"];
+  } else if (vContext.industry === "Fitness & Wellness") {
+    regulatoryBody = "Municipal Trade Permit & Fire Clearance";
     metrics = ["Active Monthly Subscriptions", "Personal Training Upsell Rate", "Floor Capacity Utilization"];
-  } else if (category === "HEALTHCARE") {
-    detectedIndustry = "Healthcare & Medical Services";
-    subIndustry = "Clinical Care & Hospital";
-    categoryKind = "Offline Business";
-    regulatoryBody = "Medical Council & Clinical Establishment Authority";
-    metrics = ["Bed Occupancy Rate", "Patient Satisfaction & Referral Score", "Diagnostic Precision Rate"];
-  } else if (category === "MANUFACTURING") {
-    detectedIndustry = "Manufacturing & Processing";
-    subIndustry = "Agri-Processing & Industrial Milling";
-    categoryKind = "Manufacturing";
-    regulatoryBody = "Pollution Control Board & Industrial Factory License";
-    metrics = ["Milling Machinery Yield %", "Daily Processing Tonnage", "Raw Material Paddy Procurement Cost"];
-  } else if (category === "AGRICULTURE") {
-    detectedIndustry = "Agriculture & Agribusiness";
-    subIndustry = "Organic Farming & Crop Production";
-    categoryKind = "Product Business";
-    regulatoryBody = "Organic Certification Authority (NPOP/APMC)";
+  } else if (vContext.industry === "Healthcare & Medical Services") {
+    regulatoryBody = vContext.isTechnologyProduct ? "HIPAA & EHR Interoperability Standards" : "Clinical Establishment Act & Medical Council Registration";
+    metrics = vContext.isTechnologyProduct ? ["API Interoperability", "Active Hospital Seats", "SaaS MRR"] : ["Patient Appointment Retention", "Diagnostic Precision Rate", "Bed Occupancy"];
+  } else if (vContext.industry === "Manufacturing & Processing") {
+    regulatoryBody = "Industrial Pollution Control Board & Factory License";
+    metrics = ["Machinery Forming Speed (cups/min)", "Daily Production Tonnage", "Raw Material PE Paper Roll Cost"];
+  } else if (vContext.industry === "Agriculture & Agribusiness") {
+    regulatoryBody = "NPOP Organic Certification & APMC Mandi License";
     metrics = ["Crop Yield Per Acre", "Cold Storage Preservation Rate", "Wholesale Mandi Off-Take Price"];
-  } else if (category === "EDUCATION") {
-    detectedIndustry = "Education & Training";
-    subIndustry = "Academy & Coaching Center";
-    categoryKind = "Service Business";
-    regulatoryBody = "Education Department & Academic Accreditation";
-    metrics = ["Student Batch Enrollment Rate", "Exam Pass Ratio", "Teacher Retention Rate"];
-  } else if (category === "RETAIL_LOCAL") {
-    detectedIndustry = "Retail & Commerce";
-    subIndustry = "Storefront Retail & Goods Shop";
-    categoryKind = "Local Business";
-    regulatoryBody = "Shops & Establishment Licensing";
-    metrics = ["Sales Per Square Foot", "Inventory Turnover Ratio", "Repeat Shopper Rate"];
+  } else if (vContext.industry === "Energy & EV Infrastructure") {
+    regulatoryBody = "State Electricity Board Grid Sanction & Safety Permit";
+    metrics = ["Charger Utilization Hours / Day", "KWh Power Dispensed", "DC Charger Uptime (99%+)"];
   }
 
   return {
-    detectedIndustry,
-    subIndustry,
-    businessCategoryKind: categoryKind,
-    revenueModelType: input.businessModel || "Direct Commercial Sales",
+    detectedIndustry: vContext.industry,
+    subIndustry: vContext.subIndustry,
+    businessCategoryKind: vContext.isTechnologyProduct ? "Technology Startup" : "Offline Business",
+    revenueModelType: input.businessModel || "Direct Sales",
     regulatoryBody,
     keyOperatingMetrics: metrics,
   };
@@ -149,202 +370,105 @@ export function assessClarificationNeed(input: StartupIdeaInput): ClarificationC
   const name = input.startupName.trim();
   const idea = input.idea.trim();
 
-  // If startup concept contains explicit domain markers, proceed directly
+  // Explicit self-contained domain markers
   const clearSelfContainedTerms = [
-    "panipuri", "puri", "chaat", "restaurant", "food", "clothing", "fashion", "apparel",
-    "gym", "fitness", "tuition", "school", "academy", "hospital", "clinic",
-    "rice mill", "mill", "factory", "bakery", "salon", "laundry", "resume builder",
-    "delivery", "saas", "software", "marketplace", "e-commerce", "organic farming", "farming"
+    "bajji", "panipuri", "puri", "chaat", "restaurant", "food", "clothing", "fashion", "apparel",
+    "gym", "fitness", "tuition", "school", "academy", "hospital", "clinic", "dental",
+    "paper cup", "rice mill", "mill", "factory", "bakery", "salon", "laundry", "resume builder",
+    "delivery", "saas", "software", "marketplace", "e-commerce", "organic farming", "farming", "ev charging", "solar"
   ];
 
   const lower = fullText.toLowerCase();
   const isSelfContained = clearSelfContainedTerms.some((term) => lower.includes(term));
 
-  if (isSelfContained && idea.length >= 6) {
+  if (isSelfContained && idea.length >= 5) {
     return { needsClarification: false };
   }
 
-  // Check for ambiguous single-word/short inputs like "FreshBox", "SmartCart", "NextGen"
+  // Check for ambiguous single-word/short inputs like "NovaX", "FreshBox", "SkillTwin"
   const wordCount = fullText.split(/\s+/).filter(Boolean).length;
-  if (wordCount < 15 || idea.length < 15 || (!isSelfContained && idea.split(" ").length < 4)) {
-    const isSmartCart = name.toLowerCase().includes("smartcart");
-    const isFreshBox = name.toLowerCase().includes("freshbox");
-
-    let specificQuestions: string[] = [];
-
-    if (isFreshBox) {
-      specificQuestions = [
-        "What does FreshBox do in detail?",
-        "Is it a software product, a food/meal delivery business, an e-commerce platform, or a logistics company?",
-        "Who are your primary target customers?",
-      ];
-    } else if (isSmartCart) {
-      specificQuestions = [
-        "What does SmartCart do in detail?",
-        "Is it grocery delivery, POS checkout software, an e-commerce platform, or an AI shopping assistant?",
-        "Who are your primary target customers?",
-      ];
-    } else {
-      specificQuestions = [
-        `What does ${name} do in detail?`,
-        `Is ${name} a software/SaaS product, a food/retail business, an e-commerce platform, or a local service?`,
-        `Who are your primary target customers and geography?`,
-      ];
-    }
-
+  if (wordCount < 14 || idea.length < 14 || (!isSelfContained && idea.split(" ").length < 4)) {
     return {
       needsClarification: true,
-      questions: specificQuestions,
-      message: `Before I analyze your startup, I need a little more information.`,
+      questions: [
+        `What does ${name} offer in detail?`,
+        `Who are your target customers?`,
+        `Is ${name} a product, service, physical business, or technology venture?`,
+      ],
+      message: `Before I validate this venture, I need a little more context:`,
     };
   }
 
   return { needsClarification: false };
 }
 
-export function detectDetailedStartupCategory(text: string): DetailedStartupCategory {
-  const lower = text.toLowerCase();
-
-  // Explicit check for software tools (e.g. Hospital Management Software)
-  if (lower.includes("software") || lower.includes("saas") || lower.includes("platform app") || lower.includes("resume builder")) {
-    return "SOFTWARE_SAAS";
-  }
-
-  // 1. Food & Beverage (Panipuri, Bakery, Restaurant, Cafe)
-  if (
-    lower.includes("panipuri") ||
-    lower.includes("puri") ||
-    lower.includes("chaat") ||
-    lower.includes("restaurant") ||
-    lower.includes("food") ||
-    lower.includes("cafe") ||
-    lower.includes("kitchen") ||
-    lower.includes("bakery") ||
-    lower.includes("catering") ||
-    lower.includes("snack") ||
-    lower.includes("dhaba") ||
-    lower.includes("dining") ||
-    lower.includes("biryani") ||
-    lower.includes("beverage")
-  ) {
-    return "FOOD";
-  }
-
-  // 2. Fashion & Apparel
-  if (
-    lower.includes("clothing") ||
-    lower.includes("fashion") ||
-    lower.includes("apparel") ||
-    lower.includes("garment") ||
-    lower.includes("textile") ||
-    lower.includes("shoe") ||
-    lower.includes("wear") ||
-    lower.includes("boutique") ||
-    lower.includes("jewelry")
-  ) {
-    return "FASHION";
-  }
-
-  // 3. Fitness & Gym
-  if (
-    lower.includes("gym") ||
-    lower.includes("fitness") ||
-    lower.includes("workout") ||
-    lower.includes("yoga") ||
-    lower.includes("trainer") ||
-    lower.includes("crossfit") ||
-    lower.includes("wellness center")
-  ) {
-    return "FITNESS";
-  }
-
-  // 4. Healthcare & Hospital
-  if (
-    lower.includes("hospital") ||
-    lower.includes("healthcare") ||
-    lower.includes("clinic") ||
-    lower.includes("doctor") ||
-    lower.includes("medical") ||
-    lower.includes("patient") ||
-    lower.includes("nursing") ||
-    lower.includes("pharma")
-  ) {
-    return "HEALTHCARE";
-  }
-
-  // 5. Manufacturing & Processing (e.g. Rice Mill, Factory)
-  if (
-    lower.includes("rice mill") ||
-    lower.includes("mill") ||
-    lower.includes("factory") ||
-    lower.includes("plant") ||
-    lower.includes("manufactur") ||
-    lower.includes("assembly") ||
-    lower.includes("industrial") ||
-    lower.includes("processing unit")
-  ) {
-    return "MANUFACTURING";
-  }
-
-  // 6. Agriculture & Farming (e.g. Organic Farming)
-  if (
-    lower.includes("farm") ||
-    lower.includes("crop") ||
-    lower.includes("agri") ||
-    lower.includes("organic harvest") ||
-    lower.includes("fertilizer") ||
-    lower.includes("organic farming")
-  ) {
-    return "AGRICULTURE";
-  }
-
-  // 7. Education & Academy
-  if (
-    lower.includes("school") ||
-    lower.includes("coaching") ||
-    lower.includes("tuition") ||
-    lower.includes("academy") ||
-    lower.includes("institute") ||
-    lower.includes("tutor") ||
-    lower.includes("education")
-  ) {
-    return "EDUCATION";
-  }
-
-  // 8. Retail & Local Shop
-  if (
-    lower.includes("shop") ||
-    lower.includes("store") ||
-    lower.includes("retail") ||
-    lower.includes("supermarket") ||
-    lower.includes("grocery") ||
-    lower.includes("salon") ||
-    lower.includes("laundry")
-  ) {
-    return "RETAIL_LOCAL";
-  }
-
-  // 9. Software / SaaS
-  return "SOFTWARE_SAAS";
-}
-
-export const detectStartupCategory = detectDetailedStartupCategory;
-
 export function getExpertPersona(category: DetailedStartupCategory): IndustryExpertPersona {
   switch (category) {
     case "FOOD":
       return {
         category: "FOOD",
-        personaTitle: "Restaurant & Food Business Consultant",
+        personaTitle: "Restaurant & Street Food Business Consultant",
         ideaTypeKind: "Local Business",
         primaryDomainFocus: [
-          "Location selection & footfall analysis",
-          "Hygiene, taste & recipe standardization",
-          "FSSAI food licensing & municipal permits",
-          "Ingredient sourcing & gross margins (65%+)",
-          "Delivery platform partnerships (Zomato/Swiggy)",
+          "High-footfall location selection (bus stops/colleges)",
+          "FSSAI food hygiene & municipal trade permits",
+          "Ingredient cost (flour, oil, spices, batter) per plate & 65%+ margin",
+          "Menu items (Mirchi Bajji, Potato Bajji, Chutneys) & taste consistency",
+          "Daily sales volume, break-even plates & waste control",
         ],
-        forbiddenTerms: ["MVP", "writing code", "APIs", "tech stack", "software engineering", "CAC", "LTV", "churn"],
+        forbiddenTerms: ["MVP", "writing code", "APIs", "tech stack", "software engineering", "CAC", "LTV", "churn", "wireframe", "landing page"],
+      };
+    case "HEALTHCARE":
+      return {
+        category: "HEALTHCARE",
+        personaTitle: "Healthcare & Clinic Operations Consultant",
+        ideaTypeKind: "Traditional Business",
+        primaryDomainFocus: [
+          "Clinical Establishment Act registration & dental council permits",
+          "Dental chair, X-ray & autoclave sterilizer equipment setup",
+          "Certified dental hygienist & nurse recruitment",
+          "Patient appointment retention & community health awareness",
+        ],
+        forbiddenTerms: ["writing code", "APIs", "SaaS metrics", "wireframe"],
+      };
+    case "MANUFACTURING":
+      return {
+        category: "MANUFACTURING",
+        personaTitle: "Industrial Manufacturing Consultant",
+        ideaTypeKind: "Traditional Business",
+        primaryDomainFocus: [
+          "High-speed paper cup forming machinery & PE paper roll sourcing",
+          "Industrial factory space, power load clearance & pollution permits",
+          "Manufacturing unit cost per 100 cups & B2B distributor pricing",
+          "B2B wholesale supply contracts with tea vendors & caterers",
+        ],
+        forbiddenTerms: ["writing code", "APIs", "MVP app", "wireframe"],
+      };
+    case "AGRICULTURE":
+      return {
+        category: "AGRICULTURE",
+        personaTitle: "Agribusiness & Farm Operations Consultant",
+        ideaTypeKind: "Product Business",
+        primaryDomainFocus: [
+          "Soil fertility testing & drip irrigation installation",
+          "NPOP/APMC organic farming certification",
+          "Cold storage preservation & post-harvest spoilage control",
+          "Wholesale mandi off-take contracts & direct supermarket supply",
+        ],
+        forbiddenTerms: ["writing code", "APIs", "software engineering"],
+      };
+    case "ENERGY_EV":
+      return {
+        category: "ENERGY_EV",
+        personaTitle: "EV Infrastructure & Energy Consultant",
+        ideaTypeKind: "Traditional Business",
+        primaryDomainFocus: [
+          "Highway/commercial parking site selection & land lease",
+          "High-voltage electricity grid sanction from DISCOM",
+          "Dual-gun CCS2 fast DC charger & transformer procurement",
+          "Mobile payment integration & station signage",
+        ],
+        forbiddenTerms: ["MVP app", "writing code", "software engineering"],
       };
     case "FASHION":
       return {
@@ -352,92 +476,23 @@ export function getExpertPersona(category: DetailedStartupCategory): IndustryExp
         personaTitle: "Fashion & Retail Business Consultant",
         ideaTypeKind: "Product Business",
         primaryDomainFocus: [
-          "Brand positioning & target demographic",
-          "Fabric quality, stitching & sample testing",
-          "D2C e-commerce & social media drops",
-          "Influencer seeding & return rate management",
-          "Wholesale & retail store distribution",
+          "Fabric quality, stitching & sample batch testing",
+          "Storefront footfall & D2C online collection drops",
+          "Gross margin optimization (70%+) & low return rate (<8%)",
+          "Retail store distribution & supplier pricing",
         ],
         forbiddenTerms: ["MVP", "writing code", "APIs", "software engineering"],
-      };
-    case "FITNESS":
-      return {
-        category: "FITNESS",
-        personaTitle: "Fitness & Wellness Business Consultant",
-        ideaTypeKind: "Local Business",
-        primaryDomainFocus: [
-          "High-density commercial location",
-          "Gym equipment leasing & setup",
-          "Trainer recruitment & certification",
-          "Monthly subscription memberships",
-          "Peak-hour floor capacity & hygiene",
-        ],
-        forbiddenTerms: ["writing code", "APIs", "software engineering"],
-      };
-    case "HEALTHCARE":
-      return {
-        category: "HEALTHCARE",
-        personaTitle: "Healthcare Business Consultant",
-        ideaTypeKind: "Traditional Business",
-        primaryDomainFocus: [
-          "Medical licensing & regulatory compliance",
-          "Doctor & clinical staff recruitment",
-          "Patient trust & diagnostic accuracy",
-          "Emergency facilities & ICU equipment",
-          "Hospital partnerships & health insurance billing",
-        ],
-        forbiddenTerms: ["writing code", "APIs", "SaaS metrics"],
-      };
-    case "MANUFACTURING":
-      return {
-        category: "MANUFACTURING",
-        personaTitle: "Manufacturing Consultant",
-        ideaTypeKind: "Traditional Business",
-        primaryDomainFocus: [
-          "Factory location & land zoning",
-          "Milling machinery & processing equipment",
-          "Raw material bulk procurement (e.g. paddy/iron)",
-          "Quality control & yield percentage",
-          "B2B wholesale distributor channels",
-        ],
-        forbiddenTerms: ["writing code", "APIs", "MVP app"],
-      };
-    case "AGRICULTURE":
-      return {
-        category: "AGRICULTURE",
-        personaTitle: "Agribusiness Consultant",
-        ideaTypeKind: "Product Business",
-        primaryDomainFocus: [
-          "Soil testing & organic crop yield optimization",
-          "Cold storage & post-harvest preservation",
-          "Mandi distribution & APMC wholesaler networks",
-          "Organic certification & export compliance",
-        ],
-        forbiddenTerms: ["writing code", "APIs", "software engineering"],
-      };
-    case "EDUCATION":
-      return {
-        category: "EDUCATION",
-        personaTitle: "Education Consultant",
-        ideaTypeKind: "Service Business",
-        primaryDomainFocus: [
-          "Curriculum design & learning outcomes",
-          "Teacher recruitment & pedagogical quality",
-          "Student enrollment & batch pricing",
-          "Parent trust & exam pass ratios",
-        ],
-        forbiddenTerms: ["writing code", "APIs"],
       };
     default:
       return {
         category: "SOFTWARE_SAAS",
-        personaTitle: "Startup & SaaS Consultant",
+        personaTitle: "Startup & SaaS Growth Consultant",
         ideaTypeKind: "Technology Startup",
         primaryDomainFocus: [
-          "MVP development & core feature set",
-          "Product validation & user onboarding (< 60s)",
+          "Conduct 15 customer discovery interviews",
+          "Build lightweight MVP prototype and test onboarding (< 60s)",
           "Scalable cloud infrastructure & APIs",
-          "CAC, LTV, churn & retention metrics",
+          "CAC, LTV, churn & monthly recurring revenue (MRR)",
           "Tiered SaaS subscription pricing",
         ],
         forbiddenTerms: [],
@@ -445,534 +500,374 @@ export function getExpertPersona(category: DetailedStartupCategory): IndustryExp
   }
 }
 
-export function inferStartupLifecycle(input: StartupIdeaInput): StartupLifecycle {
-  const text = `${input.startupName} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
+export function inferStartupLifecycle(input: StartupIdeaInput, vContext?: VentureContext): StartupLifecycle {
+  const ctx = vContext || buildVentureContext(input);
 
-  let stage: LifecycleStage = "Validation Stage";
-  let confidence = 91;
-  let reason = "Startup has a formulated concept and target demographic, but requires formal customer demand validation.";
+  if (ctx.isTechnologyProduct) {
+    return {
+      currentStage: "Validation Stage",
+      confidenceScore: 92,
+      reason: "Software product idea requiring customer problem discovery calls and prototype onboarding validation.",
+      nextMilestone: "Conduct 15 customer discovery interviews & validate onboarding flow",
+      estimatedTimeToNextStage: "2-4 weeks",
+      stageTimeline: ["1. Idea", "2. Problem Validation", "3. MVP", "4. Product-Market Fit", "5. Growth", "6. Scaling"],
+      keyObjectives: [
+        "Conduct 15 customer discovery interviews to confirm pain severity",
+        "Validate willingness-to-pay for SaaS subscription tiers",
+        "Test user activation rate in under 60 seconds",
+      ],
+      currentStageRisks: [
+        "Building features before verifying customer demand",
+        "High customer acquisition cost (CAC) relative to LTV",
+      ],
+      successProbability: 82,
+      potentialBlockers: ["Customer interview drop-offs", "Competitive feature copying"],
+      suggestedPriorities: [
+        "Conduct 15 customer discovery interviews",
+        "Build lightweight MVP prototype and test onboarding (< 60s)",
+        "Measure user activation, retention, and willingness-to-pay",
+      ],
+    };
+  }
 
-  if (text.includes("revenue") || text.includes("paying") || text.includes("sales") || text.includes("profit")) {
-    stage = "Early Revenue Stage";
-    confidence = 93;
-    reason = "Startup has generated initial paying customer transactions and repeatable sales.";
-  } else if (text.includes("launched") || text.includes("live") || text.includes("operating")) {
-    stage = "Launch Stage";
-    confidence = 90;
-    reason = "Product/service is active in market seeking initial user adoption.";
-  } else if (text.includes("building") || text.includes("prototype") || text.includes("setup")) {
-    stage = "MVP Stage";
-    confidence = 88;
-    reason = "Startup is actively constructing its first functional MVP/storefront prototype.";
-  } else if (text.includes("concept") || text.includes("thinking") || text.includes("idea only")) {
-    stage = "Idea Stage";
-    confidence = 94;
-    reason = "Startup exists as an unvalidated conceptual idea.";
+  // Non-software custom lifecycles:
+  if (ctx.industry === "Food & Beverage") {
+    return {
+      currentStage: "Location & Demand Validation",
+      confidenceScore: 94,
+      reason: "Food business idea requiring footfall location selection, ingredient cost calculation, and FSSAI hygiene readiness.",
+      nextMilestone: "Identify 2–3 high-footfall stall locations & calculate break-even daily plate sales",
+      estimatedTimeToNextStage: "1-2 weeks",
+      stageTimeline: [
+        "1. Idea / Concept",
+        "2. Location & Demand Validation",
+        "3. Setup & Licensing",
+        "4. Launch",
+        "5. Customer & Revenue Validation",
+        "6. Operational Optimization",
+        "7. Expansion",
+      ],
+      keyObjectives: [
+        "Identify 2-3 high-footfall stall locations (near bus stops, colleges, or commercial markets)",
+        "Calculate ingredient cost (flour, oil, spices, batter) per plate for 65%+ gross margin",
+        "Verify FSSAI food hygiene standards and local municipal trade permissions",
+      ],
+      currentStageRisks: [
+        "High raw ingredient and cooking oil cost inflation",
+        "Location footfall drop during rainy or adverse weather",
+      ],
+      successProbability: 88,
+      potentialBlockers: ["Municipal trade permit delays", "Nearby vendor price undercut"],
+      suggestedPriorities: [
+        "Identify 2–3 high-footfall stall locations near colleges, bus stops, or commercial markets",
+        "Calculate ingredient cost (flour, oil, spices, batter) per plate and establish 65%+ gross margin",
+        "Define 3–5 core menu items (Mirchi Bajji, Potato Bajji, Onion Pakoda, Special Chutney)",
+        "Verify clean oil & hygiene standards and secure FSSAI/municipal permits",
+        "Track daily sales volume, ingredient waste, and repeat customer footfall",
+      ],
+    };
+  }
+
+  if (ctx.industry === "Manufacturing & Processing") {
+    return {
+      currentStage: "Feasibility & Machinery Sourcing",
+      confidenceScore: 91,
+      reason: "Manufacturing venture requiring machinery selection, factory power load clearance, and unit cost calculation.",
+      nextMilestone: "Source high-speed forming machinery & secure factory power load clearance",
+      estimatedTimeToNextStage: "3-5 weeks",
+      stageTimeline: [
+        "1. Idea / Concept",
+        "2. Feasibility & Machinery Sourcing",
+        "3. Factory Setup & Licensing",
+        "4. Pilot Batch Production",
+        "5. B2B Commercial Launch",
+        "6. Capacity Optimization",
+        "7. Regional Expansion",
+      ],
+      keyObjectives: [
+        "Source high-speed automatic paper cup forming machinery and raw PE-coated paper rolls",
+        "Secure industrial factory space, power load clearance, and pollution control permits",
+        "Calculate manufacturing cost per 100 cups and set wholesale B2B distributor pricing",
+      ],
+      currentStageRisks: ["Raw material paper roll price volatility", "Machinery downtime and maintenance"],
+      successProbability: 85,
+      potentialBlockers: ["Industrial power load approval delays", "High initial machinery CapEx"],
+      suggestedPriorities: [
+        "Source high-speed automatic paper cup forming machinery and raw PE-coated paper rolls",
+        "Secure industrial factory space, power load clearance, and pollution control permits",
+        "Calculate manufacturing cost per 100 cups and set wholesale B2B distributor pricing",
+        "Produce pilot batch for quality testing (leakage test & rim strength)",
+        "Establish B2B supply agreements with local tea stalls, caterers, and distributors",
+      ],
+    };
+  }
+
+  if (ctx.industry === "Agriculture & Agribusiness") {
+    return {
+      currentStage: "Farm Planning & Soil Feasibility",
+      confidenceScore: 93,
+      reason: "Agribusiness requiring soil fertility analysis, drip irrigation installation, and organic certification.",
+      nextMilestone: "Complete soil fertility testing & install drip irrigation system",
+      estimatedTimeToNextStage: "4-6 weeks",
+      stageTimeline: [
+        "1. Farm Planning & Soil Feasibility",
+        "2. Soil Preparation & Irrigation Setup",
+        "3. Planting & Organic Crop Management",
+        "4. First Harvest",
+        "5. Mandi & Wholesale Distribution",
+        "6. Crop Yield Optimization",
+        "7. Farm Expansion",
+      ],
+      keyObjectives: [
+        "Complete soil fertility testing and install drip irrigation system",
+        "Apply for NPOP/APMC organic farming certification",
+        "Select high-demand organic vegetable crops (tomatoes, leafy greens, peppers)",
+      ],
+      currentStageRisks: ["Unfavorable weather and monsoon fluctuations", "Post-harvest crop spoilage in transit"],
+      successProbability: 86,
+      potentialBlockers: ["Organic certification audit delays", "Wholesale mandi price fluctuations"],
+      suggestedPriorities: [
+        "Complete soil fertility testing and install drip irrigation system",
+        "Apply for NPOP organic farming certification",
+        "Select high-demand organic vegetable crops (tomatoes, leafy greens, peppers)",
+        "Establish cold storage preservation to prevent post-harvest spoilage",
+        "Lock in wholesale mandi off-take contracts and direct supermarket supply",
+      ],
+    };
+  }
+
+  if (ctx.industry === "Healthcare & Medical Services") {
+    return {
+      currentStage: "Medical Licensing & Facility Setup",
+      confidenceScore: 90,
+      reason: "Healthcare service requiring medical council registrations, clinical equipment, and hygienist staffing.",
+      nextMilestone: "Secure Clinical Establishment Act registration & dental council licenses",
+      estimatedTimeToNextStage: "3-6 weeks",
+      stageTimeline: [
+        "1. Concept & Feasibility",
+        "2. Medical Licensing & Facility Setup",
+        "3. Staffing & Equipment Testing",
+        "4. Clinical Opening",
+        "5. Patient Care Validation",
+        "6. Service Optimization",
+        "7. Multi-Specialty Expansion",
+      ],
+      keyObjectives: [
+        "Secure Clinical Establishment Act registration and dental council licenses",
+        "Procure dental chair units, digital X-ray equipment, and autoclave sterilizers",
+        "Hire certified dental hygienists and front-desk clinic staff",
+      ],
+      currentStageRisks: ["Medical regulatory compliance delays", "High equipment leasing CapEx"],
+      successProbability: 87,
+      potentialBlockers: ["Medical licensing approval timeline", "Specialist doctor recruitment"],
+      suggestedPriorities: [
+        "Secure Clinical Establishment Act registration and dental council licenses",
+        "Procure dental chair units, digital X-ray equipment, and autoclave sterilizers",
+        "Hire certified dental hygienists and front-desk clinic staff",
+        "Launch local community healthcare awareness and patient appointment booking",
+      ],
+    };
   }
 
   return {
-    currentStage: stage,
-    confidenceScore: confidence,
-    reason,
-    nextMilestone:
-      stage === "Idea Stage"
-        ? "Conduct 15 customer discovery interviews"
-        : stage === "Validation Stage"
-        ? "Build lightweight prototype / sample counter setup"
-        : stage === "MVP Stage"
-        ? "Onboard first 10 beta test users / soft launch outlet"
-        : "Scale paying customer acquisition",
-    estimatedTimeToNextStage: "3-6 weeks",
+    currentStage: "Location & Demand Validation",
+    confidenceScore: 90,
+    reason: "Offline commercial venture requiring location footfall analysis and initial supplier setup.",
+    nextMilestone: "Secure primary commercial location & lock supplier pricing",
+    estimatedTimeToNextStage: "2-4 weeks",
+    stageTimeline: [
+      "1. Idea / Concept",
+      "2. Location & Demand Validation",
+      "3. Setup & Licensing",
+      "4. Launch",
+      "5. Operational Optimization",
+      "6. Expansion",
+    ],
     keyObjectives: [
-      "Validate problem urgency with target customers",
-      "Confirm willingness-to-pay for core business model",
-      "Establish primary customer acquisition channel",
+      "Select high-visibility commercial store/facility location",
+      "Negotiate supplier pricing for core goods/materials",
+      "Obtain local municipal trade permits",
     ],
-    currentStageRisks: [
-      "Premature scaling before verifying customer demand",
-      "Miscalculating initial unit economics and operating costs",
-    ],
-    successProbability: Math.min(88, Math.max(62, Math.round(confidence * 0.85))),
-    potentialBlockers: [
-      "Customer discovery interview drop-offs",
-      "Licensing and regulatory approval delays",
-    ],
+    currentStageRisks: ["High commercial lease overhead", "Supplier delivery delays"],
+    successProbability: 84,
+    potentialBlockers: ["Lease agreement negotiations", "Licensing delays"],
     suggestedPriorities: [
-      "Complete problem discovery calls",
-      "Lock in initial pricing model",
-      "Build basic brand awareness",
+      "Select high-visibility commercial location",
+      "Lock supplier pricing and sample quality",
+      "Secure municipal trade licenses",
+      "Track daily sales and repeat footfall",
     ],
   };
 }
 
 export function inferBusinessDNA(input: StartupIdeaInput): BusinessDNA {
   const name = input.startupName.trim();
-  const fullText = `${name} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
-  const category = detectDetailedStartupCategory(fullText);
-  const ideaTypeKind = detectIdeaTypeKind(fullText, category);
+  const vContext = buildVentureContext(input);
 
-  if (category === "FOOD") {
-    const isPuri = fullText.includes("panipuri") || fullText.includes("chaat");
-    const isBakery = fullText.includes("bakery") || fullText.includes("cake");
+  if (vContext.industry === "Food & Beverage") {
+    const isBajji = vContext.subIndustry.includes("Street Food") || vContext.description.toLowerCase().includes("bajji");
     return {
       startupName: name,
       industry: "Food & Beverage",
-      subIndustry: isPuri ? "Quick Service Street Food" : isBakery ? "Artisanal Bakery & Confectionery" : "Restaurant & Food Service",
-      businessCategory: isPuri ? "Street Food Outlet" : isBakery ? "Bakery Shop" : "Quick Service Restaurant",
-      ideaTypeKind,
+      subIndustry: vContext.subIndustry,
+      businessCategory: isBajji ? "Street Food Bajji Stall" : "Food & Restaurant Outlet",
+      ideaTypeKind: "Local Business",
       businessType: "Offline Local Business",
-      businessModel: input.businessModel || "Direct Counter Sales & Food App Commissions",
-      revenueModel: "Direct Retail Cash & Digital Payments",
+      businessModel: input.businessModel || "Direct Counter Cash & Digital Sales",
+      revenueModel: "Direct Counter Sales per Plate / Item",
       businessStage: "Idea",
-      targetCustomers: input.audience || "Students, Office Workers & Local Families",
-      customerPersona: "Budget-conscious food lovers seeking quick, hygienic, and authentic snacks",
+      targetCustomers: input.audience || "Local Residents, Students & Evening Pedestrians",
+      customerPersona: "Budget-conscious snack lovers seeking hot, crispy, hygienic bajjis and fresh chutneys",
       marketScope: "Local",
       investmentLevel: "Low",
       operationalComplexity: "Medium",
       technologyDependency: "Low",
       scalability: "Medium",
-      expansionPotential: "Multi-outlet Franchising & Dark Kitchen Delivery Units",
-      fundingRequirement: "$3,000 - $10,000",
+      expansionPotential: "Multi-outlet Food Counters & Franchise Stall Network",
+      fundingRequirement: "$2,000 - $8,000",
       fundingType: "Self-funded / Bootstrapped",
       competitionLevel: "High",
-      riskLevel: "Medium",
-      growthPotential: "High",
-      digitalPresenceImportance: "Medium",
-      requiredLicenses: ["FSSAI Food Safety License", "GST Registration", "Municipal Trade Permit"],
-      primarySuccessFactors: [
-        "High Footfall Storefront Location",
-        "Strict Taste & Recipe Consistency",
-        "Hygienic Presentation & Cleanliness",
-        "Fast Counter Customer Service",
-      ],
-      biggestChallenges: [
-        "Perishable raw ingredient management",
-        "Local street vendor competition",
-        "Shift staff training and retention",
-      ],
-      keyAdvantages: [
-        "Low initial capital expenditure (CapEx)",
-        "High 65%+ gross profit margins",
-        "Daily positive cash flow cycle",
-      ],
-      uniqueSellingProposition: isPuri
-        ? "Hygienic panipuri served with mineral water and 6 custom flavored waters"
-        : "Fresh, high-quality food prepared with standardized secret family recipes",
-      estimatedTimeToLaunch: "2-4 weeks",
-      estimatedInitialInvestment: "$3,000 - $8,000",
-      recommendedTeamSize: "2-4 staff",
-      businessPriority: "Location Selection, FSSAI Licensing & Taste Standardization",
-    };
-  }
-
-  if (category === "AGRICULTURE") {
-    return {
-      startupName: name,
-      industry: "Agriculture & Agribusiness",
-      subIndustry: "Organic Farming & Produce",
-      businessCategory: "Organic Farm",
-      ideaTypeKind,
-      businessType: "Physical Goods / D2C",
-      businessModel: input.businessModel || "Direct Wholesale & Mandi Distribution",
-      revenueModel: "Wholesale Harvest Sales & Direct Farm Subscription Boxes",
-      businessStage: "Idea",
-      targetCustomers: input.audience || "Wholesale Mandi Traders, Supermarkets & Organic Retailers",
-      customerPersona: "Quality-conscious produce buyers seeking pesticide-free certified organic crops",
-      marketScope: "Regional",
-      investmentLevel: "Medium",
-      operationalComplexity: "Medium",
-      technologyDependency: "Low",
-      scalability: "High",
-      expansionPotential: "Regional Organic Brand & D2C Farm Box Subscription Network",
-      fundingRequirement: "$15,000 - $60,000",
-      fundingType: "Agri-Loan / Self-funded",
-      competitionLevel: "Medium",
       riskLevel: "Medium",
       growthPotential: "High",
       digitalPresenceImportance: "Low",
-      requiredLicenses: ["Organic Certification (NPOP/PGS)", "GST", "APMC Trade Permit"],
+      requiredLicenses: ["FSSAI Food Hygiene Basic Registration", "Municipal Trade Permission", "GST (if applicable)"],
       primarySuccessFactors: [
-        "Soil Fertility & Drip Irrigation Setup",
-        "Pesticide-free Crop Quality Control",
-        "Cold Storage & Post-Harvest Transit",
-        "Direct Wholesale Off-take Contracts",
+        "High Footfall Location (near bus stops / colleges / markets)",
+        "Crispiness, Batter Taste & Sauce Consistency",
+        "Clean Cooking Oil & Hygienic Serving Presentation",
+        "Fast Evening Peak-Hour Service (4 PM - 8 PM)",
       ],
       biggestChallenges: [
-        "Weather dependency & monsoon risks",
-        "Perishable crop spoilage in transit",
-        "Price fluctuations in wholesale markets",
+        "Cooking oil and gram flour price inflation",
+        "Perishable raw ingredient waste management",
+        "Monsoon and rainy weather footfall drops",
       ],
       keyAdvantages: [
-        "High premium pricing for certified organic produce",
-        "Government agricultural subsidies & tax exemptions",
+        "Low initial capital investment",
+        "High 65%+ gross margin per plate",
+        "Daily cash flow & fast customer turnover",
       ],
-      uniqueSellingProposition: "100% certified organic produce harvested fresh and shipped within 24 hours",
-      estimatedTimeToLaunch: "3-6 months",
-      estimatedInitialInvestment: "$10,000 - $30,000",
-      recommendedTeamSize: "3-6 farm technicians & operators",
-      businessPriority: "Soil Preparation, Irrigation Installation & Organic Certification",
+      uniqueSellingProposition: isBajji
+        ? "Hot, freshly fried crispy bajjis made with fresh oil and served with 3 signature chutneys"
+        : "Fresh, delicious food prepared with standardized family recipes",
+      estimatedTimeToLaunch: "1-3 weeks",
+      estimatedInitialInvestment: "$2,000 - $5,000",
+      recommendedTeamSize: "2-3 stall operators",
+      businessPriority: "High-Footfall Location Locking, FSSAI Permits & Recipe Standardization",
     };
   }
 
-  if (category === "FASHION") {
-    return {
-      startupName: name,
-      industry: "Fashion & Apparel",
-      subIndustry: "D2C Apparel & Garments",
-      businessCategory: "D2C Clothing Brand",
-      ideaTypeKind,
-      businessType: "Physical Goods / D2C",
-      businessModel: input.businessModel || "Direct-to-Consumer E-Commerce",
-      revenueModel: "Direct Online Sales & Wholesale Tiering",
-      businessStage: "Idea",
-      targetCustomers: input.audience || "Fashion Conscious Youth & Young Adults",
-      customerPersona: "Trend-driven shoppers seeking premium fabric quality and unique design aesthetics",
-      marketScope: "National",
-      investmentLevel: "Medium",
-      operationalComplexity: "Medium",
-      technologyDependency: "Medium",
-      scalability: "High",
-      expansionPotential: "Global E-Commerce & Retail Multi-brand Store Placements",
-      fundingRequirement: "$15,000 - $50,000",
-      fundingType: "Self-funded / Bootstrapped",
-      competitionLevel: "High",
-      riskLevel: "Medium",
-      growthPotential: "High",
-      digitalPresenceImportance: "High",
-      requiredLicenses: ["GST Registration", "Import-Export Code (IEC)", "Trademark Registration"],
-      primarySuccessFactors: [
-        "Fabric Quality & Stitching Precision",
-        "Instagram & TikTok Viral Short-Form Content",
-        "Low Customer Return Rate (<10%)",
-        "Influencer Product Seeding",
-      ],
-      biggestChallenges: [
-        "Inventory overstock and deadstock risk",
-        "E-commerce return logistics costs",
-        "High Facebook/Instagram ad acquisition costs",
-      ],
-      keyAdvantages: [
-        "Scalable national shipping reach",
-        "High brand equity leverage",
-        "70%+ D2C gross product margins",
-      ],
-      uniqueSellingProposition: "Premium fabric craftsmanship combined with modern street fashion designs",
-      estimatedTimeToLaunch: "4-8 weeks",
-      estimatedInitialInvestment: "$10,000 - $25,000",
-      recommendedTeamSize: "3-5 team members",
-      businessPriority: "Fabric Sourcing, Sample Batch Testing & Social Media Launch",
-    };
-  }
-
-  if (category === "FITNESS") {
-    return {
-      startupName: name,
-      industry: "Fitness & Wellness",
-      subIndustry: "Gym & Health Club",
-      businessCategory: "Fitness Center",
-      ideaTypeKind,
-      businessType: "Offline Local Business",
-      businessModel: input.businessModel || "Monthly & Annual Gym Memberships",
-      revenueModel: "Recurring Subscriptions & Personal Training Fees",
-      businessStage: "Idea",
-      targetCustomers: input.audience || "Local Residents, Working Professionals & Fitness Enthusiasts",
-      customerPersona: "Individuals seeking health transformation, modern strength equipment, and certified trainers",
-      marketScope: "Local",
-      investmentLevel: "High",
-      operationalComplexity: "Medium",
-      technologyDependency: "Low",
-      scalability: "Medium",
-      expansionPotential: "City-wide Gym Chain Franchising",
-      fundingRequirement: "$40,000 - $120,000",
-      fundingType: "Bank Loan",
-      competitionLevel: "Medium",
-      riskLevel: "Medium",
-      growthPotential: "High",
-      digitalPresenceImportance: "Medium",
-      requiredLicenses: ["Commercial Trade Permit", "Music Rights License", "Fire Safety Clearance"],
-      primarySuccessFactors: [
-        "High-density residential location",
-        "Modern commercial workout machinery",
-        "Certified, motivating trainers",
-        "Spotless floor hygiene & air conditioning",
-      ],
-      biggestChallenges: [
-        "High initial equipment lease CapEx",
-        "Member churn after 3-6 months",
-        "Trainer turnover rates",
-      ],
-      keyAdvantages: [
-        "Predictable recurring membership revenue",
-        "High personal training upsell margins",
-      ],
-      uniqueSellingProposition: "State-of-the-art biomechanical gym equipment with personalized transformation coaching",
-      estimatedTimeToLaunch: "6-12 weeks",
-      estimatedInitialInvestment: "$40,000 - $80,000",
-      recommendedTeamSize: "4-8 trainers & front desk staff",
-      businessPriority: "Location Lease Locking, Equipment Sourcing & Pre-launch Member Signups",
-    };
-  }
-
-  if (category === "HEALTHCARE") {
-    return {
-      startupName: name,
-      industry: "Healthcare & Medical Services",
-      subIndustry: "Clinical Care & Hospital",
-      businessCategory: "Hospital / Specialty Clinic",
-      ideaTypeKind,
-      businessType: "Offline Local Business",
-      businessModel: input.businessModel || "Patient Fee-for-Service & Diagnostic Billing",
-      revenueModel: "Patient Fee-for-Service & Health Insurance Claims",
-      businessStage: "Idea",
-      targetCustomers: input.audience || "Patients, Families & Local Community",
-      customerPersona: "Patients seeking reliable diagnostic care, experienced doctors, and modern clinical facilities",
-      marketScope: "Regional",
-      investmentLevel: "High",
-      operationalComplexity: "High",
-      technologyDependency: "Medium",
-      scalability: "Medium",
-      expansionPotential: "Regional Multi-specialty Hospital Network",
-      fundingRequirement: "$100,000 - $500,000",
-      fundingType: "Bank Loan / Healthcare VC",
-      competitionLevel: "Medium",
-      riskLevel: "High",
-      growthPotential: "High",
-      digitalPresenceImportance: "Medium",
-      requiredLicenses: ["Medical Council Registration", "Clinical Establishment Act Permit", "Biomedical Waste Disposal Clearance"],
-      primarySuccessFactors: [
-        "Renowned Doctor & Specialist Reputation",
-        "24/7 ICU & Emergency Readiness",
-        "Strict Hygiene & Diagnostic Accuracy",
-        "Health Insurance Empanelment",
-      ],
-      biggestChallenges: [
-        "Complex medical regulatory compliance",
-        "High medical equipment maintenance costs",
-        "Doctor recruitment and retention",
-      ],
-      keyAdvantages: [
-        "Inelastic, non-cyclical healthcare demand",
-        "High patient trust & referral retention",
-      ],
-      uniqueSellingProposition: "Compassionate, high-precision clinical care backed by senior specialists",
-      estimatedTimeToLaunch: "3-6 months",
-      estimatedInitialInvestment: "$100,000 - $300,000",
-      recommendedTeamSize: "10-25 medical staff & doctors",
-      businessPriority: "Regulatory Licensing, Specialist Empanelment & Diagnostic Setup",
-    };
-  }
-
-  if (category === "MANUFACTURING") {
+  if (vContext.industry === "Manufacturing & Processing") {
+    const isPaperCup = vContext.subIndustry.includes("Paper Cup");
     return {
       startupName: name,
       industry: "Manufacturing & Industrial Operations",
-      subIndustry: "Agri-Processing & Milling",
-      businessCategory: "Processing Plant / Rice Mill",
-      ideaTypeKind,
+      subIndustry: vContext.subIndustry,
+      businessCategory: isPaperCup ? "Paper Cup Manufacturing Plant" : "Industrial Processing Unit",
+      ideaTypeKind: "Traditional Business",
       businessType: "Physical Goods / D2C",
       businessModel: input.businessModel || "B2B Wholesale Bulk Sales",
-      revenueModel: "Bulk Wholesale Grain Trading & Custom Processing Fees",
+      revenueModel: "Bulk Wholesale Orders & Distributor Contracts",
       businessStage: "Idea",
-      targetCustomers: input.audience || "Wholesale Grain Traders, Supermarket Chains & Exporters",
-      customerPersona: "Bulk commodity buyers seeking consistent grain quality, low moisture, and reliable delivery volumes",
+      targetCustomers: input.audience || "Tea Stalls, Caterers, Offices & B2B Wholesalers",
+      customerPersona: "Bulk disposable buyers seeking low leakage rate, sturdy rim strength, and competitive 100-pack pricing",
       marketScope: "Regional",
       investmentLevel: "High",
       operationalComplexity: "High",
       technologyDependency: "Low",
       scalability: "Medium",
-      expansionPotential: "National Commodity Brand Distribution & Export Channels",
-      fundingRequirement: "$80,000 - $350,000",
-      fundingType: "Bank Equipment Loan / Industrial Capital",
+      expansionPotential: "Multi-line Factory Capacity & Regional Export Distribution",
+      fundingRequirement: "$40,000 - $150,000",
+      fundingType: "Bank Machinery Loan / Self-funded",
       competitionLevel: "Medium",
       riskLevel: "Medium",
       growthPotential: "High",
       digitalPresenceImportance: "Low",
-      requiredLicenses: ["Factory Operating License", "Pollution Control Board Clearance", "FSSAI Bulk Grain License", "GST"],
+      requiredLicenses: ["Industrial Factory License", "Pollution Control Board Clearance", "GST Registration"],
       primarySuccessFactors: [
-        "Raw Paddy Procurement Sourcing",
-        "Modern Milling Machinery Yield Efficiency",
-        "Strict Moisture & Grain Sorting Controls",
-        "Reliable B2B Wholesale Trader Network",
+        "High-Speed Automatic Machinery Output (cups/min)",
+        "Raw PE-Coated Paper Roll Sourcing at Low Cost",
+        "Zero Leakage & Sturdy Rim Quality Control",
+        "Direct B2B Distributor Supply Agreements",
       ],
       biggestChallenges: [
-        "Seasonal raw paddy price fluctuations",
-        "High industrial electricity & machinery power costs",
-        "Bulk inventory storage & pest control",
+        "Paper raw material price fluctuations",
+        "Factory power load requirements & electricity tariff",
+        "Machinery maintenance & operator skill",
       ],
       keyAdvantages: [
-        "High volume daily processing turnover",
-        "Value-add byproduct monetization (husk/bran)",
+        "Consistent high-volume B2B repeat orders",
+        "Government push for eco-friendly paper alternatives over plastic",
       ],
-      uniqueSellingProposition: "Premium grade rice processing with zero grain breakage and high head-rice yield",
+      uniqueSellingProposition: "Premium leak-proof paper cups with high rim strength manufactured at low unit cost",
       estimatedTimeToLaunch: "2-4 months",
-      estimatedInitialInvestment: "$70,000 - $200,000",
-      recommendedTeamSize: "8-15 factory technicians & operators",
-      businessPriority: "Factory Land Procurement, Milling Machinery Installation & Paddy Supplier Contracts",
+      estimatedInitialInvestment: "$40,000 - $90,000",
+      recommendedTeamSize: "4-8 operators & B2B sales reps",
+      businessPriority: "Machinery Procurement, Industrial Power Clearance & Wholesale Contracts",
     };
   }
 
   return {
     startupName: name,
-    industry: "AI SaaS & Software",
-    subIndustry: "B2B Venture Software",
-    businessCategory: "B2B SaaS Platform",
-    ideaTypeKind: "Technology Startup",
-    businessType: "Digital / Software / SaaS",
-    businessModel: input.businessModel || "Tiered Monthly Subscription",
-    revenueModel: "Recurring SaaS Subscriptions",
+    industry: vContext.industry,
+    subIndustry: vContext.subIndustry,
+    businessCategory: vContext.businessType,
+    ideaTypeKind: vContext.isTechnologyProduct ? "Technology Startup" : "Traditional Business",
+    businessType: vContext.isTechnologyProduct ? "Digital / Software / SaaS" : "Offline Local Business",
+    businessModel: input.businessModel || "Direct Commercial Model",
+    revenueModel: "Commercial Sales",
     businessStage: "Idea",
-    targetCustomers: input.audience || "Digital Founders & Enterprise Product Teams",
-    customerPersona: "Tech-savvy founders looking to automate manual business workflows",
-    marketScope: "Global",
-    investmentLevel: "Low",
-    operationalComplexity: "Low",
-    technologyDependency: "High",
-    scalability: "High",
-    expansionPotential: "Global SaaS Distribution & API Integration Partnerships",
-    fundingRequirement: "$20,000 - $100,000",
-    fundingType: "Self-funded / Angel VC",
+    targetCustomers: input.audience || "Target Customers",
+    customerPersona: `Customers seeking reliable solutions for ${vContext.problem.slice(0, 60)}...`,
+    marketScope: "Regional",
+    investmentLevel: "Medium",
+    operationalComplexity: "Medium",
+    technologyDependency: vContext.isTechnologyProduct ? "High" : "Low",
+    scalability: vContext.isTechnologyProduct ? "High" : "Medium",
+    expansionPotential: "Regional & National Market Expansion",
+    fundingRequirement: "$10,000 - $50,000",
+    fundingType: "Self-funded / Bootstrapped",
     competitionLevel: "Medium",
-    riskLevel: "Low",
-    growthPotential: "Exponential",
-    digitalPresenceImportance: "High",
-    requiredLicenses: ["Company Incorporation", "Terms of Service & Privacy Compliance"],
+    riskLevel: "Medium",
+    growthPotential: "High",
+    digitalPresenceImportance: vContext.isTechnologyProduct ? "High" : "Medium",
+    requiredLicenses: ["Business Registration", "GST"],
     primarySuccessFactors: [
-      "Frictionless Onboarding (< 60s)",
-      "High Product Value & Churn Reduction",
-      "Organic SEO & Outbound Pipeline",
-      "Scalable Cloud Infrastructure",
+      "Consistent Product/Service Quality",
+      "Target Market Positioning",
+      "Operational Cost Management",
     ],
-    biggestChallenges: [
-      "Customer acquisition cost (CAC) optimization",
-      "Feature copying by incumbent platforms",
-      "User activation rate bottlenecks",
-    ],
-    keyAdvantages: [
-      "Zero physical inventory & marginal distribution cost",
-      "85%+ Software gross margins",
-      "Global day-one customer reach",
-    ],
-    uniqueSellingProposition: "Instant AI automated workflow execution with zero setup friction",
-    estimatedTimeToLaunch: "3-6 weeks",
-    estimatedInitialInvestment: "$5,000 - $15,000",
-    recommendedTeamSize: "2-4 engineers & founders",
-    businessPriority: "Customer Discovery Interviews, MVP Prototype & Landing Page Smoke Test",
+    biggestChallenges: ["Market competition", "Initial customer acquisition"],
+    keyAdvantages: ["Strong value proposition", "Direct customer relationship"],
+    uniqueSellingProposition: vContext.solution.slice(0, 80),
+    estimatedTimeToLaunch: "2-6 weeks",
+    estimatedInitialInvestment: "$5,000 - $25,000",
+    recommendedTeamSize: "2-5 team members",
+    businessPriority: "Market Validation & Core Operations Setup",
   };
 }
 
 export function inferBusinessClassification(input: StartupIdeaInput): BusinessClassification {
-  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
-  const category = detectDetailedStartupCategory(fullText);
-  const ideaTypeKind = detectIdeaTypeKind(fullText, category);
-
-  if (category === "FOOD") {
-    return {
-      industry: "Food & Beverage",
-      businessCategory: fullText.includes("panipuri") || fullText.includes("chaat") ? "Street Food Business" : fullText.includes("bakery") ? "Bakery Business" : "Food & Restaurant Business",
-      ideaTypeKind,
-      businessType: "Offline Local Business",
-      revenueModel: input.businessModel || "Direct Counter Sales",
-      scalability: "Medium",
-      businessStage: "Idea",
-      primaryCustomerSegment: input.audience || "Local Residents, Students & Office Employees",
-      marketScope: "Local",
-      digitalDependency: "Low",
-    };
-  }
-
-  if (category === "AGRICULTURE") {
-    return {
-      industry: "Agriculture & Agribusiness",
-      businessCategory: "Organic Farm",
-      ideaTypeKind,
-      businessType: "Physical Goods / D2C",
-      revenueModel: input.businessModel || "Wholesale Mandi Sales",
-      scalability: "High",
-      businessStage: "Idea",
-      primaryCustomerSegment: input.audience || "Wholesale Grain Traders & Supermarkets",
-      marketScope: "Regional",
-      digitalDependency: "Low",
-    };
-  }
-
-  if (category === "FASHION") {
-    return {
-      industry: "Fashion & Apparel",
-      businessCategory: "D2C Clothing Brand",
-      ideaTypeKind,
-      businessType: "Physical Goods / D2C",
-      revenueModel: input.businessModel || "Direct-to-Consumer E-Commerce",
-      scalability: "High",
-      businessStage: "Idea",
-      primaryCustomerSegment: input.audience || "Fashion Conscious Youth & Adults",
-      marketScope: "National",
-      digitalDependency: "Medium",
-    };
-  }
-
-  if (category === "FITNESS") {
-    return {
-      industry: "Fitness & Wellness",
-      businessCategory: "Gym & Fitness Club",
-      ideaTypeKind,
-      businessType: "Offline Local Business",
-      revenueModel: input.businessModel || "Monthly Membership Subscriptions",
-      scalability: "Medium",
-      businessStage: "Idea",
-      primaryCustomerSegment: input.audience || "Local Residents & Working Professionals",
-      marketScope: "Local",
-      digitalDependency: "Low",
-    };
-  }
-
-  if (category === "HEALTHCARE") {
-    return {
-      industry: "Healthcare & Medical Services",
-      businessCategory: "Hospital / Specialty Clinic",
-      ideaTypeKind,
-      businessType: "Offline Local Business",
-      revenueModel: input.businessModel || "Fee-for-Service & Health Insurance Claims",
-      scalability: "Medium",
-      businessStage: "Idea",
-      primaryCustomerSegment: input.audience || "Patients & Local Community",
-      marketScope: "Regional",
-      digitalDependency: "Low",
-    };
-  }
-
-  if (category === "MANUFACTURING") {
-    return {
-      industry: "Manufacturing & Industrial Operations",
-      businessCategory: "Processing Plant / Rice Mill",
-      ideaTypeKind,
-      businessType: "Physical Goods / D2C",
-      revenueModel: input.businessModel || "B2B Bulk Commodity Trading",
-      scalability: "Medium",
-      businessStage: "Idea",
-      primaryCustomerSegment: input.audience || "Wholesale Grain Traders & Exporters",
-      marketScope: "Regional",
-      digitalDependency: "Low",
-    };
-  }
+  const vContext = buildVentureContext(input);
 
   return {
-    industry: "AI SaaS & Software",
-    businessCategory: "B2B / B2C Software Platform",
-    ideaTypeKind: "Technology Startup",
-    businessType: "Digital / Software / SaaS",
-    revenueModel: input.businessModel || "SaaS Subscription Tiers",
-    scalability: "High",
+    industry: vContext.industry,
+    businessCategory: vContext.businessType,
+    ideaTypeKind: vContext.isTechnologyProduct ? "Technology Startup" : "Traditional Business",
+    businessType: vContext.isTechnologyProduct ? "Digital / Software / SaaS" : "Offline Local Business",
+    revenueModel: input.businessModel || "Direct Commercial Sales",
+    scalability: vContext.isTechnologyProduct ? "High" : "Medium",
     businessStage: "Idea",
-    primaryCustomerSegment: input.audience || "Digital Founders & Enterprise Teams",
-    marketScope: "Global",
-    digitalDependency: "High",
+    primaryCustomerSegment: input.audience || "Local & Regional Consumers",
+    marketScope: vContext.isTechnologyProduct ? "Global" : "Local",
+    digitalDependency: vContext.isTechnologyProduct ? "High" : "Low",
   };
 }
 
 export function isStartupRelatedIntent(message: string): { isStartup: boolean; category?: string } {
   const lower = message.toLowerCase().trim();
 
-  // Explicit non-startup topic triggers
+  // Explicit non-business topic triggers
   const nonStartupTriggers = [
     { keywords: ["superman", "batman", "spiderman", "avengers", "marvel", "dc comics", "hero", "superhero"], category: "superheroes & comics" },
     { keywords: ["recipe", "cook at home", "bake cake", "curry recipe", "kitchen dish", "chef recipe", "pasta recipe", "noodle recipe"], category: "cooking recipes" },
@@ -990,18 +885,18 @@ export function isStartupRelatedIntent(message: string): { isStartup: boolean; c
     }
   }
 
-  // Allowed startup keywords & domain concepts
+  // Allowed business & venture keywords
   const startupKeywords = [
-    "startup", "business", "idea", "market", "validate", "validation", "customer", "discovery",
+    "startup", "business", "venture", "idea", "market", "validate", "validation", "customer", "discovery",
     "competitor", "competition", "rival", "moat", "product", "pricing", "model", "strategy",
     "go-to-market", "gtm", "marketing", "sales", "growth", "funding", "fundraise", "investor",
     "vc", "venture", "pitch", "deck", "saas", "entrepreneur", "entrepreneurship", "metric", "cac",
     "ltv", "pmf", "product-market fit", "financial", "revenue", "monetiz", "team", "operation",
     "score", "improve", "swat", "risk", "opportunity", "audience", "mvp", "launch", "b2b", "b2c",
     "churn", "retention", "waitlist", "traction", "scale", "feature", "workflow", "unit economics",
-    "panipuri", "puri", "chaat", "restaurant", "food", "cafe", "shop", "store", "retail", "brand",
+    "bajji", "panipuri", "puri", "chaat", "restaurant", "food", "cafe", "shop", "store", "retail", "brand",
     "clothing", "gym", "tuition", "hygiene", "license", "footfall", "supplier", "franchise",
-    "hospital", "clinic", "mill", "rice mill", "factory", "machinery", "bakery", "farming", "crop"
+    "hospital", "clinic", "dental", "paper cup", "mill", "rice mill", "factory", "machinery", "bakery", "farming", "crop", "ev charging"
   ];
 
   const hasStartupKw = startupKeywords.some((kw) => lower.includes(kw));
@@ -1009,7 +904,7 @@ export function isStartupRelatedIntent(message: string): { isStartup: boolean; c
     return { isStartup: true };
   }
 
-  const greetings = ["hi", "hello", "hey", "help", "good morning", "good evening", "what can you do"];
+  const greetings = ["hi", "hello", "hey", "help", "good morning", "good evening", "what can you do", "procedure", "procedures", "steps"];
   if (greetings.some((g) => lower === g || lower.startsWith(g))) {
     return { isStartup: true };
   }
@@ -1021,10 +916,11 @@ export async function generateStartupAnalysis(
   input: StartupIdeaInput
 ): Promise<AnalysisResultJSON> {
   const apiKey = process.env.OPENAI_API_KEY;
+  const vContext = buildVentureContext(input);
   const inferredProfile = inferIndustryProfile(input);
   const inferredDNA = inferBusinessDNA(input);
   const inferredClassification = inferBusinessClassification(input);
-  const inferredLifecycle = inferStartupLifecycle(input);
+  const inferredLifecycle = inferStartupLifecycle(input, vContext);
   const category = detectDetailedStartupCategory(`${input.startupName} ${input.idea} ${input.problem} ${input.solution}`);
   const persona = getExpertPersona(category);
 
@@ -1034,32 +930,31 @@ export async function generateStartupAnalysis(
 
       const prompt = `You are an Industry-Agnostic AI Business Intelligence Platform acting as a ${persona.personaTitle}.
 
-FOLLOW THIS STRICT 11-STEP REASONING PIPELINE:
-STEP 1: Understand the business idea: "${input.idea}" for venture "${input.startupName}".
-STEP 2: Detect Industry: "${inferredProfile.detectedIndustry}".
-STEP 3: Detect Business Model: "${input.businessModel}".
-STEP 4: Detect Category Kind: "${inferredProfile.businessCategoryKind}".
-STEP 5: Construct Industry Profile with real regulatory bodies and key operating metrics.
-STEP 6: Construct Business DNA matching real domain parameters.
-STEP 7: Generate Startup Analysis based strictly on domain requirements. Focus on: ${persona.primaryDomainFocus.join(", ")}.
-CRITICAL MANDATE: NEVER use these forbidden terms unless this is actually a software startup: ${persona.forbiddenTerms.join(", ") || "None"}.
-STEP 8: Generate Startup Health diagnostics.
-STEP 9: Generate Competitor Insights.
-STEP 10: Generate Execution Roadmap.
-STEP 11: Prepare structured context for AI Mentor.
+VENTURE CONTEXT (MUST BE RESPECTED EXPLICITLY):
+- Venture Name: "${vContext.ventureName}"
+- Description / Idea: "${vContext.description}"
+- Detected Industry: "${vContext.industry}"
+- Sub-Industry: "${vContext.subIndustry}"
+- Business Type: "${vContext.businessType}"
+- Category Kind: "${vContext.categoryKind}"
+- Operating Model: "${vContext.operatingModel}"
+- Is Technology Product: ${vContext.isTechnologyProduct ? "YES (SaaS/Software)" : "NO (Physical / Local / Traditional Business)"}
+- Target Audience: "${vContext.targetAudience}"
+- Market Scope: "${vContext.marketScope}"
+- Problem: "${vContext.problem}"
+- Solution: "${vContext.solution}"
+- Revenue Model: "${vContext.revenueModel}"
 
-Input Data:
-Startup Name: ${input.startupName}
-One-line Idea: ${input.idea}
-Problem: ${input.problem}
-Solution: ${input.solution}
-Target Audience: ${input.audience}
-Country/Region: ${input.country}
-Business Model: ${input.businessModel}
-Competitors: ${input.competitors || "Not specified"}
+CRITICAL MANDATE:
+1. Every section (analysis, health metrics, lifecycle, roadmap, competitors) MUST match "${vContext.businessType}" in "${vContext.industry}".
+2. IF THIS IS NOT A SOFTWARE PRODUCT (isTechnologyProduct = false):
+   NEVER mention "MVP", "writing code", "APIs", "tech stack", "software engineering", "CAC", "LTV", "churn", "prototype counter", "wireframe", or "waitlist landing page".
+3. For a street food / local food business (e.g. Bajji stall):
+   Discuss location selection, footfall analysis, ingredient costs (flour, oil, spices, batter), portion pricing, FSSAI hygiene permits, peak evening hours (4 PM - 8 PM), and break-even daily plates.
 
-Return JSON only containing:
+Return JSON containing:
 overallScore (integer 0-100)
+ventureContext (object matching VentureContext schema)
 industryProfile (object matching IndustryProfile schema)
 businessClassification (object)
 businessDNA (object)
@@ -1081,7 +976,7 @@ investorVerdict (string)`;
         messages: [
           {
             role: "system",
-            content: `You are an industry-agnostic ${persona.personaTitle}. Always provide strictly industry-tailored JSON business analysis. Never recommend coding or SaaS metrics for non-software businesses.`,
+            content: `You are an expert ${persona.personaTitle}. Always provide strictly industry-tailored JSON venture analysis. Never recommend software/SaaS metrics or coding for non-software businesses like food stalls, clinics, or factories.`,
           },
           {
             role: "user",
@@ -1096,6 +991,7 @@ investorVerdict (string)`;
       if (content) {
         const parsed = JSON.parse(content) as AnalysisResultJSON;
         parsed.overallScore = Math.min(100, Math.max(0, Math.round(parsed.overallScore)));
+        parsed.ventureContext = vContext;
         if (!parsed.industryProfile) parsed.industryProfile = inferredProfile;
         if (!parsed.businessDNA) parsed.businessDNA = inferredDNA;
         if (!parsed.businessClassification) parsed.businessClassification = inferredClassification;
@@ -1126,6 +1022,7 @@ export async function generateMentorChatResponse({
     businessModel: string;
     competitors?: string | null;
     overallScore: number;
+    ventureContext?: VentureContext | null;
     businessClassification?: BusinessClassification | null;
     businessDNA?: BusinessDNA | null;
     startupLifecycle?: StartupLifecycle | null;
@@ -1138,31 +1035,66 @@ export async function generateMentorChatResponse({
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
-  const dna = analysisContext?.businessDNA;
-  const lc = analysisContext?.startupLifecycle;
-  const prof = analysisContext?.industryProfile;
 
-  const fullText = `${dna?.startupName || analysisContext?.startupName || ""} ${dna?.industry || ""} ${analysisContext?.idea || ""} ${analysisContext?.problem || ""}`;
-  const category = detectDetailedStartupCategory(fullText);
+  let vContext: VentureContext;
+  if (analysisContext?.ventureContext) {
+    vContext = analysisContext.ventureContext;
+  } else if (analysisContext) {
+    vContext = buildVentureContext({
+      startupName: analysisContext.startupName,
+      idea: analysisContext.idea,
+      problem: analysisContext.problem,
+      solution: analysisContext.solution,
+      audience: analysisContext.audience,
+      country: "Local Market",
+      businessModel: analysisContext.businessModel,
+      competitors: analysisContext.competitors,
+    });
+  } else {
+    vContext = buildVentureContext({
+      startupName: "Venture",
+      idea: userMessage,
+      problem: userMessage,
+      solution: userMessage,
+      audience: "Target Market",
+      country: "Local Market",
+      businessModel: "Commercial Sales",
+    });
+  }
+
+  const category = detectDetailedStartupCategory(`${vContext.ventureName} ${vContext.description} ${vContext.problem}`);
   const persona = getExpertPersona(category);
+  const lc = analysisContext?.startupLifecycle || inferStartupLifecycle({
+    startupName: vContext.ventureName,
+    idea: vContext.description,
+    problem: vContext.problem,
+    solution: vContext.solution,
+    audience: vContext.targetAudience,
+    country: vContext.marketScope,
+    businessModel: vContext.revenueModel,
+  }, vContext);
 
-  const systemPrompt = `You are an industry-agnostic AI Business Consultant acting as a top-tier ${persona.personaTitle}.
+  const systemPrompt = `You are an expert AI Business Consultant acting as a top-tier ${persona.personaTitle}.
 
-BUSINESS REASONING CONTEXT:
-- Startup/Business Name: "${dna?.startupName || analysisContext?.startupName || "Venture"}"
-- Category Kind: ${prof?.businessCategoryKind || persona.ideaTypeKind}
-- Detected Industry: ${prof?.detectedIndustry || dna?.industry || persona.category}
-- Regulatory Body: ${prof?.regulatoryBody || "Standard Corporate Regulations"}
-- Key Operating Metrics: ${prof?.keyOperatingMetrics ? prof.keyOperatingMetrics.join(", ") : persona.primaryDomainFocus[0]}
-- Persona: ${persona.personaTitle}
-- Current Lifecycle Stage: ${lc?.currentStage || "Validation Stage"} (Confidence: ${lc?.confidenceScore || 90}%)
-- Primary Domain Focus: ${persona.primaryDomainFocus.join(", ")}
+VENTURE STRUCTURED CONTEXT:
+- Venture Name: "${vContext.ventureName}"
+- Description / Idea: "${vContext.description}"
+- Industry: ${vContext.industry}
+- Sub-Industry: ${vContext.subIndustry}
+- Business Type: ${vContext.businessType} (${vContext.categoryKind})
+- Operating Model: ${vContext.operatingModel}
+- Is Technology Product: ${vContext.isTechnologyProduct ? "YES" : "NO"}
+- Revenue Model: ${vContext.revenueModel}
+- Target Audience: ${vContext.targetAudience}
+- Current Stage: ${lc.currentStage}
 
-CRITICAL MANDATE:
-1. Answer as an expert ${persona.personaTitle}.
-2. Focus strictly on ${persona.category} domain advice (e.g. location, footfall, licensing, machinery, organic farming yield, patient care, or curriculum).
-3. NEVER mention software engineering, writing code, APIs, MVP app, or CAC/LTV unless the business is ACTUALLY software.
-4. Keep advice tailored to current lifecycle stage (${lc?.currentStage || "Validation Stage"}).`;
+CRITICAL ADVISORY MANDATE:
+1. Answer as an expert ${persona.personaTitle} specifically for "${vContext.ventureName}".
+2. IF THIS IS A FOOD / BAJJI / STREET FOOD BUSINESS:
+   - Provide concrete, operational guidance on location footfall, municipal permits, FSSAI food hygiene, raw ingredient costs (gram flour/besan, oil, spices, green chillies), preparation workflow, batter consistency, crispiness, oil quality, menu items (Mirchi Bajji, Potato Bajji, Onion Pakoda, Chutneys), plate pricing, break-even daily volume, waste management, and peak evening hours (4 PM - 8 PM).
+   - NEVER mention software engineering, writing code, APIs, MVP app, SaaS retention, CAC/LTV, wireframes, or landing pages.
+3. Keep guidance tailored to current lifecycle stage: "${lc.currentStage}".
+4. DO NOT provide generic startup disclaimers. Give direct, actionable business advice for this specific venture.`;
 
   if (apiKey && apiKey.trim() !== "" && !apiKey.includes("your-api-key")) {
     try {
@@ -1187,56 +1119,59 @@ CRITICAL MANDATE:
     }
   }
 
-  return generateFallbackMentorReply(userMessage, analysisContext);
+  return generateFallbackMentorReply(userMessage, analysisContext, vContext, persona, lc);
 }
 
 function generateFallbackMentorReply(
   msg: string,
-  ctx?: {
-    startupName: string;
-    idea: string;
-    problem: string;
-    solution: string;
-    audience: string;
-    businessModel: string;
-    competitors?: string | null;
-    overallScore: number;
-    businessClassification?: BusinessClassification | null;
-    businessDNA?: BusinessDNA | null;
-    startupLifecycle?: StartupLifecycle | null;
-    industryProfile?: IndustryProfile | null;
-  } | null
+  ctx: any,
+  vContext: VentureContext,
+  persona: IndustryExpertPersona,
+  lc: StartupLifecycle
 ): string {
   const classification = isStartupRelatedIntent(msg);
   if (!classification.isStartup) {
     return DOMAIN_REFUSAL_MESSAGE;
   }
 
-  const dna = ctx?.businessDNA || (ctx ? inferBusinessDNA(ctx as any) : null);
-  const lc = ctx?.startupLifecycle || (ctx ? inferStartupLifecycle(ctx as any) : null);
-  const prof = ctx?.industryProfile || (ctx ? inferIndustryProfile(ctx as any) : null);
-  const name = dna?.startupName || ctx?.startupName || "your venture";
+  const name = vContext.ventureName;
 
-  const category = detectDetailedStartupCategory(`${name} ${ctx?.idea || ""} ${ctx?.problem || ""}`);
-  const persona = getExpertPersona(category);
+  if (vContext.industry === "Food & Beverage") {
+    return `As your **${persona.personaTitle}**, here is operational guidance for **${name}** (${vContext.businessType}, Stage: **${lc.currentStage}**):
 
-  return `As your **${persona.personaTitle}**, here is domain and stage-tailored guidance for **${name}** (${prof?.businessCategoryKind || persona.ideaTypeKind}, Stage: **${lc?.currentStage || "Validation Stage"}**):
+1. **Location Selection & Footfall**: Choose a spot near busy bus stops, colleges, or commercial markets with high 4 PM - 8 PM evening pedestrian traffic.
+2. **Hygiene & FSSAI Permitting**: Secure local municipal trade permissions and basic FSSAI food hygiene registration.
+3. **Ingredients & Cost Control**: Source quality gram flour (besan), fresh green chillies, onions, potatoes, and fresh cooking oil. Maintain ingredient cost per plate for a 65%+ gross margin.
+4. **Core Menu & Prep**: Offer 3-5 high-demand items (Mirchi Bajji, Potato Bajji, Onion Pakoda) served hot with 2 signature chutneys.
+5. **Daily Operations**: Maintain clean oil practices, log daily sales volume, and manage perishable food waste.`;
+  }
 
-1. **Domain Focus**: ${persona.primaryDomainFocus[0]}
-2. **Key Metric**: ${prof?.keyOperatingMetrics ? prof.keyOperatingMetrics[0] : "Target customer acquisition"}
-3. **Immediate Next Target**: ${lc?.nextMilestone || "Validate customer demand"}
-4. **Stage Priorities**:
-${lc?.suggestedPriorities ? lc.suggestedPriorities.map((p, i) => `   - Step ${i + 1}: ${p}`).join("\n") : "   - Complete customer interviews\n   - Test pricing willingness"}
-5. **Regulatory & Risk Consideration**: ${prof?.regulatoryBody || "Ensure local compliance"}.`;
+  if (vContext.industry === "Manufacturing & Processing") {
+    return `As your **${persona.personaTitle}**, here is operational guidance for **${name}** (${vContext.businessType}, Stage: **${lc.currentStage}**):
+
+1. **Machinery & Capacity**: Source high-speed automatic paper cup forming machinery with low leakage rate and sturdy rim strength.
+2. **Factory & Power Load**: Secure industrial factory space, power load clearance from state electricity board, and pollution control permits.
+3. **Raw Material Sourcing**: Lock in bulk PE-coated paper roll suppliers at competitive wholesale rates.
+4. **B2B Wholesale Contracts**: Establish supply agreements with local tea stalls, caterers, and B2B distributors.
+5. **Unit Economics**: Maintain tight cost-per-100-cups calculations to ensure strong distributor margins.`;
+  }
+
+  return `As your **${persona.personaTitle}**, here is stage-tailored guidance for **${name}** (${vContext.businessType}, Stage: **${lc.currentStage}**):
+
+1. **Primary Domain Focus**: ${persona.primaryDomainFocus[0]}
+2. **Immediate Next Target**: ${lc.nextMilestone}
+3. **Key Priorities**:
+${lc.suggestedPriorities ? lc.suggestedPriorities.slice(0, 4).map((p, i) => `   - Step ${i + 1}: ${p}`).join("\n") : "   - Secure core permits & location\n   - Validate customer demand"}
+4. **Regulatory Requirement**: ${inferIndustryProfile({ startupName: name, idea: vContext.description, problem: vContext.problem, solution: vContext.solution, audience: vContext.targetAudience, country: vContext.marketScope, businessModel: vContext.revenueModel }).regulatoryBody}.`;
 }
 
 function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
-  const name = input.startupName.trim();
+  const vContext = buildVentureContext(input);
   const inferredProfile = inferIndustryProfile(input);
   const inferredDNA = inferBusinessDNA(input);
   const inferredClassification = inferBusinessClassification(input);
-  const inferredLifecycle = inferStartupLifecycle(input);
-  const category = detectDetailedStartupCategory(`${name} ${input.idea} ${input.problem} ${input.solution}`);
+  const inferredLifecycle = inferStartupLifecycle(input, vContext);
+  const category = detectDetailedStartupCategory(`${input.startupName} ${input.idea} ${input.problem} ${input.solution}`);
   const persona = getExpertPersona(category);
 
   const hasCompetitors = Boolean(input.competitors && input.competitors.length > 5);
@@ -1248,7 +1183,7 @@ function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
   if (solutionDepth > 60) score += 5;
   if (hasCompetitors) score += 4;
 
-  const nameHash = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const nameHash = input.startupName.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   score = (score + (nameHash % 12)) - 5;
   score = Math.min(94, Math.max(55, score));
 
@@ -1260,47 +1195,48 @@ function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
 
   return {
     overallScore: score,
+    ventureContext: vContext,
     industryProfile: inferredProfile,
     businessClassification: inferredClassification,
     businessDNA: inferredDNA,
     startupLifecycle: inferredLifecycle,
     marketPotential: {
       score: marketScore,
-      summary: `High growth potential in ${input.country} targeting ${input.audience}.`,
-      details: `The addressable market for ${input.idea} shows strong customer demand.`,
+      summary: `High customer demand in ${input.country} for ${vContext.businessType}.`,
+      details: `The addressable market for ${vContext.description} shows strong demand from ${vContext.targetAudience}.`,
     },
     problemValidation: {
       score: problemScore,
-      summary: "Clear pain point identified with high customer intent.",
-      details: `The problem specified ("${input.problem.slice(0, 80)}...") represents a genuine pain point.`,
+      summary: "Clear customer pain point identified with high purchasing intent.",
+      details: `The problem specified ("${input.problem.slice(0, 80)}...") represents a genuine market need.`,
     },
     solutionQuality: {
       score: solutionScore,
-      summary: "Strong product differentiation with actionable execution strategy.",
-      details: `The solution leverages targeted positioning for ${input.audience}.`,
+      summary: `Strong operational positioning tailored for ${vContext.industry}.`,
+      details: `The solution leverages targeted positioning for ${vContext.targetAudience}.`,
     },
     competitionLevel: {
       score: competitionScore,
       level: hasCompetitors ? "High" : "Medium",
       summary: hasCompetitors ? "Established competitors present; clear differentiation is vital." : "Moderate competitive landscape.",
       details: input.competitors
-        ? `Existing players (${input.competitors}) require ${name} to focus heavily on unique value propositions.`
+        ? `Existing players (${input.competitors}) require ${input.startupName} to focus heavily on unique value propositions.`
         : `No dominant monopoly identified, offering opportunity to capture early market share.`,
     },
     businessModel: {
       score: businessModelScore,
-      summary: `Monetization via ${input.businessModel} provides scalable revenue potential.`,
-      details: `The ${input.businessModel} strategy aligns well with customer expectations.`,
+      summary: `Monetization via ${input.businessModel} provides sustainable unit economics.`,
+      details: `The ${input.businessModel} strategy aligns well with ${vContext.industry} customer expectations.`,
     },
     strengths: inferredDNA.keyAdvantages,
     weaknesses: inferredDNA.biggestChallenges,
     opportunities: [
-      `Expand brand footprint across ${input.country}`,
+      `Expand operational footprint across ${input.country}`,
       `Capitalize on ${inferredDNA.expansionPotential}`,
       `Leverage ${inferredDNA.uniqueSellingProposition}`,
     ],
     risks: inferredLifecycle.currentStageRisks,
     nextSteps: inferredLifecycle.suggestedPriorities,
-    investorVerdict: `${name} (${persona.personaTitle}) is currently in the ${inferredLifecycle.currentStage} with ${inferredLifecycle.confidenceScore}% classification confidence. Focusing on ${inferredLifecycle.nextMilestone} will prepare this venture for rapid stage progression.`,
+    investorVerdict: `${input.startupName} (${persona.personaTitle}) is in the ${inferredLifecycle.currentStage} stage with ${inferredLifecycle.confidenceScore}% classification confidence. Focusing on ${inferredLifecycle.nextMilestone} will prepare this venture for successful growth.`,
   };
 }

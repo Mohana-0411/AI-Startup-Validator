@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { detectStartupCategory } from "@/lib/openai";
+import { detectStartupCategory, buildVentureContext } from "@/lib/openai";
 
 export async function getOrCreateRoadmapAction(analysisId: string) {
   const user = await getCurrentUser();
@@ -29,12 +29,18 @@ export async function getOrCreateRoadmapAction(analysisId: string) {
       parsedResult = null;
     }
 
-    const fullText = `${analysis.startupName} ${analysis.idea} ${analysis.businessModel} ${analysis.problem} ${analysis.solution}`;
-    const category = parsedResult?.businessClassification?.industry
-      ? (parsedResult.businessClassification.industry.toUpperCase().includes("FOOD") ? "FOOD" : detectStartupCategory(fullText))
-      : detectStartupCategory(fullText);
+    const vContext = parsedResult?.ventureContext || buildVentureContext({
+      startupName: analysis.startupName,
+      idea: analysis.idea,
+      problem: analysis.problem,
+      solution: analysis.solution,
+      audience: analysis.audience,
+      country: analysis.country,
+      businessModel: analysis.businessModel,
+      competitors: analysis.competitors,
+    });
 
-    const lifecycleStage = parsedResult?.startupLifecycle?.currentStage || "Validation Stage";
+    const suggestedPriorities: string[] = parsedResult?.startupLifecycle?.suggestedPriorities || [];
 
     let defaultDynamicTasks: {
       phase: string;
@@ -45,136 +51,93 @@ export async function getOrCreateRoadmapAction(analysisId: string) {
       impact: string;
     }[] = [];
 
-    if (lifecycleStage === "Idea Stage") {
+    if (suggestedPriorities.length >= 3) {
       defaultDynamicTasks = [
         {
-          phase: "Phase 1: Market Research",
-          title: `Analyze TAM/SAM market size for ${analysis.startupName}`,
-          description: `Estimate total addressable market and existing spending habits in ${analysis.country}.`,
-          priority: "High",
-          effort: "3-5 days",
-          impact: "High",
-        },
-        {
-          phase: "Phase 2: Customer Interviews",
-          title: `Interview 15 target ${analysis.audience} users`,
-          description: `Conduct structured 1-on-1 calls to validate problem severity around "${analysis.problem.slice(0, 50)}...".`,
+          phase: "Phase 1: Demand & Feasibility",
+          title: suggestedPriorities[0],
+          description: `Validate initial demand, location footfall, or problem severity for ${analysis.startupName}.`,
           priority: "High",
           effort: "1-2 weeks",
           impact: "High",
         },
         {
-          phase: "Phase 3: Problem Validation",
-          title: `Benchmark against existing alternatives (${analysis.competitors || "legacy options"})`,
-          description: `Identify key gaps in current solutions and specify unique value proposition.`,
+          phase: "Phase 2: Setup & Operational Launch",
+          title: suggestedPriorities[1],
+          description: `Establish core operational setup, licensing, and supplier agreements.`,
           priority: "High",
-          effort: "1 week",
-          impact: "High",
-        },
-      ];
-    } else if (lifecycleStage === "Validation Stage") {
-      defaultDynamicTasks = [
-        {
-          phase: "Phase 1: Prototype",
-          title: `Design lightweight prototype counter/wireframe for ${analysis.startupName}`,
-          description: `Create non-code visual mockups illustrating the core solution workflow.`,
-          priority: "High",
-          effort: "1 week",
+          effort: "2-3 weeks",
           impact: "High",
         },
         {
-          phase: "Phase 2: Landing Page",
-          title: `Launch waitlist landing page for ${analysis.startupName}`,
-          description: `Set up high-converting landing page highlighting USP and capturing early emails.`,
-          priority: "High",
-          effort: "3-5 days",
-          impact: "High",
-        },
-        {
-          phase: "Phase 3: Feedback Collection",
-          title: `Collect feedback from 20 prospective customer leads`,
-          description: `Measure landing page signup conversion rate and willingness-to-pay intent.`,
+          phase: "Phase 3: Revenue & Margin Optimization",
+          title: suggestedPriorities[2],
+          description: `Optimize unit economics and scale paying customer acquisition in ${analysis.country}.`,
           priority: "High",
           effort: "1-2 weeks",
           impact: "High",
         },
       ];
-    } else if (lifecycleStage === "MVP Stage") {
-      defaultDynamicTasks = [
-        {
-          phase: "Phase 1: Develop Product",
-          title: `Construct core functional MVP addressing "${analysis.problem.slice(0, 50)}..."`,
-          description: `Build baseline working version focused strictly on primary customer value.`,
-          priority: "High",
+
+      if (suggestedPriorities[3]) {
+        defaultDynamicTasks.push({
+          phase: "Phase 4: Operations & Expansion",
+          title: suggestedPriorities[3],
+          description: `Expand operational capacity, repeat customer retention, and multi-location growth.`,
+          priority: "Medium",
           effort: "2-4 weeks",
           impact: "High",
-        },
+        });
+      }
+    } else if (vContext.industry === "Food & Beverage") {
+      defaultDynamicTasks = [
         {
-          phase: "Phase 2: Beta Testing",
-          title: `Onboard first 10 beta test users for ${analysis.startupName}`,
-          description: `Grant early access to cohort and track daily active usage and bug reports.`,
-          priority: "High",
-          effort: "1-2 weeks",
-          impact: "High",
-        },
-        {
-          phase: "Phase 3: Feature Refinement",
-          title: `Optimize usability bottlenecks based on user feedback`,
-          description: `Iterate on MVP features to achieve 80%+ task completion rate without support.`,
+          phase: "Phase 1: Location & Footfall Selection",
+          title: `Identify 2–3 high-footfall stall locations for ${analysis.startupName}`,
+          description: `Analyze evening footfall (4 PM - 8 PM) near colleges, bus stops, or commercial markets in ${analysis.country}.`,
           priority: "High",
           effort: "1 week",
           impact: "High",
         },
-      ];
-    } else if (category === "FOOD") {
-      defaultDynamicTasks = [
         {
-          phase: "Phase 1: Location & Licensing",
-          title: `Analyze high-footfall locations in ${analysis.country}`,
-          description: `Identify target spots near commercial markets or college clusters for ${analysis.startupName}.`,
+          phase: "Phase 2: Cost Calculation & Menu Setup",
+          title: `Calculate ingredient cost per plate & set menu pricing`,
+          description: `Estimate gram flour (besan), cooking oil, green chilli, and spice cost per plate to target 65%+ gross margin.`,
           priority: "High",
-          effort: "1-2 weeks",
+          effort: "3-5 days",
           impact: "High",
         },
         {
-          phase: "Phase 1: Location & Licensing",
-          title: `Apply for Food License (FSSAI/Municipal Permits) & GST`,
-          description: `Secure necessary food safety authority permissions and local municipal permits.`,
+          phase: "Phase 3: FSSAI Permitting & Stall Setup",
+          title: `Secure FSSAI hygiene registration & municipal trade permit`,
+          description: `Set up clean oil practices, stainless steel counter, and basic municipal permissions.`,
           priority: "High",
           effort: "1-2 weeks",
-          impact: "High",
-        },
-        {
-          phase: "Phase 2: Soft Launch & Marketing",
-          title: `Conduct 3-day Soft Launch with introductory pricing`,
-          description: `Offer deals to attract neighborhood footfall and gather initial customer feedback.`,
-          priority: "High",
-          effort: "3 days",
           impact: "High",
         },
       ];
     } else {
       defaultDynamicTasks = [
         {
-          phase: "Phase 1: Customer Discovery",
-          title: `Interview 20 ${analysis.audience} users`,
-          description: `Conduct problem discovery interviews to validate pain points around "${analysis.problem.slice(0, 60)}...".`,
+          phase: "Phase 1: Feasibility & Market Demand",
+          title: `Validate customer demand for ${analysis.startupName}`,
+          description: `Conduct initial market interviews to confirm willingness-to-pay for ${analysis.businessModel}.`,
           priority: "High",
           effort: "1-2 weeks",
           impact: "High",
         },
         {
-          phase: "Phase 2: MVP Prototype",
-          title: `Build functional MVP solution for ${analysis.startupName}`,
-          description: `Develop lightweight functional prototype addressing primary customer pain point.`,
+          phase: "Phase 2: Operational Launch",
+          title: `Establish baseline operations for ${analysis.startupName}`,
+          description: `Set up primary solution workflow and supplier pricing agreements.`,
           priority: "High",
-          effort: "3-4 weeks",
+          effort: "2-3 weeks",
           impact: "High",
         },
         {
           phase: "Phase 3: Growth & Scaling",
-          title: `Scale customer acquisition & optimize CAC`,
-          description: `Expand marketing channels and refine conversion rates for ${analysis.businessModel}.`,
+          title: `Scale customer acquisition & optimize unit economics`,
+          description: `Expand local reach and maintain high margin retention.`,
           priority: "High",
           effort: "2-3 weeks",
           impact: "High",
