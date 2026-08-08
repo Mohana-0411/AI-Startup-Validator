@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { detectStartupCategory, buildVentureContext } from "@/lib/openai";
+import { buildVentureContext } from "@/lib/openai";
 
 export async function getOrCreateRoadmapAction(analysisId: string) {
   const user = await getCurrentUser();
@@ -40,114 +40,20 @@ export async function getOrCreateRoadmapAction(analysisId: string) {
       competitors: analysis.competitors,
     });
 
-    const suggestedPriorities: string[] = parsedResult?.startupLifecycle?.suggestedPriorities || [];
+    const roadmapPhases = vContext.suggestedRoadmapPhases || [];
 
-    let defaultDynamicTasks: {
-      phase: string;
-      title: string;
-      description: string;
-      priority: string;
-      effort: string;
-      impact: string;
-    }[] = [];
-
-    if (suggestedPriorities.length >= 3) {
-      defaultDynamicTasks = [
-        {
-          phase: "Phase 1: Demand & Feasibility",
-          title: suggestedPriorities[0],
-          description: `Validate initial demand, location footfall, or problem severity for ${analysis.startupName}.`,
-          priority: "High",
-          effort: "1-2 weeks",
-          impact: "High",
-        },
-        {
-          phase: "Phase 2: Setup & Operational Launch",
-          title: suggestedPriorities[1],
-          description: `Establish core operational setup, licensing, and supplier agreements.`,
-          priority: "High",
-          effort: "2-3 weeks",
-          impact: "High",
-        },
-        {
-          phase: "Phase 3: Revenue & Margin Optimization",
-          title: suggestedPriorities[2],
-          description: `Optimize unit economics and scale paying customer acquisition in ${analysis.country}.`,
-          priority: "High",
-          effort: "1-2 weeks",
-          impact: "High",
-        },
-      ];
-
-      if (suggestedPriorities[3]) {
-        defaultDynamicTasks.push({
-          phase: "Phase 4: Operations & Expansion",
-          title: suggestedPriorities[3],
-          description: `Expand operational capacity, repeat customer retention, and multi-location growth.`,
-          priority: "Medium",
-          effort: "2-4 weeks",
-          impact: "High",
-        });
-      }
-    } else if (vContext.industry === "Food & Beverage") {
-      defaultDynamicTasks = [
-        {
-          phase: "Phase 1: Location & Footfall Selection",
-          title: `Identify 2–3 high-footfall stall locations for ${analysis.startupName}`,
-          description: `Analyze evening footfall (4 PM - 8 PM) near colleges, bus stops, or commercial markets in ${analysis.country}.`,
-          priority: "High",
-          effort: "1 week",
-          impact: "High",
-        },
-        {
-          phase: "Phase 2: Cost Calculation & Menu Setup",
-          title: `Calculate ingredient cost per plate & set menu pricing`,
-          description: `Estimate gram flour (besan), cooking oil, green chilli, and spice cost per plate to target 65%+ gross margin.`,
-          priority: "High",
-          effort: "3-5 days",
-          impact: "High",
-        },
-        {
-          phase: "Phase 3: FSSAI Permitting & Stall Setup",
-          title: `Secure FSSAI hygiene registration & municipal trade permit`,
-          description: `Set up clean oil practices, stainless steel counter, and basic municipal permissions.`,
-          priority: "High",
-          effort: "1-2 weeks",
-          impact: "High",
-        },
-      ];
-    } else {
-      defaultDynamicTasks = [
-        {
-          phase: "Phase 1: Feasibility & Market Demand",
-          title: `Validate customer demand for ${analysis.startupName}`,
-          description: `Conduct initial market interviews to confirm willingness-to-pay for ${analysis.businessModel}.`,
-          priority: "High",
-          effort: "1-2 weeks",
-          impact: "High",
-        },
-        {
-          phase: "Phase 2: Operational Launch",
-          title: `Establish baseline operations for ${analysis.startupName}`,
-          description: `Set up primary solution workflow and supplier pricing agreements.`,
-          priority: "High",
-          effort: "2-3 weeks",
-          impact: "High",
-        },
-        {
-          phase: "Phase 3: Growth & Scaling",
-          title: `Scale customer acquisition & optimize unit economics`,
-          description: `Expand local reach and maintain high margin retention.`,
-          priority: "High",
-          effort: "2-3 weeks",
-          impact: "High",
-        },
-      ];
-    }
+    const defaultDynamicTasks = roadmapPhases.map((phaseItem: any) => ({
+      phase: phaseItem.phase || "Phase 1: Validation",
+      title: phaseItem.title,
+      description: phaseItem.description || `Execute ${phaseItem.title} for ${analysis.startupName} in ${analysis.country}.`,
+      priority: phaseItem.priority || "High",
+      effort: phaseItem.effort || "1-2 weeks",
+      impact: phaseItem.impact || "High",
+    }));
 
     // Save to database
     await prisma.roadmapTask.createMany({
-      data: defaultDynamicTasks.map((t) => ({
+      data: defaultDynamicTasks.map((t: any) => ({
         analysisId: analysis.id,
         phase: t.phase,
         title: t.title,

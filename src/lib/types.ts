@@ -5,7 +5,8 @@ export type LifecycleStage =
   | "Launch Stage"
   | "Early Revenue Stage"
   | "Growth Stage"
-  | "Scale Stage";
+  | "Scale Stage"
+  | string;
 
 export type IdeaTypeKind =
   | "Technology Startup"
@@ -17,47 +18,42 @@ export type IdeaTypeKind =
 export interface IndustryProfile {
   detectedIndustry: string;
   subIndustry: string;
-  businessCategoryKind:
-    | "Product Business"
-    | "Service Business"
-    | "Offline Business"
-    | "Online Business"
-    | "Hybrid Business"
-    | "Local Business"
-    | "Technology Startup"
-    | "Manufacturing"
-    | "Franchise"
-    | "Marketplace"
-    | "E-Commerce"
-    | "Social Enterprise";
+  businessCategoryKind: string;
   revenueModelType: string;
   regulatoryBody: string;
   keyOperatingMetrics: string[];
 }
 
+export interface OperatingMetricGauge {
+  title: string;
+  category: string;
+  description: string;
+  score?: number;
+  recommendation?: string;
+}
+
 export interface VentureContext {
   ventureName: string;
   description: string;
-  industry: string;
-  subIndustry: string;
-  businessType: string;
-  categoryKind:
-    | "Local Food Business / Street Food"
-    | "Physical Storefront / Retail"
-    | "Offline Business"
-    | "Healthcare Service"
-    | "Manufacturing & Industrial"
-    | "Agriculture & Agribusiness"
-    | "Technology Startup / SaaS"
-    | "Professional Service";
-  operatingModel: "Offline" | "Online" | "Hybrid" | "D2C" | "B2B Wholesale";
+  domainCategory: string;
+  subDomain: string;
+  ventureType: string;
+  operatingCategory: "Physical Offline" | "Digital / Online" | "Hybrid" | "D2C / E-Commerce" | "B2B Industrial / Wholesale";
   revenueModel: string;
-  targetAudience: string;
+  customerSegment: string;
   marketScope: string;
   problem: string;
   solution: string;
   competitors?: string | null;
   isTechnologyProduct: boolean;
+  keyOperatingMetrics: OperatingMetricGauge[];
+  primaryRisks: string[];
+  primarySuccessFactors: string[];
+  regulatoryRequirements: string[];
+  competitorTypes: { name: string; category: string; description: string; strengths: string[]; weaknesses: string[]; pricingModel: string; differentiation: string; marketPosition: string }[];
+  suggestedRoadmapPhases: { phase: string; title: string; description: string; priority: string; effort: string; impact: string }[];
+  stageTimeline: string[];
+  currentStageName: string;
 }
 
 export interface StartupLifecycle {

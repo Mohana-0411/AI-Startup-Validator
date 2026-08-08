@@ -25,7 +25,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { ScoreRing } from "@/components/ScoreRing";
 import { AnalysisResultJSON } from "@/lib/types";
-import { detectStartupCategory, buildVentureContext } from "@/lib/openai";
+import { buildVentureContext } from "@/lib/openai";
 
 export default async function StartupHealthPage() {
   const user = await getCurrentUser();
@@ -53,7 +53,6 @@ export default async function StartupHealthPage() {
     ? Math.round(analyses.reduce((acc, curr) => acc + curr.overallScore, 0) / totalCount)
     : 0;
 
-  const fullText = latestRecord ? `${latestRecord.startupName} ${latestRecord.idea} ${latestRecord.businessModel} ${latestRecord.problem}` : "";
   const vContext = latestResult?.ventureContext || (latestRecord ? buildVentureContext({
     startupName: latestRecord.startupName,
     idea: latestRecord.idea,
@@ -65,168 +64,28 @@ export default async function StartupHealthPage() {
   }) : null);
 
   const lc = latestResult?.startupLifecycle;
-  const stage = lc?.currentStage || "Validation Stage";
+  const stage = lc?.currentStage || vContext?.currentStageName || "Validation Stage";
 
-  // Dynamic Industry-Specific Health Diagnostic Metrics
+  // Completely Dynamic Health Diagnostic Metrics derived directly from VentureContext
   let metrics: { title: string; score: number; summary: string; recommendation: string; color: string }[] = [];
 
   if (latestResult && latestRecord && vContext) {
-    if (vContext.industry === "Food & Beverage") {
-      metrics = [
-        {
-          title: "Location & Footfall Potential",
-          score: latestResult.solutionQuality.score,
-          summary: "Evaluates evening pedestrian traffic and accessibility near bus stops/colleges.",
-          recommendation: "Conduct 3-day peak evening (4 PM - 8 PM) footfall counting.",
-          color: "purple",
-        },
-        {
-          title: "Unit Economics & Gross Margin",
-          score: latestResult.businessModel.score,
-          summary: "Evaluates ingredient cost (besan, oil, spices) per plate relative to menu price.",
-          recommendation: "Maintain strict ingredient portioning to achieve 65%+ gross margin.",
-          color: "emerald",
-        },
-        {
-          title: "Food Hygiene & Licensing Readiness",
-          score: latestResult.problemValidation.score,
-          summary: "Measures FSSAI registration readiness and clean cooking oil standards.",
-          recommendation: "Display basic FSSAI hygiene certificate and use fresh daily oil.",
-          color: "indigo",
-        },
-        {
-          title: "Repeat Customer Footfall",
-          score: latestResult.marketPotential.score,
-          summary: "Measures daily repeat customer intent and chutney/taste satisfaction.",
-          recommendation: "Offer combo meal deals to drive daily repeat office/student orders.",
-          color: "emerald",
-        },
-      ];
-    } else if (vContext.industry === "Healthcare & Medical Services") {
-      metrics = [
-        {
-          title: "Licensing & Regulatory Compliance",
-          score: latestResult.problemValidation.score,
-          summary: "Evaluates Clinical Establishment Act registration and dental council permits.",
-          recommendation: "Ensure all specialist doctor credentials and licenses are displayed.",
-          color: "purple",
-        },
-        {
-          title: "Medical Equipment & Facility Readiness",
-          score: latestResult.solutionQuality.score,
-          summary: "Measures dental chair, digital X-ray, and autoclave sterilizer readiness.",
-          recommendation: "Establish routine daily sterilization and equipment maintenance logs.",
-          color: "emerald",
-        },
-        {
-          title: "Patient Trust & Diagnostic Precision",
-          score: latestResult.marketPotential.score,
-          summary: "Evaluates patient satisfaction and community referral intent.",
-          recommendation: "Implement automated SMS appointment reminders for patient checkups.",
-          color: "indigo",
-        },
-        {
-          title: "Clinical Unit Economics",
-          score: latestResult.businessModel.score,
-          summary: "Evaluates consultation and treatment procedure margins.",
-          recommendation: "Optimize scheduling to maximize daily clinical appointment capacity.",
-          color: "emerald",
-        },
-      ];
-    } else if (vContext.industry === "Manufacturing & Processing") {
-      metrics = [
-        {
-          title: "Machinery & Output Speed",
-          score: latestResult.solutionQuality.score,
-          summary: "Evaluates automatic forming machinery capacity and output stability.",
-          recommendation: "Run pilot batches to confirm zero cup rim breakage or leakage.",
-          color: "purple",
-        },
-        {
-          title: "Raw Material Sourcing & Unit Cost",
-          score: latestResult.businessModel.score,
-          summary: "Evaluates raw PE-coated paper roll procurement pricing.",
-          recommendation: "Lock in bulk paper roll supply contracts to stabilize unit margins.",
-          color: "emerald",
-        },
-        {
-          title: "Factory Licensing & Power Clearance",
-          score: latestResult.problemValidation.score,
-          summary: "Measures industrial power load approval and pollution control clearance.",
-          recommendation: "Secure high-voltage electricity grid sanction from state DISCOM.",
-          color: "indigo",
-        },
-        {
-          title: "B2B Wholesale Distributor Demand",
-          score: latestResult.marketPotential.score,
-          summary: "Measures wholesale tea stall and distributor off-take contracts.",
-          recommendation: "Offer tiered volume discounts to regional paper goods distributors.",
-          color: "emerald",
-        },
-      ];
-    } else if (vContext.industry === "Agriculture & Agribusiness") {
-      metrics = [
-        {
-          title: "Soil Fertility & Drip Irrigation",
-          score: latestResult.solutionQuality.score,
-          summary: "Evaluates soil nutrient quality and automated drip irrigation coverage.",
-          recommendation: "Complete annual soil nutrient testing prior to crop planting.",
-          color: "purple",
-        },
-        {
-          title: "Organic Certification Compliance",
-          score: latestResult.problemValidation.score,
-          summary: "Measures NPOP/APMC pesticide-free organic farming audit readiness.",
-          recommendation: "Maintain meticulous organic fertilizer and crop treatment logs.",
-          color: "emerald",
-        },
-        {
-          title: "Cold Storage & Preservation",
-          score: latestResult.businessModel.score,
-          summary: "Evaluates post-harvest transit preservation and spoilage reduction.",
-          recommendation: "Establish temperature-controlled cold storage for fresh produce.",
-          color: "indigo",
-        },
-        {
-          title: "Wholesale Mandi Off-Take Demand",
-          score: latestResult.marketPotential.score,
-          summary: "Measures APMC mandi buyer and direct supermarket supply contracts.",
-          recommendation: "Form direct supply agreements with regional organic retailers.",
-          color: "emerald",
-        },
-      ];
-    } else {
-      metrics = [
-        {
-          title: "Problem Validation & Pain Clarity",
-          score: latestResult.problemValidation.score,
-          summary: "Evaluates how clearly the target customer pain point is confirmed.",
-          recommendation: "Conduct discovery interviews to confirm willingness-to-pay.",
-          color: "purple",
-        },
-        {
-          title: "Product Differentiation & Moat",
-          score: latestResult.solutionQuality.score,
-          summary: "Evaluates solution uniqueness vs existing market alternatives.",
-          recommendation: "Focus messaging on your core unique selling proposition.",
-          color: "emerald",
-        },
-        {
-          title: "User Onboarding & Experience",
-          score: Math.round((latestRecord.overallScore + latestResult.solutionQuality.score) / 2),
-          summary: "Evaluates onboarding speed and customer activation friction.",
-          recommendation: "Target time-to-first-value under 60 seconds.",
-          color: "indigo",
-        },
-        {
-          title: "Monetization & Unit Economics",
-          score: latestResult.businessModel.score,
-          summary: "Evaluates pricing sustainability and operating margin payback.",
-          recommendation: "Maintain positive gross margins before scaling marketing spend.",
-          color: "emerald",
-        },
-      ];
-    }
+    const rawMetrics = vContext.keyOperatingMetrics || [];
+    metrics = rawMetrics.map((item, idx) => {
+      let score = latestRecord.overallScore;
+      if (idx === 0) score = latestResult.problemValidation.score;
+      if (idx === 1) score = latestResult.solutionQuality.score;
+      if (idx === 2) score = latestResult.businessModel.score;
+      if (idx === 3) score = latestResult.marketPotential.score;
+
+      return {
+        title: item.title,
+        score,
+        summary: item.description,
+        recommendation: `Focus on optimizing ${item.title.toLowerCase()} for ${vContext.domainCategory}.`,
+        color: idx % 2 === 0 ? "purple" : "emerald",
+      };
+    });
   }
 
   return (
@@ -243,7 +102,7 @@ export default async function StartupHealthPage() {
               Startup & Business Health Monitor
             </h1>
             <p className="text-xs text-slate-500">
-              Evaluate the health and growth potential of your startup or business using industry-specific metrics.
+              Evaluate the health and growth potential of your venture using domain-specific metrics ({vContext?.domainCategory || "General"}).
             </p>
           </div>
 
@@ -314,7 +173,7 @@ export default async function StartupHealthPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-purple-600" />
-                Industry Health Diagnostic Gauges ({stage})
+                Domain Diagnostic Gauges ({vContext?.domainCategory || "General"})
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
