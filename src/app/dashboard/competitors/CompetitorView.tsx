@@ -52,10 +52,10 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
   }
 
   const stage = result?.startupLifecycle?.currentStage || "Validation Stage";
-  const vContext = result?.ventureContext;
-  const domainCategory = vContext?.domainCategory || "General Industry";
+  const vModel = result?.ventureModel || result?.ventureContext;
+  const offeringType = vModel?.offeringType || "General Venture";
 
-  // Parse explicit user competitors or map directly from VentureContext
+  // Parse explicit user competitors or map directly from VentureModel competitiveAlternatives
   const rawCompetitorList = currentAnalysis?.competitors
     ? currentAnalysis.competitors.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean)
     : [];
@@ -86,17 +86,17 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
       marketPosition: idx === 0 ? "Market Leader" : "Challenger",
       keyFeatures: "Core standard offering, traditional customer service",
     }));
-  } else if (vContext?.competitorTypes && vContext.competitorTypes.length > 0) {
-    competitorProfiles = vContext.competitorTypes.map((c) => ({
+  } else if (vModel?.competitiveAlternatives && vModel.competitiveAlternatives.length > 0) {
+    competitorProfiles = vModel.competitiveAlternatives.map((c, idx) => ({
       name: c.name,
-      category: c.category,
+      category: c.alternativeType,
       description: c.description,
-      targetAudience: currentAnalysis?.audience || vContext.customerSegment || "Target Segment",
+      targetAudience: currentAnalysis?.audience || vModel.customerPersona || "Target Customer",
       strengths: c.strengths,
       weaknesses: c.weaknesses,
-      pricingModel: c.pricingModel,
-      differentiation: c.differentiation,
-      marketPosition: c.marketPosition,
+      pricingModel: "Market Pricing",
+      differentiation: c.differentiationStrategy,
+      marketPosition: idx === 0 ? "Market Alternative" : "Direct Competitor",
       keyFeatures: "Core operational offering",
     }));
   } else {
@@ -141,7 +141,7 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
               Competitor Insights & Positioning
             </h1>
             <p className="text-xs text-slate-500">
-              Discover competitors relevant to your specific domain ({domainCategory}) and business type.
+              Discover customer alternatives dynamically derived for your specific venture ({offeringType}).
             </p>
           </div>
 
@@ -216,7 +216,7 @@ export function CompetitorView({ analyses }: { analyses: AnalysisItem[] }) {
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-purple-600" />
-                  Domain Competitor Profiles for &ldquo;{currentAnalysis.startupName}&rdquo; ({domainCategory})
+                  Discovered Customer Alternatives for &ldquo;{currentAnalysis.startupName}&rdquo; ({offeringType})
                 </h2>
               </div>
 

@@ -24,50 +24,55 @@ export interface IndustryProfile {
   keyOperatingMetrics: string[];
 }
 
-export interface OperatingMetricGauge {
-  title: string;
-  category: string;
+export interface DynamicSuccessDriver {
+  name: string;
   description: string;
-  score?: number;
-  recommendation?: string;
+  whyItMatters: string;
+  relevantCategory: string;
+  estimatedScore: number;
+  reasoning: string;
+  improvementAction: string;
 }
 
-export interface VentureContext {
+export interface DynamicCompetitorAlternative {
+  name: string;
+  alternativeType: string;
+  description: string;
+  strengths: string[];
+  weaknesses: string[];
+  differentiationStrategy: string;
+}
+
+export interface DynamicExecutionMilestone {
+  phase: string;
+  title: string;
+  description: string;
+  priority: "High" | "Medium" | "Low";
+  effort: string;
+  impact: "High" | "Medium" | "Low";
+}
+
+export interface VentureModel {
   ventureName: string;
   description: string;
-  domainCategory: string;
-  subDomain: string;
-  ventureType: string;
-  operatingCategory: "Physical Offline" | "Digital / Online" | "Hybrid" | "D2C / E-Commerce" | "B2B Industrial / Wholesale";
-  revenueModel: string;
-  customerSegment: string;
+  problem?: string;
+  solution?: string;
+  offeringType: "Physical Product" | "Service" | "Digital / Software" | "Facility / Outlet" | "Manufacturing / Production" | "Agriculture / Farming" | "Hybrid / Multi-Model";
+  valueDeliveryMechanism: string;
+  operatingEnvironment: "Physical Offline" | "Digital Online" | "Hybrid Field & Digital" | "Industrial Plant" | "Farm / Agricultural Land";
+  revenueMechanism: string;
+  customerPersona: string;
   marketScope: string;
-  problem: string;
-  solution: string;
-  competitors?: string | null;
   isTechnologyProduct: boolean;
-  keyOperatingMetrics: OperatingMetricGauge[];
+  requiredResources: string[];
+  operationalConstraints: string[];
+  keySuccessDrivers: DynamicSuccessDriver[];
+  competitiveAlternatives: DynamicCompetitorAlternative[];
+  executionMilestones: DynamicExecutionMilestone[];
   primaryRisks: string[];
-  primarySuccessFactors: string[];
   regulatoryRequirements: string[];
-  competitorTypes: { name: string; category: string; description: string; strengths: string[]; weaknesses: string[]; pricingModel: string; differentiation: string; marketPosition: string }[];
-  suggestedRoadmapPhases: { phase: string; title: string; description: string; priority: string; effort: string; impact: string }[];
-  stageTimeline: string[];
   currentStageName: string;
-}
-
-export interface StartupLifecycle {
-  currentStage: string;
-  confidenceScore: number;
-  reason: string;
-  nextMilestone: string;
-  estimatedTimeToNextStage: string;
-  keyObjectives: string[];
-  currentStageRisks: string[];
-  successProbability: number;
-  potentialBlockers: string[];
-  suggestedPriorities: string[];
-  stageTimeline?: string[];
+  stageTimeline: string[];
 }
 
 export interface BusinessClassification {
@@ -118,9 +123,33 @@ export interface BusinessDNA {
   businessPriority: string;
 }
 
+export interface StartupLifecycle {
+  currentStage: string;
+  confidenceScore: number;
+  reason: string;
+  nextMilestone: string;
+  estimatedTimeToNextStage: string;
+  keyObjectives: string[];
+  currentStageRisks: string[];
+  successProbability: number;
+  potentialBlockers: string[];
+  suggestedPriorities: string[];
+  stageTimeline?: string[];
+}
+
+export interface DynamicHealthCategory {
+  categoryName: string;
+  score: number;
+  summary: string;
+  details: string;
+  recommendation: string;
+}
+
 export interface AnalysisResultJSON {
   overallScore: number;
-  ventureContext?: VentureContext;
+  ventureModel?: VentureModel;
+  ventureContext?: VentureModel; // Alias for backward compatibility
+  healthScores?: DynamicHealthCategory[];
   industryProfile?: IndustryProfile;
   businessClassification?: BusinessClassification;
   businessDNA?: BusinessDNA;

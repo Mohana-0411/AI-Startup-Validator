@@ -25,7 +25,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { ScoreBadge } from "@/components/ScoreBadge";
 import { ScoreRing } from "@/components/ScoreRing";
 import { AnalysisResultJSON } from "@/lib/types";
-import { buildVentureContext } from "@/lib/openai";
+import { extractVentureModel } from "@/lib/openai";
 
 export default async function StartupHealthPage() {
   const user = await getCurrentUser();
@@ -53,7 +53,7 @@ export default async function StartupHealthPage() {
     ? Math.round(analyses.reduce((acc, curr) => acc + curr.overallScore, 0) / totalCount)
     : 0;
 
-  const vContext = latestResult?.ventureContext || (latestRecord ? buildVentureContext({
+  const vModel = latestResult?.ventureModel || latestResult?.ventureContext || (latestRecord ? extractVentureModel({
     startupName: latestRecord.startupName,
     idea: latestRecord.idea,
     problem: latestRecord.problem,
@@ -64,28 +64,29 @@ export default async function StartupHealthPage() {
   }) : null);
 
   const lc = latestResult?.startupLifecycle;
-  const stage = lc?.currentStage || vContext?.currentStageName || "Validation Stage";
+  const stage = lc?.currentStage || vModel?.currentStageName || "Validation Stage";
 
-  // Completely Dynamic Health Diagnostic Metrics derived directly from VentureContext
+  // Completely Dynamic Health Score Diagnostics derived from VentureModel success drivers
   let metrics: { title: string; score: number; summary: string; recommendation: string; color: string }[] = [];
 
-  if (latestResult && latestRecord && vContext) {
-    const rawMetrics = vContext.keyOperatingMetrics || [];
-    metrics = rawMetrics.map((item, idx) => {
-      let score = latestRecord.overallScore;
-      if (idx === 0) score = latestResult.problemValidation.score;
-      if (idx === 1) score = latestResult.solutionQuality.score;
-      if (idx === 2) score = latestResult.businessModel.score;
-      if (idx === 3) score = latestResult.marketPotential.score;
-
-      return {
-        title: item.title,
-        score,
-        summary: item.description,
-        recommendation: `Focus on optimizing ${item.title.toLowerCase()} for ${vContext.domainCategory}.`,
+  if (latestResult && latestRecord && vModel) {
+    if (latestResult.healthScores && latestResult.healthScores.length > 0) {
+      metrics = latestResult.healthScores.map((h, idx) => ({
+        title: h.categoryName,
+        score: h.score,
+        summary: h.summary,
+        recommendation: h.recommendation,
         color: idx % 2 === 0 ? "purple" : "emerald",
-      };
-    });
+      }));
+    } else if (vModel.keySuccessDrivers && vModel.keySuccessDrivers.length > 0) {
+      metrics = vModel.keySuccessDrivers.map((driver, idx) => ({
+        title: driver.name,
+        score: driver.estimatedScore,
+        summary: driver.description,
+        recommendation: driver.improvementAction,
+        color: idx % 2 === 0 ? "purple" : "emerald",
+      }));
+    }
   }
 
   return (
@@ -96,13 +97,13 @@ export default async function StartupHealthPage() {
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100 mb-2">
               <HeartPulse className="w-3.5 h-3.5 text-purple-600" />
-              <span>Multi-Industry Venture Scorecard</span>
+              <span>Dynamic Venture Scorecard</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Startup & Business Health Monitor
+              Adaptive Venture Health Monitor
             </h1>
             <p className="text-xs text-slate-500">
-              Evaluate the health and growth potential of your venture using domain-specific metrics ({vContext?.domainCategory || "General"}).
+              Evaluates critical success factors dynamically discovered for your specific venture ({vModel?.offeringType || "General"}).
             </p>
           </div>
 
@@ -173,7 +174,7 @@ export default async function StartupHealthPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-purple-600" />
-                Domain Diagnostic Gauges ({vContext?.domainCategory || "General"})
+                Discovered Success Drivers ({vModel?.offeringType || "General"})
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

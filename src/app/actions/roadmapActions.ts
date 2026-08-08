@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
-import { buildVentureContext } from "@/lib/openai";
+import { extractVentureModel } from "@/lib/openai";
 
 export async function getOrCreateRoadmapAction(analysisId: string) {
   const user = await getCurrentUser();
@@ -29,7 +29,7 @@ export async function getOrCreateRoadmapAction(analysisId: string) {
       parsedResult = null;
     }
 
-    const vContext = parsedResult?.ventureContext || buildVentureContext({
+    const vModel = parsedResult?.ventureModel || parsedResult?.ventureContext || extractVentureModel({
       startupName: analysis.startupName,
       idea: analysis.idea,
       problem: analysis.problem,
@@ -40,15 +40,15 @@ export async function getOrCreateRoadmapAction(analysisId: string) {
       competitors: analysis.competitors,
     });
 
-    const roadmapPhases = vContext.suggestedRoadmapPhases || [];
+    const milestones = vModel.executionMilestones || vModel.suggestedRoadmapPhases || [];
 
-    const defaultDynamicTasks = roadmapPhases.map((phaseItem: any) => ({
-      phase: phaseItem.phase || "Phase 1: Validation",
-      title: phaseItem.title,
-      description: phaseItem.description || `Execute ${phaseItem.title} for ${analysis.startupName} in ${analysis.country}.`,
-      priority: phaseItem.priority || "High",
-      effort: phaseItem.effort || "1-2 weeks",
-      impact: phaseItem.impact || "High",
+    const defaultDynamicTasks = milestones.map((mItem: any) => ({
+      phase: mItem.phase || "Phase 1: Validation",
+      title: mItem.title,
+      description: mItem.description || `Execute ${mItem.title} for ${analysis.startupName} in ${analysis.country}.`,
+      priority: mItem.priority || "High",
+      effort: mItem.effort || "1-2 weeks",
+      impact: mItem.impact || "High",
     }));
 
     // Save to database
