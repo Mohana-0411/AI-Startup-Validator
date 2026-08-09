@@ -59,17 +59,28 @@ export default async function DashboardPage() {
   const dna = latestResult?.businessDNA;
   const lc = latestResult?.startupLifecycle;
 
-  const allStages = [
-    "Idea Stage",
-    "Validation Stage",
-    "MVP Stage",
-    "Launch Stage",
-    "Early Revenue Stage",
-    "Growth Stage",
-    "Scale Stage",
-  ];
+  const dynamicStages =
+    lc?.stageTimeline && lc.stageTimeline.length > 0
+      ? lc.stageTimeline
+      : [
+          "Demand & Location Assessment",
+          "Setup & Compliance Readiness",
+          "Initial Operations",
+          "Unit Economics Optimization",
+          "Expansion",
+        ];
 
-  const currentStageIndex = lc ? allStages.indexOf(lc.currentStage) : 1;
+  const currentStageIndex = lc
+    ? Math.max(
+        0,
+        dynamicStages.findIndex(
+          (stg) =>
+            stg.toLowerCase() === lc.currentStage.toLowerCase() ||
+            stg.includes(lc.currentStage) ||
+            lc.currentStage.includes(stg)
+        )
+      )
+    : 0;
 
   // Fetch roadmap tasks for latest analysis
   const roadmapTasks = latestRecord
@@ -210,22 +221,28 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            {/* 7-Stage Horizontal Progress Timeline */}
+            {/* Dynamic Venture Lifecycle Progress Timeline */}
             <div className="overflow-x-auto pb-2">
-              <div className="flex items-center min-w-[700px] justify-between relative">
-                <div className="absolute top-1/2 left-4 right-4 h-1 bg-slate-100 -translate-y-1/2 -z-0" />
+              <div className="flex items-center min-w-[650px] justify-between relative px-2">
+                <div className="absolute top-1/2 left-6 right-6 h-1 bg-slate-100 -translate-y-1/2 -z-0" />
                 <div
-                  className="absolute top-1/2 left-4 h-1 bg-gradient-to-r from-purple-600 to-indigo-600 -translate-y-1/2 -z-0 transition-all duration-500"
-                  style={{ width: `${(currentStageIndex / (allStages.length - 1)) * 95}%` }}
+                  className="absolute top-1/2 left-6 h-1 bg-gradient-to-r from-purple-600 to-indigo-600 -translate-y-1/2 -z-0 transition-all duration-500"
+                  style={{
+                    width: `${
+                      dynamicStages.length > 1
+                        ? (currentStageIndex / (dynamicStages.length - 1)) * 92
+                        : 0
+                    }%`,
+                  }}
                 />
 
-                {allStages.map((stg, idx) => {
+                {dynamicStages.map((stg, idx) => {
                   const isCurrent = idx === currentStageIndex;
                   const isPassed = idx < currentStageIndex;
                   return (
-                    <div key={stg} className="relative z-10 flex flex-col items-center gap-2 text-center">
+                    <div key={`${stg}-${idx}`} className="relative z-10 flex flex-col items-center gap-2 text-center px-1">
                       <div
-                        className={`w-9 h-9 rounded-full flex items-center justify-center font-extrabold text-xs transition-all ${
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-extrabold text-xs transition-all ${
                           isCurrent
                             ? "bg-purple-600 text-white ring-4 ring-purple-100 shadow-md shadow-purple-600/30 scale-110"
                             : isPassed
@@ -236,7 +253,7 @@ export default async function DashboardPage() {
                         {isPassed ? <Check className="w-4 h-4" /> : idx + 1}
                       </div>
                       <span
-                        className={`text-[11px] font-extrabold max-w-[85px] leading-tight ${
+                        className={`text-[11px] font-extrabold max-w-[100px] leading-tight ${
                           isCurrent ? "text-purple-700 font-extrabold" : isPassed ? "text-slate-700" : "text-slate-400"
                         }`}
                       >

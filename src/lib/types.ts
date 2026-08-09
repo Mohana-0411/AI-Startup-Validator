@@ -1,12 +1,4 @@
-export type LifecycleStage =
-  | "Idea Stage"
-  | "Validation Stage"
-  | "MVP Stage"
-  | "Launch Stage"
-  | "Early Revenue Stage"
-  | "Growth Stage"
-  | "Scale Stage"
-  | string;
+export type LifecycleStage = string;
 
 export type IdeaTypeKind =
   | "Technology Startup"
