@@ -23,6 +23,10 @@ import {
   Briefcase,
   Activity,
   Flag,
+  FileText,
+  HelpCircle,
+  ShieldCheck,
+  Info,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
@@ -56,6 +60,10 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
   const classification = result.businessClassification;
   const dna = result.businessDNA;
   const lc = result.startupLifecycle;
+  const vModel = result.ventureModel || result.ventureContext;
+  const evidence = result.evidenceBreakdown || vModel?.evidenceBreakdown;
+  const confidence = result.analysisConfidence || lc?.confidenceScore || 85;
+  const granularity = vModel?.inputGranularity || "Specific Venture";
 
   return (
     <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 font-sans">
@@ -71,6 +79,21 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
           </Link>
         </div>
 
+        {/* Broad Industry Notice Banner if applicable */}
+        {granularity === "Broad Industry Overview" && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-start gap-3 text-amber-950">
+            <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1 text-xs">
+              <span className="font-extrabold uppercase tracking-wider text-amber-900 block">
+                Broad Industry Overview Input Detected
+              </span>
+              <p className="leading-relaxed">
+                This input represents a broad industry domain rather than a fully specified venture. The scorecard provides domain-level validation and highlights the key assumptions and missing facts needed for specific venture execution.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Top Summary Card */}
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm relative overflow-hidden">
           <div className="flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
@@ -78,7 +101,7 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
                 <span className="px-3 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-semibold border border-purple-100 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" />
-                  VC Validation Scorecard
+                  VC & Domain Validation Scorecard
                 </span>
                 <span className="text-xs text-slate-400">
                   {new Date(record.createdAt).toLocaleDateString(undefined, {
@@ -97,7 +120,7 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
                 &ldquo;{record.idea}&rdquo;
               </p>
 
-              {/* Startup Metadata Pills */}
+              {/* Venture Metadata Pills */}
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs text-slate-500 pt-2">
                 <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg">
                   <Users className="w-3.5 h-3.5 text-purple-600" />
@@ -109,16 +132,27 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
                 </span>
                 <span className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg">
                   <DollarSign className="w-3.5 h-3.5 text-purple-600" />
-                  {record.businessModel}
+                  {vModel?.revenueMechanism || record.businessModel}
                 </span>
               </div>
             </div>
 
-            {/* Radial Gauge Score Indicator */}
-            <div className="flex flex-col items-center justify-center bg-slate-50 p-6 rounded-2xl border border-slate-100 min-w-[200px] shrink-0">
-              <ScoreRing score={overallScore} size={130} strokeWidth={11} />
-              <div className="mt-3 text-center">
-                <ScoreBadge score={overallScore} size="md" showLabel />
+            {/* Score Indicators: Venture Score & Analysis Confidence */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-6 rounded-2xl border border-slate-100 shrink-0">
+              <div className="flex flex-col items-center justify-center">
+                <ScoreRing score={overallScore} size={110} strokeWidth={10} />
+                <div className="mt-2 text-center">
+                  <ScoreBadge score={overallScore} size="sm" showLabel />
+                  <span className="text-[10px] text-slate-400 block font-bold mt-0.5 uppercase">Venture Potential</span>
+                </div>
+              </div>
+
+              <div className="border-t sm:border-t-0 sm:border-l border-slate-200 pt-4 sm:pt-0 sm:pl-4 flex flex-col items-center justify-center space-y-1">
+                <span className="text-2xl font-extrabold text-indigo-600">{confidence}%</span>
+                <span className="text-[10px] font-extrabold uppercase text-slate-400">Analysis Confidence</span>
+                <span className="text-[10px] text-slate-500 text-center max-w-[120px]">
+                  {confidence >= 80 ? "High Evidence Base" : "Moderate Industry Overview"}
+                </span>
               </div>
             </div>
           </div>
@@ -128,7 +162,7 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
             <div className="mt-8 p-5 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 rounded-xl">
               <p className="text-xs font-bold uppercase tracking-wider text-purple-900 mb-1 flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-purple-600" />
-                VC Partner Executive Summary
+                Executive Summary & Investor Verdict
               </p>
               <p className="text-sm text-purple-950 font-medium leading-relaxed">
                 {result.investorVerdict}
@@ -137,6 +171,71 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
           )}
         </div>
 
+        {/* Evidence & Facts Demarcation Card (Facts Provided vs Inferences vs Missing Facts) */}
+        {evidence && (
+          <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+            <div className="border-b border-slate-100 pb-4 space-y-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-extrabold border border-slate-200">
+                <FileText className="w-3.5 h-3.5 text-slate-600" />
+                <span>Evidence & Facts Demarcation</span>
+              </div>
+              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                User Provided Facts vs Inferred Assumptions
+              </h2>
+              <p className="text-xs text-slate-500">
+                Transparent distinction between explicit facts given by user, logical domain inferences, and missing facts.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* 1. Explicit Facts Provided */}
+              <div className="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 space-y-2">
+                <span className="text-[11px] font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Explicit Facts Provided ({evidence.factsProvided.length})
+                </span>
+                <ul className="space-y-1.5 text-xs text-slate-700">
+                  {evidence.factsProvided.map((fact, idx) => (
+                    <li key={idx} className="flex items-start gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 shrink-0" />
+                      <span>{fact}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* 2. Inferred Assumptions */}
+              <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100 space-y-2">
+                <span className="text-[11px] font-extrabold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <HelpCircle className="w-4 h-4 text-amber-600" /> Inferred Assumptions ({evidence.inferredAssumptions.length})
+                </span>
+                <ul className="space-y-1.5 text-xs text-slate-700">
+                  {evidence.inferredAssumptions.map((inf, idx) => (
+                    <li key={idx} className="flex items-start gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1 shrink-0" />
+                      <span>{inf}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* 3. Missing Information / Needs Validation */}
+              <div className="p-4 rounded-xl bg-rose-50/40 border border-rose-100 space-y-2">
+                <span className="text-[11px] font-extrabold text-rose-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-rose-600" /> Missing Information ({evidence.missingFacts.length})
+                </span>
+                <ul className="space-y-1.5 text-xs text-slate-700">
+                  {evidence.missingFacts.map((mf, idx) => (
+                    <li key={idx} className="flex items-start gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1 shrink-0" />
+                      <span>{mf}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Business DNA Central Intelligence Card */}
         {dna && (
           <div className="bg-white rounded-2xl p-6 sm:p-8 border border-purple-200/80 shadow-md space-y-6">
@@ -144,10 +243,10 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-extrabold border border-purple-200">
                   <Dna className="w-4 h-4 text-purple-700 animate-pulse" />
-                  <span>Business DNA • Single Source of Truth</span>
+                  <span>Venture Architecture & DNA</span>
                 </div>
                 <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                  Business Profile & Intelligence Architecture
+                  Business Profile & Operational Architecture
                 </h2>
                 <p className="text-xs text-slate-500">
                   Central DNA profile consumed by AI Mentor, Roadmap, Health Monitor, and Competitor Engine
@@ -167,12 +266,12 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
             {/* Grid 1: Industry & Operational DNA */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Industry</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Venture Industry</span>
                 <p className="text-xs font-extrabold text-slate-900 truncate">{dna.industry}</p>
               </div>
 
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 space-y-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Business Category</span>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Venture Type</span>
                 <p className="text-xs font-extrabold text-slate-900 truncate">{dna.businessCategory}</p>
               </div>
 
@@ -210,10 +309,10 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-extrabold border border-indigo-200">
                   <Activity className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Startup Lifecycle Intelligence</span>
+                  <span>Venture Lifecycle Intelligence</span>
                 </div>
                 <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                  Lifecycle Stage & Growth Prediction
+                  Lifecycle Stage & Growth Path
                 </h2>
                 <p className="text-xs text-slate-500">
                   Dynamic stage classification governing AI Mentor advice and Roadmap milestones
@@ -225,7 +324,7 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
                   {lc.currentStage}
                 </span>
                 <span className="px-3.5 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-extrabold rounded-xl">
-                  {lc.confidenceScore}% Confidence
+                  {confidence}% Confidence
                 </span>
               </div>
             </div>
@@ -248,7 +347,7 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
 
               <div className="p-4 rounded-xl bg-emerald-50/40 border border-emerald-100 space-y-2">
                 <span className="text-[11px] font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> Stage Growth Prediction
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> Growth Potential
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="text-lg font-extrabold text-emerald-700">{lc.successProbability}%</span>
@@ -366,7 +465,7 @@ export default async function AnalysisResultsPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Embedded AI Startup Mentor Section */}
+        {/* Embedded AI Venture Mentor Section */}
         <StartupMentorChat
           analysisId={record.id}
           startupName={record.startupName}

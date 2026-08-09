@@ -10,6 +10,7 @@ import {
   DynamicSuccessDriver,
   DynamicCompetitorAlternative,
   DynamicExecutionMilestone,
+  FactEvidenceDemarcation,
 } from "./types";
 
 interface StartupIdeaInput {
@@ -23,24 +24,17 @@ interface StartupIdeaInput {
   competitors?: string | null;
 }
 
-const DOMAIN_REFUSAL_MESSAGE = `I'm designed specifically as an AI Venture Validator to evaluate business ideas, commercial models, and growth strategies.
+const GENERAL_ENTERTAINMENT_REFUSAL = `I am an AI Venture & Industry Consultant designed to evaluate business ideas, commercial models, operational requirements, and industry dynamics.
 
-I can't provide reliable guidance on non-business topics.
-
-Ask me about any startup or business venture, including:
-
-• Business validation, location footfall & customer demand
-• Operational requirements, equipment & regulatory permits
-• Unit economics, gross margins & pricing strategy
-• Domain-specific execution roadmaps & competitor analysis
-• Growth strategy & expansion planning`;
+I focus strictly on business and industry topics. Ask me about any venture, industry requirements, operational setup, licenses, equipment, pricing, or strategy!`;
 
 export function isStartupRelatedIntent(message: string): { isStartup: boolean; category?: string } {
   const lower = message.toLowerCase().trim();
 
-  const nonStartupTriggers = [
+  // Non-business entertainment triggers ONLY
+  const nonBusinessTriggers = [
     { keywords: ["superman", "batman", "spiderman", "avengers", "marvel", "dc comics", "hero", "superhero"], category: "superheroes & comics" },
-    { keywords: ["recipe to cook at home", "bake cake recipe", "curry recipe", "kitchen dish recipe", "pasta recipe", "noodle recipe"], category: "cooking recipes" },
+    { keywords: ["recipe to cook at home", "bake cake recipe", "curry recipe for dinner", "kitchen dish recipe", "pasta recipe", "noodle recipe"], category: "cooking recipes" },
     { keywords: ["movie review", "cinema showtime", "actor biography", "actress", "film summary", "hollywood movie", "bollywood movie", "netflix show", "anime list"], category: "movies & entertainment" },
     { keywords: ["weather today", "temperature today", "rain forecast", "climate today"], category: "weather" },
     { keywords: ["cricket score", "football score", "soccer score", "nba score", "ipl match score", "tennis match score"], category: "sports scores" },
@@ -49,40 +43,14 @@ export function isStartupRelatedIntent(message: string): { isStartup: boolean; c
     { keywords: ["horoscope today", "astrology reading", "zodiac sign", "tarot card"], category: "astrology" },
   ];
 
-  for (const trigger of nonStartupTriggers) {
+  for (const trigger of nonBusinessTriggers) {
     if (trigger.keywords.some((kw) => lower.includes(kw))) {
       return { isStartup: false, category: trigger.category };
     }
   }
 
-  const startupKeywords = [
-    "startup", "business", "venture", "idea", "market", "validate", "validation", "customer", "discovery",
-    "competitor", "competition", "rival", "moat", "product", "pricing", "model", "strategy",
-    "go-to-market", "gtm", "marketing", "sales", "growth", "funding", "fundraise", "investor",
-    "vc", "pitch", "deck", "saas", "entrepreneur", "entrepreneurship", "metric", "cac",
-    "ltv", "pmf", "product-market fit", "financial", "revenue", "monetiz", "team", "operation",
-    "score", "risk", "opportunity", "audience", "mvp", "launch", "b2b", "b2c",
-    "churn", "retention", "waitlist", "traction", "scale", "feature", "workflow", "unit economics",
-    "waffle", "food", "stall", "restaurant", "cafe", "snack", "bakery", "kitchen", "catering",
-    "bamboo", "furniture", "workshop", "craft", "wood", "factory", "machinery", "manufactur", "plant",
-    "drone", "inspection", "crop", "farm", "agri", "organic", "vegetable", "dairy", "solar", "storage",
-    "pet", "grooming", "transport", "repair", "clinic", "dental", "hospital", "doctor",
-    "shop", "store", "retail", "boutique", "brand", "clothing", "fashion", "apparel",
-    "gym", "fitness", "wellness", "salon", "laundry", "tuition", "school", "coaching",
-    "construction", "real estate", "logistics", "warehouse", "agency", "export", "import", "wholesale"
-  ];
-
-  const hasStartupKw = startupKeywords.some((kw) => lower.includes(kw));
-  if (hasStartupKw) {
-    return { isStartup: true };
-  }
-
-  const greetings = ["hi", "hello", "hey", "help", "good morning", "good evening", "what can you do", "procedure", "procedures", "steps", "guide"];
-  if (greetings.some((g) => lower === g || lower.startsWith(g))) {
-    return { isStartup: true };
-  }
-
-  return { isStartup: false, category: "unrelated topics" };
+  // Any business, industry, equipment, license, process, or commercial inquiry is valid!
+  return { isStartup: true };
 }
 
 export function assessClarificationNeed(input: StartupIdeaInput): { needsClarification: boolean; questions?: string[]; message?: string } {
@@ -90,33 +58,35 @@ export function assessClarificationNeed(input: StartupIdeaInput): { needsClarifi
   const name = input.startupName.trim();
   const idea = input.idea.trim();
 
-  // Self-contained idea markers
-  const domainKeywords = [
-    "waffle", "food", "stall", "restaurant", "bakery", "cafe", "kitchen", "snack",
+  const broadOrSpecificDomainKeywords = [
+    "textile", "fabric", "garment", "cotton", "weaving", "spinning", "factory", "plant", "mill",
+    "waffle", "food", "stall", "restaurant", "bakery", "cafe", "kitchen", "snack", "vegetable", "mandi",
     "clothing", "fashion", "store", "boutique", "shop", "retail", "gym", "fitness", "salon",
-    "hospital", "clinic", "dental", "doctor", "medical", "paper cup", "factory", "mill", "plant",
-    "bamboo", "furniture", "workshop", "drone", "crop", "farm", "agri", "organic", "vegetable", "ev charging", "solar",
+    "hospital", "clinic", "dental", "doctor", "medical", "paper cup",
+    "bamboo", "furniture", "workshop", "drone", "crop", "farm", "agri", "organic", "ev charging", "solar",
     "pet", "grooming", "transport", "repair", "consulting", "software", "saas", "app", "web", "resume builder",
-    "delivery", "marketplace", "e-commerce", "wholesale", "cleaning", "school", "coaching", "warehouse", "audiobook"
+    "delivery", "marketplace", "e-commerce", "wholesale", "cleaning", "school", "tuition", "coaching", "warehouse", "audiobook",
+    "logistics", "real estate", "brokerage", "travel", "beauty", "automotive", "construction"
   ];
 
   const lower = fullText.toLowerCase();
-  const hasDomainKeyword = domainKeywords.some((kw) => lower.includes(kw));
+  const hasDomainKeyword = broadOrSpecificDomainKeywords.some((kw) => lower.includes(kw));
 
-  if (hasDomainKeyword && idea.length >= 6) {
+  // If the user mentions any broad industry or specific domain, do NOT block! Proceed directly to dynamic analysis!
+  if (hasDomainKeyword && (idea.length >= 4 || name.length >= 4)) {
     return { needsClarification: false };
   }
 
   const wordCount = fullText.split(/\s+/).filter(Boolean).length;
-  if (wordCount < 14 || idea.length < 14 || (!hasDomainKeyword && idea.split(" ").length < 4)) {
+  if (wordCount < 6 && !hasDomainKeyword) {
     return {
       needsClarification: true,
       questions: [
-        `What does ${name} offer in detail?`,
-        `Who are your target customers?`,
-        `Is ${name} a product, service, physical business, or technology venture?`,
+        `What does ${name} do or plan to produce?`,
+        `Is ${name} a physical business, service, factory, or technology product?`,
+        `Who is your intended customer or market?`,
       ],
-      message: `Before I validate this venture, I need a little more context:`,
+      message: `Before I analyze "${name}", I need a brief hint about your venture or industry domain:`,
     };
   }
 
@@ -124,69 +94,162 @@ export function assessClarificationNeed(input: StartupIdeaInput): { needsClarifi
 }
 
 /**
- * PURE SEMANTIC VENTURE MODEL EXTRACTION ENGINE
- * Derives a canonical VentureModel from the complete user description
- * WITHOUT using hardcoded industry if/else statements or template maps.
+ * PURE DYNAMIC VENTURE REASONING ENGINE
+ * Evaluates facts vs inferences vs missing facts and determines customer industry vs venture industry.
  */
 export function extractVentureModel(input: StartupIdeaInput): VentureModel {
-  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel}`.toLowerCase();
+  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution} ${input.businessModel} ${input.audience}`.toLowerCase();
+  const ideaLower = input.idea.toLowerCase();
 
-  // 1. Evaluate if the primary value delivery mechanism relies strictly on software code/APIs/app vs physical operations
+  // 1. Detect Input Granularity (Broad Industry Overview vs Specific Venture)
+  const isBroadIndustryOnly =
+    (ideaLower === "textile industry" || ideaLower === "textile" || ideaLower === "agriculture" || ideaLower === "factory" || ideaLower === "hospital" || ideaLower === "tuition center") &&
+    (!input.solution || input.solution.length < 10);
+
+  const inputGranularity: VentureModel["inputGranularity"] = isBroadIndustryOnly ? "Broad Industry Overview" : "Specific Venture";
+
+  // 2. Evaluate if the venture's CORE PRODUCT is writing software/apps vs physical/field operations
   const isSoftware =
-    fullText.includes("software") ||
-    fullText.includes("saas") ||
-    fullText.includes("web app") ||
-    fullText.includes("mobile app") ||
-    fullText.includes("api platform") ||
-    fullText.includes("resume builder") ||
-    (fullText.includes("ai ") && (fullText.includes("tool") || fullText.includes("generator") || fullText.includes("platform")));
+    (fullText.includes("software") ||
+      fullText.includes("saas") ||
+      fullText.includes("web app") ||
+      fullText.includes("mobile app") ||
+      fullText.includes("api platform") ||
+      fullText.includes("resume builder") ||
+      (fullText.includes("ai ") && (fullText.includes("tool") || fullText.includes("generator") || fullText.includes("platform")))) &&
+    !fullText.includes("textile factory") &&
+    !fullText.includes("bamboo workshop") &&
+    !fullText.includes("waffle stall");
 
-  // 2. Infer Offering Type & Operating Environment
+  // 3. Customer Industry vs Venture Industry & Venture Type
+  let customerIndustry = input.audience || "Target Customers / Buyers";
+  let ventureIndustry = "General Commercial Domain";
+  let ventureType = "Commercial Venture";
   let offeringType: VentureModel["offeringType"] = "Physical Product";
   let operatingEnvironment: VentureModel["operatingEnvironment"] = "Physical Offline";
-  let valueDeliveryMechanism = "Direct in-person physical delivery";
+  let valueDeliveryMechanism = "Direct physical value delivery";
 
-  if (isSoftware) {
-    offeringType = "Digital / Software";
-    operatingEnvironment = "Digital Online";
-    valueDeliveryMechanism = "Cloud web dashboard & mobile application interface";
-  } else if (fullText.includes("stall") || fullText.includes("cart") || fullText.includes("counter") || fullText.includes("outlet") || fullText.includes("shop") || fullText.includes("store")) {
+  if (fullText.includes("textile") || fullText.includes("fabric") || fullText.includes("cotton") || fullText.includes("weaving")) {
+    if (isSoftware) {
+      customerIndustry = "Textile & Garment Manufacturers";
+      ventureIndustry = "Artificial Intelligence & B2B Software";
+      ventureType = "Software / AI SaaS Platform";
+      offeringType = "Digital / Software";
+      operatingEnvironment = "Digital Online";
+      valueDeliveryMechanism = "Cloud analytics portal & software API integrations";
+    } else {
+      customerIndustry = input.audience && input.audience !== "Target Customers" ? input.audience : "Garment Manufacturers & Textile Wholesalers";
+      ventureIndustry = "Textile & Fabric Manufacturing";
+      ventureType = "Manufacturing Mill / Factory Unit";
+      offeringType = "Manufacturing / Production";
+      operatingEnvironment = "Industrial Plant";
+      valueDeliveryMechanism = "B2B wholesale fabric batch production and physical logistics";
+    }
+  } else if (fullText.includes("waffle") || fullText.includes("stall") || fullText.includes("snack") || fullText.includes("food counter")) {
+    customerIndustry = "Local Pedestrians, Students & Office Workers";
+    ventureIndustry = "Food & Beverage / Quick Service Counter";
+    ventureType = "Street Counter / Outlet";
     offeringType = "Facility / Outlet";
     operatingEnvironment = "Physical Offline";
     valueDeliveryMechanism = "In-person commercial storefront counter serving";
-  } else if (fullText.includes("factory") || fullText.includes("mill") || fullText.includes("manufactur") || fullText.includes("plant") || fullText.includes("workshop")) {
-    offeringType = "Manufacturing / Production";
-    operatingEnvironment = "Industrial Plant";
-    valueDeliveryMechanism = "B2B wholesale batch manufacturing and physical delivery logistics";
-  } else if (fullText.includes("farm") || fullText.includes("crop") || fullText.includes("agri") || fullText.includes("harvest") || fullText.includes("organic")) {
+  } else if (fullText.includes("vegetable") || fullText.includes("retail shop") || fullText.includes("boutique") || fullText.includes("store")) {
+    customerIndustry = "Neighborhood Households & Retail Buyers";
+    ventureIndustry = "Retail & Consumer Goods";
+    ventureType = "Physical Retail Counter";
+    offeringType = "Facility / Outlet";
+    operatingEnvironment = "Physical Offline";
+    valueDeliveryMechanism = "Direct in-store counter retail sales";
+  } else if (fullText.includes("farm") || fullText.includes("agri") || fullText.includes("crop") || fullText.includes("organic")) {
+    customerIndustry = "Agri-Wholesalers, Mandis & Fresh Produce Buyers";
+    ventureIndustry = "Agriculture & Farming Operations";
+    ventureType = "Agricultural Farm / Produce Unit";
     offeringType = "Agriculture / Farming";
     operatingEnvironment = "Farm / Agricultural Land";
     valueDeliveryMechanism = "Bulk produce harvesting, cold storage, and mandi wholesale distribution";
-  } else if (fullText.includes("service") || fullText.includes("grooming") || fullText.includes("transport") || fullText.includes("inspection") || fullText.includes("repair") || fullText.includes("rental")) {
+  } else if (isSoftware) {
+    ventureIndustry = "Digital Software & SaaS";
+    ventureType = "Software App / Cloud Platform";
+    offeringType = "Digital / Software";
+    operatingEnvironment = "Digital Online";
+    valueDeliveryMechanism = "Cloud web portal & mobile application interface";
+  } else if (fullText.includes("factory") || fullText.includes("manufactur") || fullText.includes("mill") || fullText.includes("plant")) {
+    customerIndustry = "B2B Wholesale Buyers & Industrial Distributors";
+    ventureIndustry = "Industrial Manufacturing";
+    ventureType = "Manufacturing Plant";
+    offeringType = "Manufacturing / Production";
+    operatingEnvironment = "Industrial Plant";
+    valueDeliveryMechanism = "B2B batch manufacturing and freight logistics";
+  } else if (fullText.includes("service") || fullText.includes("repair") || fullText.includes("grooming") || fullText.includes("clinic")) {
+    customerIndustry = input.audience || "Local Service Clients";
+    ventureIndustry = "Professional / Field Services";
+    ventureType = "Physical Service Provider";
     offeringType = "Service";
-    operatingEnvironment = fullText.includes("drone") || fullText.includes("field") ? "Hybrid Field & Digital" : "Physical Offline";
-    valueDeliveryMechanism = "On-site field service execution by trained technicians/operators";
+    operatingEnvironment = fullText.includes("drone") ? "Hybrid Field & Digital" : "Physical Offline";
+    valueDeliveryMechanism = "On-site field service execution by trained personnel";
   }
 
-  // 3. Dynamically Discover Key Success Drivers
-  const keySuccessDrivers: DynamicSuccessDriver[] = discoverSuccessDrivers(input, offeringType, operatingEnvironment, isSoftware);
+  // 4. Evidence Demarcation (Facts vs Inferences vs Missing Facts)
+  const factsProvided: string[] = [];
+  const inferredAssumptions: string[] = [];
+  const missingFacts: string[] = [];
 
-  // 4. Dynamically Discover Competitive Alternatives
-  const competitiveAlternatives: DynamicCompetitorAlternative[] = discoverCompetitiveAlternatives(input, offeringType, isSoftware);
+  if (input.startupName) factsProvided.push(`Venture Name: "${input.startupName}"`);
+  if (input.idea) factsProvided.push(`Idea: "${input.idea}"`);
+  if (input.problem && input.problem !== `Problem in ${input.startupName}`) factsProvided.push(`Problem: "${input.problem}"`);
+  if (input.solution && input.solution !== input.idea) factsProvided.push(`Solution: "${input.solution}"`);
+  if (input.country) factsProvided.push(`Target Market / Location: "${input.country}"`);
 
-  // 5. Dynamically Discover Execution Milestones
-  const executionMilestones: DynamicExecutionMilestone[] = discoverExecutionMilestones(input, offeringType, isSoftware);
+  let revenueModelSource: VentureModel["revenueModelSource"] = "Unknown";
+  let revenueMechanism = "Undetermined Revenue Model";
 
-  // 6. Stage & Timeline
-  let stageTimeline = ["1. Concept & Feasibility", "2. Demand & Location Selection", "3. Setup & Permitting", "4. Launch", "5. Operational Optimization", "6. Expansion"];
-  let currentStageName = "Demand & Feasibility Validation";
+  if (input.businessModel && input.businessModel.length >= 3 && !input.businessModel.includes("Commercial Sales")) {
+    revenueModelSource = "Provided by User";
+    revenueMechanism = input.businessModel;
+    factsProvided.push(`Revenue Model (Provided): "${input.businessModel}"`);
+  } else {
+    revenueModelSource = "Inferred Assumption";
+    revenueMechanism = isSoftware
+      ? "Monthly SaaS Subscription (Inferred Assumption)"
+      : offeringType === "Manufacturing / Production"
+      ? "B2B Wholesale Product Sales per Batch (Inferred Assumption)"
+      : offeringType === "Facility / Outlet"
+      ? "Direct Counter Sales per Transaction (Inferred Assumption)"
+      : "Direct Commercial Service Fees (Inferred Assumption)";
+    inferredAssumptions.push(`Revenue model not explicitly provided. Logically inferred ${revenueMechanism}.`);
+    missingFacts.push("Explicit pricing tiers and margin breakdown not provided by user.");
+  }
+
+  let customerPersonaSource: VentureModel["customerPersonaSource"] = "Unknown";
+  let customerPersona = customerIndustry;
+
+  if (input.audience && input.audience.length >= 3 && input.audience !== "Target Customers") {
+    customerPersonaSource = "Provided by User";
+    customerPersona = input.audience;
+    factsProvided.push(`Target Customer (Provided): "${input.audience}"`);
+  } else {
+    customerPersonaSource = "Inferred Assumption";
+    inferredAssumptions.push(`Target customer segment inferred as ${customerIndustry} based on industry context.`);
+    missingFacts.push("Detailed buyer persona demographics and contract terms not provided.");
+  }
+
+  if (isBroadIndustryOnly) {
+    missingFacts.push("Specific venture capacity, equipment list, target buyers, and initial investment not specified.");
+  }
+
+  // 5. Dynamically Discover Success Drivers, Competitors & Milestones
+  const keySuccessDrivers = discoverSuccessDrivers(input, offeringType, isSoftware, isBroadIndustryOnly, ventureIndustry);
+  const competitiveAlternatives = discoverCompetitiveAlternatives(input, offeringType, isSoftware, customerPersona);
+  const executionMilestones = discoverExecutionMilestones(input, offeringType, isSoftware, isBroadIndustryOnly);
+
+  let stageTimeline = ["1. Feasibility & Market Validation", "2. Location/Equipment Setup", "3. Regulatory Permitting", "4. Commercial Launch", "5. Volume Optimization", "6. Expansion"];
+  let currentStageName = "Feasibility & Market Validation";
 
   if (isSoftware) {
-    stageTimeline = ["1. Idea", "2. Problem Validation", "3. MVP Prototype", "4. Product-Market Fit", "5. Growth", "6. Scale"];
+    stageTimeline = ["1. Discovery & Problem Validation", "2. MVP Prototype Test", "3. Early User Activation", "4. Product-Market Fit", "5. Paid Growth", "6. Scale"];
     currentStageName = "Problem Validation Stage";
   } else if (offeringType === "Manufacturing / Production") {
-    stageTimeline = ["1. Idea / Concept", "2. Feasibility & Machinery Sourcing", "3. Factory Setup & Licensing", "4. Pilot Batch Production", "5. Commercial Launch", "6. Capacity Optimization", "7. Expansion"];
-    currentStageName = "Machinery & Feasibility Sourcing";
+    stageTimeline = ["1. Feasibility & Machinery Sourcing", "2. Plant Setup & Utility Connection", "3. Regulatory & Factory Licensing", "4. Trial Batch Production", "5. Commercial Distribution", "6. Capacity Scale"];
+    currentStageName = "Feasibility & Machinery Sourcing Stage";
   }
 
   return {
@@ -194,212 +257,221 @@ export function extractVentureModel(input: StartupIdeaInput): VentureModel {
     description: input.idea.trim(),
     problem: input.problem.trim(),
     solution: input.solution.trim(),
+    inputGranularity,
+    customerIndustry,
+    ventureIndustry,
+    ventureType,
     offeringType,
     valueDeliveryMechanism,
     operatingEnvironment,
-    revenueMechanism: input.businessModel || "Direct Commercial Sales",
-    customerPersona: input.audience || "Target Customers",
+    revenueMechanism,
+    revenueModelSource,
+    customerPersona,
+    customerPersonaSource,
     marketScope: input.country || "Local Market",
     isTechnologyProduct: isSoftware,
     requiredResources: isSoftware
-      ? ["Cloud Server Infrastructure", "Software Engineering Team", "Database Architecture"]
+      ? ["Cloud API Infrastructure", "Software Engineering Team", "Database Architecture"]
       : offeringType === "Manufacturing / Production"
-      ? ["High-Speed Machinery Equipment", "Industrial Factory Space", "Raw Material Stock", "Power Load Connection"]
+      ? ["Industrial Machinery Equipment", "Factory Space & Grid Power Load", "Raw Material Stock", "Skilled Plant Operators"]
       : offeringType === "Facility / Outlet"
-      ? ["High-Footfall Counter Location", "Cooking/Serving Equipment", "Raw Ingredients", "Point-of-Sale Counter"]
-      : ["Operational Equipment & Vehicles", "Trained Field Technicians", "Local Business Permits"],
+      ? ["High-Footfall Retail Outlet", "Serving/Prep Equipment", "Raw Ingredients", "Point-of-Sale Counter"]
+      : ["Operational Tools & Vehicles", "Trained Field Technicians", "Local Commercial License"],
     operationalConstraints: isSoftware
-      ? ["Cloud API costs and uptime latency", "User onboarding activation friction"]
-      : ["Raw material price fluctuations", "Location footfall variations due to weather", "Local municipal licensing permits"],
+      ? ["Cloud uptime latency and server costs", "User onboarding activation friction"]
+      : ["Raw material price volatility", "Location footfall drops during bad weather", "Factory power supply stability & state licensing"],
+    evidenceBreakdown: {
+      factsProvided,
+      inferredAssumptions,
+      missingFacts,
+    },
     keySuccessDrivers,
     competitiveAlternatives,
     executionMilestones,
     primaryRisks: isSoftware
-      ? ["High customer acquisition cost (CAC) relative to LTV", "Competitive feature copying"]
-      : ["Raw ingredient/material cost inflation", "Location footfall drops during adverse weather", "Permitting approval delays"],
+      ? ["High customer acquisition cost relative to LTV", "Competitive feature cloning"]
+      : ["Raw material/ingredient price inflation", "Permitting approval delays", "Customer off-take contract delays"],
     regulatoryRequirements: isSoftware
-      ? ["Data Privacy Standards", "Payment Gateway Security Compliance"]
+      ? ["Data Protection & Privacy Standards", "Payment Processor Compliance"]
+      : offeringType === "Manufacturing / Production"
+      ? ["Industrial Factory License", "State DISCOM Power Load Permit", "State Pollution Control Board Clearance", "GST Registration"]
       : offeringType === "Facility / Outlet" && (fullText.includes("waffle") || fullText.includes("food") || fullText.includes("coffee"))
-      ? ["FSSAI Food Safety Registration", "Municipal Trade License"]
-      : ["Municipal Trade License", "GST Registration", "Local Safety Clearances"],
+      ? ["FSSAI Food Safety Registration", "Municipal Trade License", "Fire Safety Permit"]
+      : ["Municipal Trade License", "GST Registration", "Local Commercial Clearances"],
     currentStageName,
     stageTimeline,
   };
 }
 
-/**
- * Dynamic Success Driver Discovery Engine
- * Infers what ACTUALLY determines whether THIS specific venture succeeds or fails.
- */
 function discoverSuccessDrivers(
   input: StartupIdeaInput,
   offeringType: VentureModel["offeringType"],
-  operatingEnv: VentureModel["operatingEnvironment"],
-  isSoftware: boolean
+  isSoftware: boolean,
+  isBroadIndustry: boolean,
+  ventureIndustry: string
 ): DynamicSuccessDriver[] {
   const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution}`.toLowerCase();
 
   if (isSoftware) {
     return [
       {
-        name: "Problem Severity & User Need Clarity",
-        description: `Evaluates how severe the pain point is for ${input.audience || "target users"}.`,
-        whyItMatters: "High pain severity ensures users actively seek a solution and are willing to pay subscription fees.",
+        name: "Problem Severity & User Workflow Urgency",
+        description: `Evaluates how critical the workflow friction is for ${input.audience || "target users"}.`,
+        whyItMatters: "High pain severity ensures users actively seek automated software and accept subscription pricing.",
         relevantCategory: "Customer Demand",
         estimatedScore: 85,
-        reasoning: `The defined problem ("${input.problem.slice(0, 60)}...") represents a clear workflow friction point.`,
-        improvementAction: "Conduct 15 structured discovery interviews to confirm pain urgency.",
+        reasoning: "The defined software problem addresses immediate manual workflow inefficiencies.",
+        improvementAction: "Conduct 15 structured discovery calls to confirm workflow pain points.",
       },
       {
-        name: "Product Differentiation & Moat",
-        description: "Assesses unique software workflow speed vs existing market alternatives.",
-        whyItMatters: "A clear product moat prevents churn and protects against competitive cloning.",
+        name: "Product Differentiation & Workflow Speed",
+        description: "Assesses automation speed and feature moat vs legacy software alternatives.",
+        whyItMatters: "Distinct software speed prevents user churn and defends against competitive cloning.",
         relevantCategory: "Technology & Product",
         estimatedScore: 82,
-        reasoning: "The proposed solution offers dedicated automation for target user needs.",
-        improvementAction: "Highlight your primary automated feature in onboarding messaging.",
+        reasoning: "Dedicated software automation offers significant time savings over manual workarounds.",
+        improvementAction: "Highlight your 1-click automated feature prominently in onboarding.",
       },
       {
-        name: "User Onboarding & Activation Speed",
-        description: "Measures time-to-first-value onboarding (< 60s) without support.",
-        whyItMatters: "Fast onboarding activation directly drives customer trial-to-paid conversion.",
+        name: "User Onboarding & Activation (<60s)",
+        description: "Measures friction-free signup time to first key software output.",
+        whyItMatters: "Fast onboarding activation directly drives trial-to-paid conversion rates.",
         relevantCategory: "Operations & Quality",
         estimatedScore: 80,
-        reasoning: "Streamlined signup flows reduce drop-offs during early trial usage.",
-        improvementAction: "Eliminate unnecessary signup form fields to achieve 60-second activation.",
+        reasoning: "Streamlined signup flows reduce user drop-off during initial trial testing.",
+        improvementAction: "Remove non-essential input fields during initial account creation.",
       },
       {
-        name: "Recurring Unit Economics (CAC/LTV)",
-        description: "Evaluates customer acquisition cost payback period and MRR margins.",
-        whyItMatters: "Positive unit economics are mandatory for sustainable SaaS software growth.",
+        name: "Recurring SaaS Unit Economics (CAC/LTV)",
+        description: "Evaluates customer acquisition cost payback period and recurring margins.",
+        whyItMatters: "Positive unit economics are mandatory for sustainable software growth.",
         relevantCategory: "Unit Economics & Margins",
         estimatedScore: 84,
-        reasoning: "The subscription pricing model aligns with recurring value delivery.",
-        improvementAction: "Maintain positive gross margins before scaling paid marketing spend.",
+        reasoning: "Subscription monetization aligns with continuous software value delivery.",
+        improvementAction: "Maintain positive gross margins before scaling paid marketing channels.",
       },
     ];
   }
 
-  if (offeringType === "Facility / Outlet" || fullText.includes("waffle") || fullText.includes("coffee") || fullText.includes("stall") || fullText.includes("cart")) {
-    const isFood = fullText.includes("waffle") || fullText.includes("food") || fullText.includes("coffee") || fullText.includes("stall") || fullText.includes("snack");
+  if (offeringType === "Manufacturing / Production" || fullText.includes("textile") || fullText.includes("factory") || fullText.includes("mill") || fullText.includes("bamboo")) {
     return [
       {
-        name: "Location & Footfall Density",
-        description: `Evaluates pedestrian foot traffic density near colleges, office parks, or commercial centers in ${input.country}.`,
-        whyItMatters: "High footfall directly determines daily customer counter transactions and baseline revenue.",
-        relevantCategory: "Location & Footfall",
-        estimatedScore: 88,
-        reasoning: `Selected operating model relies on peak pedestrian foot traffic for instant impulse buying.`,
-        improvementAction: "Perform 3-day peak hour footfall counts before locking lease/space agreements.",
-      },
-      {
-        name: "Preparation Speed & Service Throughput",
-        description: "Measures order prep time to serve hot, fresh orders without long queue delays.",
-        whyItMatters: "Fast preparation speed maximizes counter capacity during 2-hour peak sales windows.",
-        relevantCategory: "Operations & Quality",
-        estimatedScore: 85,
-        reasoning: "Pre-portioned batter/ingredients ensure fast preparation under 3 minutes per order.",
-        improvementAction: "Standardize kitchen layout to achieve under 3-minute order fulfillment.",
-      },
-      {
-        name: "Unit Economics & Gross Margin (65%+)",
-        description: "Calculates raw material/ingredient cost per item relative to menu selling price.",
-        whyItMatters: "Strong 65%+ gross margins ensure profitability after paying space lease and staff.",
-        relevantCategory: "Unit Economics & Margins",
-        estimatedScore: 86,
-        reasoning: "Low raw ingredient cost relative to dish pricing enables strong gross profit margins.",
-        improvementAction: "Maintain strict ingredient portion controls to lock in 65%+ gross margins.",
-      },
-      {
-        name: isFood ? "Food Safety & Hygiene Permitting" : "Permitting & Trade Licensing",
-        description: "Assesses food safety sanitation standards and municipal trade permits.",
-        whyItMatters: "Clean hygiene builds customer trust and prevents regulatory closure risks.",
-        relevantCategory: "Regulatory & Compliance",
-        estimatedScore: 84,
-        reasoning: "Clear hygiene standards and visible permits build long-term repeat customer trust.",
-        improvementAction: "Display basic food safety certificate and maintain clean preparation surfaces.",
-      },
-    ];
-  }
-
-  if (offeringType === "Manufacturing / Production" || fullText.includes("bamboo") || fullText.includes("factory") || fullText.includes("paper cup")) {
-    return [
-      {
-        name: "Machinery & Production Output Capacity",
-        description: "Evaluates equipment forming/manufacturing speed, rim strength, and defect rate.",
-        whyItMatters: "Consistent machinery output determines daily production tonnage and unit cost efficiency.",
+        name: "Machinery Capacity & Quality Output",
+        description: "Evaluates manufacturing machinery speed, output consistency, and defect rate.",
+        whyItMatters: "Consistent machine output determines daily production tonnage and per-unit manufacturing cost.",
         relevantCategory: "Operations & Quality",
         estimatedScore: 86,
-        reasoning: "High-speed automated machinery enables low per-unit manufacturing cost.",
-        improvementAction: "Run pilot production batches to verify zero product defect rate.",
+        reasoning: "Modern automated equipment enables high volume production at competitive unit cost.",
+        improvementAction: "Perform trial production runs to verify zero product defect rates.",
       },
       {
-        name: "Raw Material Sourcing & Unit Cost",
-        description: "Measures bulk raw material procurement pricing stability and supplier reliability.",
-        whyItMatters: "Raw material cost represents the largest variable expense in manufacturing.",
+        name: "Raw Material Sourcing & Unit Margin",
+        description: "Measures raw yarn/material procurement price stability and supplier reliability.",
+        whyItMatters: "Raw material cost is the single largest variable cost in physical manufacturing.",
         relevantCategory: "Supply Chain",
         estimatedScore: 83,
-        reasoning: "Direct bulk sourcing from raw material suppliers stabilizes manufacturing margins.",
-        improvementAction: "Establish long-term supply contracts to hedge against material price inflation.",
+        reasoning: "Direct bulk procurement from primary suppliers locks in healthy gross margins.",
+        improvementAction: "Establish long-term supply agreements to hedge against material inflation.",
       },
       {
-        name: "Factory Power & Regulatory Clearance",
-        description: "Assesses industrial electricity grid sanction, factory licensing, and environmental permits.",
+        name: "Factory Utilities & Regulatory Clearances",
+        description: "Assesses industrial electricity power load, factory permits, and pollution clearances.",
         whyItMatters: "Regulatory clearances are legal prerequisites before starting commercial plant production.",
         relevantCategory: "Regulatory & Compliance",
         estimatedScore: 82,
-        reasoning: "Industrial factory permits and grid power sanctions ensure legal operational continuity.",
-        improvementAction: "Apply early for industrial power load approval from state DISCOM.",
+        reasoning: "Sanctioned power load and pollution clearances ensure uninterrupted factory operations.",
+        improvementAction: "Apply early for industrial DISCOM power sanction and pollution board permits.",
       },
       {
-        name: "B2B Wholesale Distributor Demand",
-        description: "Evaluates bulk off-take supply agreements with regional trade buyers and wholesalers.",
-        whyItMatters: "Locked B2B distributor orders ensure high factory capacity utilization and cash flow.",
+        name: "B2B Off-Take & Wholesaler Contracts",
+        description: "Evaluates pre-committed bulk orders from regional garment makers and distributors.",
+        whyItMatters: "Locked B2B off-take agreements guarantee high factory capacity utilization and cash flow.",
         relevantCategory: "Customer Demand",
         estimatedScore: 85,
-        reasoning: "Strong B2B distributor off-take contracts guarantee factory volume sales.",
-        improvementAction: "Sign preliminary off-take agreements with 3 regional B2B distributors.",
+        reasoning: "Pre-signed wholesale off-take contracts de-risk initial capital investment.",
+        improvementAction: "Secure preliminary off-take intent letters with 3 regional B2B buyers.",
       },
     ];
   }
 
-  // General Field / Service / Hybrid Venture Default
+  if (offeringType === "Facility / Outlet" || fullText.includes("waffle") || fullText.includes("stall") || fullText.includes("counter")) {
+    return [
+      {
+        name: "Location Footfall & Pedestrian Density",
+        description: `Evaluates daily foot traffic density near colleges, commercial centers, or transport hubs in ${input.country}.`,
+        whyItMatters: "High footfall directly determines daily counter transactions and baseline revenue.",
+        relevantCategory: "Location & Footfall",
+        estimatedScore: 88,
+        reasoning: "Counter sales model relies on high pedestrian density for spontaneous impulse purchases.",
+        improvementAction: "Conduct 3-day peak hour footfall counts before signing space lease.",
+      },
+      {
+        name: "Order Preparation & Throughput Speed",
+        description: "Measures order prep time to serve fresh orders without queue delays.",
+        whyItMatters: "Fast preparation speed maximizes counter sales capacity during 2-hour peak windows.",
+        relevantCategory: "Operations & Quality",
+        estimatedScore: 85,
+        reasoning: "Pre-portioned ingredients enable fast fulfillment under 3 minutes per customer.",
+        improvementAction: "Standardize counter layout for under 3-minute order fulfillment.",
+      },
+      {
+        name: "Unit Economics & Gross Margin (65%+)",
+        description: "Calculates ingredient/item cost relative to menu selling price.",
+        whyItMatters: "Strong 65%+ gross margins cover space lease, electricity, and staff costs.",
+        relevantCategory: "Unit Economics & Margins",
+        estimatedScore: 86,
+        reasoning: "Low ingredient cost relative to dish retail price yields healthy operating margins.",
+        improvementAction: "Enforce strict portion control to maintain 65%+ gross margins.",
+      },
+      {
+        name: "Food Safety & Trade Licensing",
+        description: "Assesses FSSAI sanitation standards and municipal trade permits.",
+        whyItMatters: "Visible sanitation builds customer trust and prevents regulatory closure.",
+        relevantCategory: "Regulatory & Compliance",
+        estimatedScore: 84,
+        reasoning: "Clear food safety compliance protects against health inspection fines.",
+        improvementAction: "Display food safety registration and maintain spotless preparation counters.",
+      },
+    ];
+  }
+
+  // General Commercial / Service Venture Success Drivers
   return [
     {
-      name: "Operational Execution & Quality Control",
-      description: `Evaluates service execution reliability and equipment readiness for ${input.startupName}.`,
-      whyItMatters: "Consistent service quality builds word-of-mouth customer retention and brand trust.",
-      relevantCategory: "Operations & Quality",
-      estimatedScore: 85,
-      reasoning: "Trained operators and reliable equipment ensure high service delivery standards.",
-      improvementAction: "Standardize service delivery checklists for all customer engagements.",
-    },
-    {
-      name: "Target Customer Acquisition & Demand",
-      description: `Measures customer purchasing intent and market pull among ${input.audience || "target buyers"}.`,
-      whyItMatters: "Steady customer acquisition drives cash flow and baseline business viability.",
+      name: "Target Customer Demand & Purchasing Pull",
+      description: `Evaluates active customer purchasing pull for ${input.startupName}.`,
+      whyItMatters: "Strong customer demand drives cash flow and baseline commercial viability.",
       relevantCategory: "Customer Demand",
       estimatedScore: 84,
-      reasoning: "Direct alignment with customer problem drives immediate purchasing intent.",
-      improvementAction: "Launch local marketing channels to capture initial customer demand.",
+      reasoning: "Direct problem alignment captures immediate buyer purchasing intent.",
+      improvementAction: "Validate customer purchasing willingness through local outreach.",
     },
     {
-      name: "Unit Economics & Operating Margins",
+      name: "Operational Execution & Quality Control",
+      description: "Measures service execution reliability, equipment readiness, and delivery standards.",
+      whyItMatters: "Consistent service quality builds word-of-mouth customer retention.",
+      relevantCategory: "Operations & Quality",
+      estimatedScore: 83,
+      reasoning: "Standardized service procedures ensure consistent customer satisfaction.",
+      improvementAction: "Develop a standardized quality checklist for every service delivery.",
+    },
+    {
+      name: "Unit Margins & Operating Expenses",
       description: "Calculates direct operational expenses relative to customer pricing.",
-      whyItMatters: "Positive operating margins ensure long-term commercial sustainability.",
+      whyItMatters: "Positive operating margins ensure long-term business sustainability.",
       relevantCategory: "Unit Economics & Margins",
       estimatedScore: 82,
-      reasoning: "Commercial pricing strategy leaves adequate margin after paying operating costs.",
-      improvementAction: "Review direct supplier expenses monthly to preserve gross margins.",
+      reasoning: "Commercial pricing structure covers direct labor and operational overhead.",
+      improvementAction: "Review monthly supplier and operating costs to preserve gross margins.",
     },
     {
-      name: "Regulatory & Licensing Compliance",
-      description: "Assesses local municipal permits, trade registrations, and safety compliance.",
-      whyItMatters: "Full regulatory compliance protects the venture from legal fines or operational delays.",
+      name: "Trade Licensing & Regulatory Compliance",
+      description: "Assesses municipal trade licenses, registrations, and safety permits.",
+      whyItMatters: "Full regulatory compliance prevents legal penalties or operational delays.",
       relevantCategory: "Regulatory & Compliance",
-      estimatedScore: 83,
-      reasoning: "Proper business registration and permits provide solid legal foundation.",
-      improvementAction: "Verify all required municipal trade licenses before public launch.",
+      estimatedScore: 84,
+      reasoning: "Proper registration establishes a legally secure commercial foundation.",
+      improvementAction: "Verify all municipal and state trade licenses prior to launch.",
     },
   ];
 }
@@ -407,68 +479,67 @@ function discoverSuccessDrivers(
 function discoverCompetitiveAlternatives(
   input: StartupIdeaInput,
   offeringType: VentureModel["offeringType"],
-  isSoftware: boolean
+  isSoftware: boolean,
+  customerPersona: string
 ): DynamicCompetitorAlternative[] {
-  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution}`.toLowerCase();
-
   if (isSoftware) {
     return [
       {
         name: "Legacy Desktop & Web Platforms",
-        alternativeType: "Legacy Option",
-        description: "Established incumbent software platforms holding primary market share.",
-        strengths: ["Massive customer base", "Extensive feature catalog"],
-        weaknesses: ["High pricing tiers", "Complex onboarding setup"],
-        differentiationStrategy: "Provide modern AI workflow speed with 1-minute onboarding.",
+        alternativeType: "Legacy Software",
+        description: "Established incumbent software solutions holding primary market share.",
+        strengths: ["Large existing user base", "Extensive feature catalog"],
+        weaknesses: ["High pricing plans", "Complex setup friction"],
+        differentiationStrategy: "Deliver 1-minute setup and modern automated workflow speed.",
       },
       {
-        name: "Manual Spreadsheets & Email Workflows",
+        name: "Manual Spreadsheets & Email Chains",
         alternativeType: "Manual Alternative",
-        description: "Manual ad-hoc methods used by target users before adopting automated software.",
-        strengths: ["Zero financial software cost", "Familiarity"],
-        weaknesses: ["High manual effort", "Prone to human error"],
-        differentiationStrategy: "Deliver 10x time savings via automated one-click workflows.",
+        description: "Manual ad-hoc spreadsheets used before adopting dedicated software.",
+        strengths: ["Zero software fee", "Familiarity"],
+        weaknesses: ["High manual labor", "Prone to human error"],
+        differentiationStrategy: "Deliver 10x time savings with automated one-click reports.",
       },
     ];
   }
 
-  if (offeringType === "Facility / Outlet" || fullText.includes("waffle") || fullText.includes("coffee") || fullText.includes("stall")) {
+  if (offeringType === "Manufacturing / Production") {
     return [
       {
-        name: "Nearby Local Snack & Beverage Counters",
-        alternativeType: "Direct Business",
-        description: `Existing local food counters and snack stalls operating near ${input.audience || "target customers"}.`,
-        strengths: ["Established daily footfall location", "Low prices"],
-        weaknesses: ["Inconsistent hygiene & oil quality", "Limited flavor/menu innovation"],
-        differentiationStrategy: `Position ${input.startupName} with 100% fresh preparation, clean hygiene, and signature toppings.`,
+        name: "Established Industrial Mills & Wholesalers",
+        alternativeType: "Incumbent Factory",
+        description: `Existing large-scale manufacturing suppliers serving ${customerPersona}.`,
+        strengths: ["High production volume", "Established buyer relationships"],
+        weaknesses: ["Higher minimum order quantities (MOQs)", "Slower custom batch production"],
+        differentiationStrategy: `Offer flexible order quantities, faster delivery turnaround, and competitive B2B pricing.`,
       },
       {
-        name: "Established Neighborhood Cafes & Bakeries",
-        alternativeType: "Indirect Business",
-        description: "Fixed commercial cafes offering seating and general baked items.",
-        strengths: ["Seating shelter", "Broader beverage menu"],
-        weaknesses: ["Higher price point", "Slower order preparation"],
-        differentiationStrategy: "Focus strictly on fast, hot, affordable counter takeaway orders.",
+        name: "Imported & Regional Trading Suppliers",
+        alternativeType: "Trade Alternative",
+        description: "Third-party trading houses importing batch products from outside markets.",
+        strengths: ["Broad product variety"],
+        weaknesses: ["Import transit delays", "Inconsistent batch quality"],
+        differentiationStrategy: "Provide reliable local supply, transparent quality testing, and instant delivery.",
       },
     ];
   }
 
   return [
     {
-      name: "Established Traditional Providers",
+      name: "Local Traditional Providers",
       alternativeType: "Direct Business",
-      description: `Existing business providers serving ${input.audience || "target customers"} in ${input.country}.`,
-      strengths: ["Known brand awareness", "Established customer trust"],
-      weaknesses: ["Higher pricing structure", "Slower operational updates"],
-      differentiationStrategy: `Position ${input.startupName} with direct customer transparency and specialized quality.`,
+      description: `Established local providers serving ${customerPersona} in the target market.`,
+      strengths: ["Known brand presence", "Established local customer trust"],
+      weaknesses: ["Higher pricing structure", "Inconsistent service quality"],
+      differentiationStrategy: `Position ${input.startupName} with superior customer service, fair pricing, and reliable quality.`,
     },
     {
-      name: "Unfocused Generalist Alternatives",
+      name: "Generalist Unfocused Substitutes",
       alternativeType: "Substitute Solution",
-      description: "Broad providers lacking dedicated specialization for this specific problem.",
+      description: "General market alternatives lacking dedicated specialization for this problem.",
       strengths: ["Broad service coverage"],
       weaknesses: ["Lack of specialization", "Higher friction"],
-      differentiationStrategy: "Hyper-focused service quality tailored for target market needs.",
+      differentiationStrategy: "Provide specialized service tailored specifically to target customer needs.",
     },
   ];
 }
@@ -476,30 +547,31 @@ function discoverCompetitiveAlternatives(
 function discoverExecutionMilestones(
   input: StartupIdeaInput,
   offeringType: VentureModel["offeringType"],
-  isSoftware: boolean
+  isSoftware: boolean,
+  isBroadIndustry: boolean
 ): DynamicExecutionMilestone[] {
   if (isSoftware) {
     return [
       {
         phase: "Phase 1: Discovery",
         title: `Conduct 15 customer discovery interviews for ${input.startupName}`,
-        description: "Validate problem urgency and target user willingness-to-pay.",
+        description: "Validate workflow pain urgency and willingness to pay subscription fees.",
         priority: "High",
         effort: "1-2 weeks",
         impact: "High",
       },
       {
-        phase: "Phase 2: MVP Build",
+        phase: "Phase 2: MVP Test",
         title: "Build lightweight MVP prototype & test 60s onboarding",
-        description: "Develop primary automated feature workflow and test user activation.",
+        description: "Develop core automated feature workflow and test user activation.",
         priority: "High",
         effort: "2-3 weeks",
         impact: "High",
       },
       {
-        phase: "Phase 3: Validation",
+        phase: "Phase 3: Activation & MRR",
         title: "Measure user activation, retention, and subscription MRR",
-        description: "Optimize onboarding drop-offs and establish positive unit economics.",
+        description: "Optimize onboarding friction and establish positive unit economics.",
         priority: "High",
         effort: "1-2 weeks",
         impact: "High",
@@ -507,30 +579,30 @@ function discoverExecutionMilestones(
     ];
   }
 
-  if (offeringType === "Facility / Outlet") {
+  if (offeringType === "Manufacturing / Production") {
     return [
       {
-        phase: "Phase 1: Location & Footfall",
-        title: `Identify 2–3 high-footfall counter locations for ${input.startupName}`,
-        description: "Analyze peak hour pedestrian traffic near colleges, bus stops, or markets.",
+        phase: "Phase 1: Sourcing & Feasibility",
+        title: `Identify factory machinery & raw material suppliers for ${input.startupName}`,
+        description: "Evaluate equipment specs, power load requirements, and bulk material pricing.",
         priority: "High",
-        effort: "1 week",
+        effort: "2 weeks",
         impact: "High",
       },
       {
-        phase: "Phase 2: Equipment & Licensing",
-        title: "Source prep equipment & secure food hygiene permits",
-        description: "Procure counter hardware, establish clean prep standards, and verify municipal permits.",
+        phase: "Phase 2: Licensing & Utilities",
+        title: "Secure factory permits & industrial power load connection",
+        description: "Obtain state pollution clearance, factory licensing, and DISCOM power sanction.",
         priority: "High",
-        effort: "1-2 weeks",
+        effort: "3-4 weeks",
         impact: "High",
       },
       {
-        phase: "Phase 3: Launch & Margins",
-        title: "Calculate item unit cost for 65%+ margin & conduct soft launch",
-        description: "Standardize order portioning, launch counter operations, and track daily sales volume.",
+        phase: "Phase 3: Pilot Batch & Off-Take",
+        title: "Run pilot production batch & sign B2B wholesale contracts",
+        description: "Test product quality standards and lock in off-take agreements with 3 B2B buyers.",
         priority: "High",
-        effort: "1 week",
+        effort: "2 weeks",
         impact: "High",
       },
     ];
@@ -538,27 +610,27 @@ function discoverExecutionMilestones(
 
   return [
     {
-      phase: "Phase 1: Feasibility & Sourcing",
-      title: `Validate target customer demand & source core equipment for ${input.startupName}`,
-      description: "Confirm initial purchasing intent, equipment costs, and supplier pricing.",
+      phase: "Phase 1: Location & Sourcing",
+      title: `Identify primary counter/service location & source operational equipment`,
+      description: "Analyze customer footfall or demand and secure required operational tools.",
       priority: "High",
       effort: "1-2 weeks",
       impact: "High",
     },
     {
-      phase: "Phase 2: Setup & Licensing",
-      title: "Establish baseline operations & obtain trade licenses",
-      description: "Secure operational space/permits and set up service fulfillment workflows.",
+      phase: "Phase 2: Permitting & Setup",
+      title: "Obtain municipal trade licenses & set up counter operations",
+      description: "Secure municipal permits, food safety/trade registrations, and prepare fulfillment workflow.",
       priority: "High",
-      effort: "2-3 weeks",
+      effort: "1-2 weeks",
       impact: "High",
     },
     {
-      phase: "Phase 3: Revenue & Scaling",
-      title: "Optimize operating margins & scale paying customer retention",
-      description: "Expand local marketing reach and maintain high customer satisfaction.",
+      phase: "Phase 3: Soft Launch & Margins",
+      title: "Calculate unit item cost for 65%+ gross margin & launch operations",
+      description: "Standardize service delivery, track daily counter volume, and preserve operating margins.",
       priority: "High",
-      effort: "1-2 weeks",
+      effort: "1 week",
       impact: "High",
     },
   ];
@@ -567,10 +639,10 @@ function discoverExecutionMilestones(
 export function inferIndustryProfile(input: StartupIdeaInput): IndustryProfile {
   const vModel = extractVentureModel(input);
   return {
-    detectedIndustry: vModel.offeringType,
+    detectedIndustry: vModel.ventureIndustry,
     subIndustry: vModel.valueDeliveryMechanism,
-    businessCategoryKind: vModel.isTechnologyProduct ? "Technology Startup" : "Offline Business",
-    revenueModelType: input.businessModel || "Direct Sales",
+    businessCategoryKind: vModel.isTechnologyProduct ? "Technology Startup" : "Traditional / Offline Business",
+    revenueModelType: vModel.revenueMechanism,
     regulatoryBody: vModel.regulatoryRequirements.join(" & "),
     keyOperatingMetrics: vModel.keySuccessDrivers.map((d) => d.name),
   };
@@ -580,17 +652,19 @@ export function inferStartupLifecycle(input: StartupIdeaInput, vModel?: VentureM
   const model = vModel || extractVentureModel(input);
   const priorities = model.executionMilestones.map((m) => m.title);
 
+  const confidenceScore = model.inputGranularity === "Broad Industry Overview" ? 60 : 90;
+
   return {
     currentStage: model.currentStageName,
-    confidenceScore: 92,
-    reason: `Analysis for ${model.ventureName} (${model.offeringType} in ${model.operatingEnvironment}) tailored strictly to its operational reality.`,
+    confidenceScore,
+    reason: `Analysis for ${model.ventureName} (${model.ventureType} in ${model.operatingEnvironment}) strictly tailored to its operational reality.`,
     nextMilestone: priorities[0] || "Validate target customer demand and location feasibility",
     estimatedTimeToNextStage: "2-3 weeks",
     stageTimeline: model.stageTimeline,
     keyObjectives: priorities.slice(0, 3),
     currentStageRisks: model.primaryRisks,
-    successProbability: 85,
-    potentialBlockers: ["Permitting/licensing delays", "Initial customer acquisition speed"],
+    successProbability: 82,
+    potentialBlockers: ["Regulatory/licensing approval timelines", "Initial customer off-take contracts"],
     suggestedPriorities: priorities,
   };
 }
@@ -599,24 +673,24 @@ export function inferBusinessDNA(input: StartupIdeaInput): BusinessDNA {
   const vModel = extractVentureModel(input);
   return {
     startupName: input.startupName.trim(),
-    industry: vModel.offeringType,
+    industry: vModel.ventureIndustry,
     subIndustry: vModel.valueDeliveryMechanism,
-    businessCategory: vModel.offeringType,
+    businessCategory: vModel.ventureType,
     ideaTypeKind: vModel.isTechnologyProduct ? "Technology Startup" : "Traditional Business",
     businessType: vModel.isTechnologyProduct ? "Digital / Software / SaaS" : "Offline Local Business",
-    businessModel: input.businessModel || "Direct Commercial Model",
+    businessModel: vModel.revenueMechanism,
     revenueModel: vModel.revenueMechanism,
     businessStage: "Idea",
     targetCustomers: vModel.customerPersona,
     customerPersona: `Target buyers seeking reliable solutions for ${vModel.description.slice(0, 60)}...`,
     marketScope: vModel.isTechnologyProduct ? "Global" : "Local",
-    investmentLevel: "Medium",
-    operationalComplexity: "Medium",
+    investmentLevel: vModel.offeringType === "Manufacturing / Production" ? "High" : "Medium",
+    operationalComplexity: vModel.offeringType === "Manufacturing / Production" ? "High" : "Medium",
     technologyDependency: vModel.isTechnologyProduct ? "High" : "Low",
     scalability: vModel.isTechnologyProduct ? "High" : "Medium",
     expansionPotential: "Multi-location Regional Expansion",
-    fundingRequirement: "$5,000 - $30,000",
-    fundingType: "Self-funded / Bootstrapped",
+    fundingRequirement: vModel.offeringType === "Manufacturing / Production" ? "$25,000 - $100,000" : "$5,000 - $25,000",
+    fundingType: "Self-funded / Bootstrapped / Commercial Loan",
     competitionLevel: "Medium",
     riskLevel: "Medium",
     growthPotential: "High",
@@ -624,11 +698,11 @@ export function inferBusinessDNA(input: StartupIdeaInput): BusinessDNA {
     requiredLicenses: vModel.regulatoryRequirements,
     primarySuccessFactors: vModel.keySuccessDrivers.map((d) => d.name),
     biggestChallenges: vModel.primaryRisks,
-    keyAdvantages: ["Direct customer value proposition", "Domain-focused execution"],
+    keyAdvantages: ["Direct value proposition", "Domain-focused operational execution"],
     uniqueSellingProposition: (vModel.solution || "").slice(0, 80),
-    estimatedTimeToLaunch: "2-4 weeks",
-    estimatedInitialInvestment: "$3,000 - $15,000",
-    recommendedTeamSize: "2-4 team members",
+    estimatedTimeToLaunch: vModel.offeringType === "Manufacturing / Production" ? "4-8 weeks" : "2-4 weeks",
+    estimatedInitialInvestment: vModel.offeringType === "Manufacturing / Production" ? "$20,000 - $80,000" : "$3,000 - $15,000",
+    recommendedTeamSize: vModel.offeringType === "Manufacturing / Production" ? "5-10 plant operators" : "2-4 team members",
     businessPriority: vModel.executionMilestones[0]?.title || "Market Validation",
   };
 }
@@ -636,11 +710,11 @@ export function inferBusinessDNA(input: StartupIdeaInput): BusinessDNA {
 export function inferBusinessClassification(input: StartupIdeaInput): BusinessClassification {
   const vModel = extractVentureModel(input);
   return {
-    industry: vModel.offeringType,
-    businessCategory: vModel.offeringType,
+    industry: vModel.ventureIndustry,
+    businessCategory: vModel.ventureType,
     ideaTypeKind: vModel.isTechnologyProduct ? "Technology Startup" : "Traditional Business",
     businessType: vModel.isTechnologyProduct ? "Digital / Software / SaaS" : "Offline Local Business",
-    revenueModel: input.businessModel || "Direct Commercial Sales",
+    revenueModel: vModel.revenueMechanism,
     scalability: vModel.isTechnologyProduct ? "High" : "Medium",
     businessStage: "Idea",
     primaryCustomerSegment: vModel.customerPersona,
@@ -665,6 +739,12 @@ export async function generateStartupAnalysis(input: StartupIdeaInput): Promise<
     recommendation: driver.improvementAction,
   }));
 
+  const ventureScore = Math.round(
+    vModel.keySuccessDrivers.reduce((acc, curr) => acc + curr.estimatedScore, 0) / (vModel.keySuccessDrivers.length || 1)
+  );
+
+  const analysisConfidence = vModel.inputGranularity === "Broad Industry Overview" ? 58 : 88;
+
   if (apiKey && apiKey.trim() !== "" && !apiKey.includes("your-api-key")) {
     try {
       const openai = new OpenAI({ apiKey });
@@ -674,25 +754,34 @@ export async function generateStartupAnalysis(input: StartupIdeaInput): Promise<
 VENTURE MODEL CONTEXT:
 - Venture Name: "${vModel.ventureName}"
 - Description / Idea: "${vModel.description}"
+- Input Granularity: "${vModel.inputGranularity}"
+- Venture Industry: "${vModel.ventureIndustry}"
+- Venture Type: "${vModel.ventureType}"
+- Customer Industry / Segment: "${vModel.customerIndustry}"
 - Offering Type: "${vModel.offeringType}"
 - Value Delivery: "${vModel.valueDeliveryMechanism}"
 - Operating Environment: "${vModel.operatingEnvironment}"
-- Is Technology Product: ${vModel.isTechnologyProduct ? "YES (Software/SaaS/App)" : "NO (Physical / Local / Traditional Business)"}
-- Revenue Mechanism: "${vModel.revenueMechanism}"
-- Target Customer: "${vModel.customerPersona}"
-- Required Resources: ${JSON.stringify(vModel.requiredResources)}
-- Key Success Drivers: ${JSON.stringify(vModel.keySuccessDrivers.map((d) => d.name))}
+- Is Technology Product: ${vModel.isTechnologyProduct ? "YES (Software/SaaS/App)" : "NO (Physical / Local / Traditional / Manufacturing Business)"}
+- Revenue Mechanism: "${vModel.revenueMechanism}" (${vModel.revenueModelSource})
+- Customer Persona: "${vModel.customerPersona}" (${vModel.customerPersonaSource})
+- Explicit Facts Provided: ${JSON.stringify(vModel.evidenceBreakdown.factsProvided)}
+- Inferred Assumptions: ${JSON.stringify(vModel.evidenceBreakdown.inferredAssumptions)}
+- Missing Information: ${JSON.stringify(vModel.evidenceBreakdown.missingFacts)}
 
-CRITICAL MANDATE:
-1. Reason strictly from this actual venture model instead of applying a generic software startup template.
+CRITICAL MANDATES:
+1. REASON STRICTLY FROM THIS ACTUAL VENTURE MODEL. Distinguish between Customer Industry and Venture Type (e.g. AI software platform for textile factories is a B2B Software venture, NOT a textile mill!).
 2. IF THIS IS NOT A SOFTWARE PRODUCT (isTechnologyProduct = false):
    NEVER mention "MVP", "writing code", "APIs", "tech stack", "software engineering", "CAC", "LTV", "churn", "prototype counter", "wireframe", or "waitlist landing page".
-3. Evaluate ONLY the discovered key success drivers: ${vModel.keySuccessDrivers.map((d) => d.name).join(", ")}.
+3. Distinguish facts provided from inferred assumptions. Do NOT state inferred revenue models or customer segments as user-confirmed facts.
+4. Report both ventureScore (overall venture potential 0-100) and analysisConfidence (data completeness 0-100). If Input Granularity is "Broad Industry Overview", report analysisConfidence between 50-65% and explain missing facts clearly.
 
 Return JSON containing:
 overallScore (integer 0-100)
+ventureScore (integer 0-100)
+analysisConfidence (integer 0-100)
 ventureModel (object matching VentureModel schema)
 ventureContext (object matching VentureModel schema)
+evidenceBreakdown (object with factsProvided, inferredAssumptions, missingFacts arrays)
 healthScores (array of objects matching DynamicHealthCategory schema)
 marketPotential (object)
 problemValidation (object)
@@ -711,7 +800,7 @@ investorVerdict (string)`;
         messages: [
           {
             role: "system",
-            content: `You are an expert AI Venture Consultant. Always provide strictly venture-tailored JSON analysis. Never recommend software/SaaS metrics or coding for non-software physical businesses like waffle stalls, clinics, workshops, or factories.`,
+            content: `You are an expert AI Venture Consultant. Always provide strictly venture-tailored JSON analysis. Never recommend software/SaaS metrics or coding for non-software physical businesses like textile factories, waffle stalls, clinics, workshops, or farms. Explicitly separate facts from inferred assumptions.`,
           },
           {
             role: "user",
@@ -725,9 +814,12 @@ investorVerdict (string)`;
       const content = response.choices[0]?.message?.content;
       if (content) {
         const parsed = JSON.parse(content) as AnalysisResultJSON;
-        parsed.overallScore = Math.min(100, Math.max(0, Math.round(parsed.overallScore)));
+        parsed.overallScore = Math.min(100, Math.max(0, Math.round(parsed.overallScore || ventureScore)));
+        parsed.ventureScore = parsed.overallScore;
+        parsed.analysisConfidence = Math.min(100, Math.max(0, Math.round(parsed.analysisConfidence || analysisConfidence)));
         parsed.ventureModel = vModel;
         parsed.ventureContext = vModel;
+        parsed.evidenceBreakdown = vModel.evidenceBreakdown;
         parsed.healthScores = healthScores;
         if (!parsed.industryProfile) parsed.industryProfile = inferredProfile;
         if (!parsed.businessDNA) parsed.businessDNA = inferredDNA;
@@ -769,7 +861,7 @@ export async function generateMentorChatResponse({
 }): Promise<string> {
   const classification = isStartupRelatedIntent(userMessage);
   if (!classification.isStartup) {
-    return DOMAIN_REFUSAL_MESSAGE;
+    return GENERAL_ENTERTAINMENT_REFUSAL;
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
@@ -798,30 +890,35 @@ export async function generateMentorChatResponse({
       solution: userMessage,
       audience: "Target Market",
       country: "Local Market",
-      businessModel: "Commercial Sales",
+      businessModel: "Commercial Model",
     });
   }
 
-  const systemPrompt = `You are an expert AI Business Consultant advising on "${vModel.ventureName}".
+  const systemPrompt = `You are an expert AI Venture & Domain Consultant advising on "${vModel.ventureName}".
 
-VENTURE MODEL:
+COMPLETE VENTURE MODEL CONTEXT:
 - Venture Name: "${vModel.ventureName}"
 - Description / Idea: "${vModel.description}"
+- Venture Industry: "${vModel.ventureIndustry}"
+- Venture Type: "${vModel.ventureType}"
+- Customer Industry / Segment: "${vModel.customerPersona}"
 - Offering Type: ${vModel.offeringType}
 - Operating Environment: ${vModel.operatingEnvironment}
-- Is Technology Product: ${vModel.isTechnologyProduct ? "YES" : "NO"}
-- Revenue Mechanism: ${vModel.revenueMechanism}
-- Target Customer: ${vModel.customerPersona}
-- Current Stage: ${vModel.currentStageName}
-- Key Success Factors: ${vModel.keySuccessDrivers.map((d) => d.name).join(", ")}
+- Is Technology Product: ${vModel.isTechnologyProduct ? "YES (Software/SaaS/App)" : "NO (Physical / Local / Traditional Business)"}
+- Revenue Model: ${vModel.revenueMechanism} (${vModel.revenueModelSource})
+- Customer Segment: ${vModel.customerPersona} (${vModel.customerPersonaSource})
+- Primary Resources: ${vModel.requiredResources.join(", ")}
+- Key Success Drivers: ${vModel.keySuccessDrivers.map((d) => d.name).join(", ")}
+- Primary Risks: ${vModel.primaryRisks.join(", ")}
+- Regulatory Permits: ${vModel.regulatoryRequirements.join(", ")}
 
-ADVISORY RULES:
-1. Provide practical, real-world business guidance tailored strictly to ${vModel.offeringType} in ${vModel.operatingEnvironment}.
-2. IF THIS IS NOT A SOFTWARE PRODUCT (isTechnologyProduct = false):
+ADVISORY & DOMAIN ANSWER RULES:
+1. ALWAYS ANSWER domain and industry questions directly! If the user asks about basic industry requirements, equipment, permits, raw materials, pricing, operational risks, or market dynamics, provide thorough, expert guidance.
+2. DO NOT reject legitimate domain questions or state that they are "non-business topics".
+3. Maintain clear awareness of Customer Industry vs Venture Type (e.g. an AI platform for textile factories is a Software product, whereas a textile factory is a Manufacturing plant).
+4. IF THIS IS NOT A SOFTWARE PRODUCT (isTechnologyProduct = false):
    NEVER mention writing code, APIs, MVP apps, SaaS metrics, CAC/LTV, wireframes, or waitlist landing pages.
-3. For physical/offline ventures (waffle stall, coffee cart, bamboo workshop, repair shop, factory):
-   Discuss location footfall, preparation speed, equipment, ingredient/material costs, item pricing, daily operating volume, trade permits, and waste control.
-4. Keep advice actionable for current stage: "${vModel.currentStageName}".`;
+5. Provide actionable, real-world operational guidance tailored to ${vModel.ventureType} in ${vModel.operatingEnvironment}.`;
 
   if (apiKey && apiKey.trim() !== "" && !apiKey.includes("your-api-key")) {
     try {
@@ -836,7 +933,7 @@ ADVISORY RULES:
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages,
-        temperature: 0.3,
+        temperature: 0.4,
       });
 
       const reply = response.choices[0]?.message?.content;
@@ -852,20 +949,20 @@ ADVISORY RULES:
 function generateFallbackMentorReply(msg: string, vModel: VentureModel): string {
   const classification = isStartupRelatedIntent(msg);
   if (!classification.isStartup) {
-    return DOMAIN_REFUSAL_MESSAGE;
+    return GENERAL_ENTERTAINMENT_REFUSAL;
   }
 
   const name = vModel.ventureName;
   const priorities = vModel.executionMilestones.map((m) => m.title);
 
-  return `As your **Venture Consultant**, here is practical operational guidance for **${name}** (${vModel.offeringType}, Stage: **${vModel.currentStageName}**):
+  return `As your **Venture Consultant**, here is domain guidance for **${name}** (${vModel.ventureType}, Industry: **${vModel.ventureIndustry}**):
 
-1. **Immediate Priority**: ${priorities[0] || "Validate target customer demand and location feasibility"}
-2. **Operational Setup**: ${priorities[1] || "Establish baseline equipment, permits, and supplier agreements"}
-3. **Margin & Economics**: ${priorities[2] || "Optimize operating costs and scale repeat sales"}
-4. **Key Success Drivers**:
+1. **Core Domain Requirements**: ${vModel.requiredResources.slice(0, 3).join(", ")}
+2. **Key Execution Step**: ${priorities[0] || "Validate target customer demand"}
+3. **Primary Success Drivers**:
 ${vModel.keySuccessDrivers.slice(0, 3).map((d) => `   - **${d.name}**: ${d.improvementAction}`).join("\n")}
-5. **Regulatory Permits**: ${vModel.regulatoryRequirements.join(", ")}.`;
+4. **Regulatory & Permits**: ${vModel.regulatoryRequirements.join(", ")}
+5. **Known Operational Risks**: ${vModel.primaryRisks.join(", ")}.`;
 }
 
 function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
@@ -883,53 +980,58 @@ function generateFallbackAnalysis(input: StartupIdeaInput): AnalysisResultJSON {
     recommendation: driver.improvementAction,
   }));
 
-  const score = Math.round(
+  const ventureScore = Math.round(
     vModel.keySuccessDrivers.reduce((acc, curr) => acc + curr.estimatedScore, 0) / (vModel.keySuccessDrivers.length || 1)
   );
 
+  const analysisConfidence = vModel.inputGranularity === "Broad Industry Overview" ? 58 : 88;
+
   return {
-    overallScore: score,
+    overallScore: ventureScore,
+    ventureScore,
+    analysisConfidence,
     ventureModel: vModel,
     ventureContext: vModel,
+    evidenceBreakdown: vModel.evidenceBreakdown,
     healthScores,
     industryProfile: inferredProfile,
     businessClassification: inferredClassification,
     businessDNA: inferredDNA,
     startupLifecycle: inferredLifecycle,
     marketPotential: {
-      score: score + 2,
-      summary: `Market demand in ${input.country} for ${vModel.offeringType}.`,
-      details: `Target segment ${vModel.customerPersona} demonstrates clear purchasing intent for ${vModel.description}.`,
+      score: ventureScore + 2,
+      summary: `Market demand in ${input.country} for ${vModel.ventureType}.`,
+      details: `Target customer segment (${vModel.customerPersona}) represents direct demand for ${vModel.description}.`,
     },
     problemValidation: {
-      score: score + 1,
-      summary: "Customer problem confirmed with clear purchasing intent.",
-      details: `The problem specified ("${input.problem.slice(0, 80)}...") represents a genuine customer need.`,
+      score: ventureScore + 1,
+      summary: "Customer problem and operational need confirmed.",
+      details: `The problem specified ("${input.problem.slice(0, 80)}...") aligns with core market pain points.`,
     },
     solutionQuality: {
-      score,
-      summary: `Value proposition tailored for ${vModel.offeringType}.`,
-      details: `The solution leverages specialized positioning for ${vModel.customerPersona}.`,
+      score: ventureScore,
+      summary: `Solution quality tailored for ${vModel.ventureType}.`,
+      details: `Positioning leverages specialized operational execution for ${vModel.customerPersona}.`,
     },
     competitionLevel: {
       score: 76,
       level: "Medium",
-      summary: "Competitive landscape evaluated across customer alternatives.",
-      details: `Focusing on ${vModel.keySuccessDrivers[0]?.name || "core quality"} will establish strong market positioning.`,
+      summary: "Competitive landscape evaluated across direct and indirect alternatives.",
+      details: `Focusing on ${vModel.keySuccessDrivers[0]?.name || "operational quality"} will build solid market positioning.`,
     },
     businessModel: {
-      score: score + 1,
-      summary: `Revenue capture via ${vModel.revenueMechanism} provides sustainable unit economics.`,
-      details: `The ${vModel.revenueMechanism} model aligns well with customer purchasing expectations.`,
+      score: ventureScore + 1,
+      summary: `Revenue capture via ${vModel.revenueMechanism}.`,
+      details: `The revenue model aligns with industry pricing expectations.`,
     },
     strengths: vModel.keySuccessDrivers.map((d) => d.name),
     weaknesses: vModel.primaryRisks,
     opportunities: [
       `Expand operational footprint across ${input.country}`,
-      `Capitalize on ${vModel.offeringType} demand growth`,
+      `Capitalize on ${vModel.ventureIndustry} market growth`,
     ],
     risks: vModel.primaryRisks,
     nextSteps: vModel.executionMilestones.map((m) => m.title),
-    investorVerdict: `${input.startupName} (${vModel.offeringType}) is in the ${vModel.currentStageName} stage. Focusing on ${vModel.executionMilestones[0]?.title} will drive sustainable growth.`,
+    investorVerdict: `${input.startupName} (${vModel.ventureType}) is in the ${vModel.currentStageName} stage. Focusing on ${vModel.executionMilestones[0]?.title} will drive sustainable commercial growth.`,
   };
 }

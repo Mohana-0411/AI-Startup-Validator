@@ -52,20 +52,33 @@ export interface DynamicExecutionMilestone {
   impact: "High" | "Medium" | "Low";
 }
 
+export interface FactEvidenceDemarcation {
+  factsProvided: string[];
+  inferredAssumptions: string[];
+  missingFacts: string[];
+}
+
 export interface VentureModel {
   ventureName: string;
   description: string;
   problem?: string;
   solution?: string;
+  inputGranularity: "Specific Venture" | "Broad Industry Overview" | "Ambiguous Input";
+  customerIndustry?: string;
+  ventureIndustry: string;
+  ventureType: string;
   offeringType: "Physical Product" | "Service" | "Digital / Software" | "Facility / Outlet" | "Manufacturing / Production" | "Agriculture / Farming" | "Hybrid / Multi-Model";
   valueDeliveryMechanism: string;
   operatingEnvironment: "Physical Offline" | "Digital Online" | "Hybrid Field & Digital" | "Industrial Plant" | "Farm / Agricultural Land";
   revenueMechanism: string;
+  revenueModelSource: "Provided by User" | "Inferred Assumption" | "Unknown";
   customerPersona: string;
+  customerPersonaSource: "Provided by User" | "Inferred Assumption" | "Unknown";
   marketScope: string;
   isTechnologyProduct: boolean;
   requiredResources: string[];
   operationalConstraints: string[];
+  evidenceBreakdown: FactEvidenceDemarcation;
   keySuccessDrivers: DynamicSuccessDriver[];
   competitiveAlternatives: DynamicCompetitorAlternative[];
   executionMilestones: DynamicExecutionMilestone[];
@@ -147,8 +160,11 @@ export interface DynamicHealthCategory {
 
 export interface AnalysisResultJSON {
   overallScore: number;
+  ventureScore?: number;
+  analysisConfidence?: number;
   ventureModel?: VentureModel;
-  ventureContext?: VentureModel; // Alias for backward compatibility
+  ventureContext?: VentureModel;
+  evidenceBreakdown?: FactEvidenceDemarcation;
   healthScores?: DynamicHealthCategory[];
   industryProfile?: IndustryProfile;
   businessClassification?: BusinessClassification;
