@@ -17,6 +17,7 @@ import {
   X,
   Check,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import {
   getOrCreateRoadmapAction,
@@ -43,13 +44,6 @@ interface TaskItem {
   completed: boolean;
   createdAt: string;
 }
-
-const PHASES = [
-  "Phase 1: Idea Validation",
-  "Phase 2: Product / Setup Launch",
-  "Phase 3: Operations & Growth",
-  "Phase 4: Scaling & Expansion",
-];
 
 export function RoadmapView({ analyses }: { analyses: AnalysisOption[] }) {
   const [selectedAnalysisId, setSelectedAnalysisId] = useState<string>(
@@ -156,6 +150,19 @@ export function RoadmapView({ analyses }: { analyses: AnalysisOption[] }) {
     setFormImpact(task.impact);
   }
 
+  // Extract dynamic phases from the tasks array
+  const dynamicPhases = Array.from(new Set(tasks.map((t) => t.phase)));
+  const phaseList =
+    dynamicPhases.length > 0
+      ? dynamicPhases
+      : [
+          "Phase 1 — Demand & Location Validation",
+          "Phase 2 — Business Setup & Compliance",
+          "Phase 3 — Opening & Initial Operations",
+          "Phase 4 — Unit Economics & Operational Optimization",
+          "Phase 5 — Expansion",
+        ];
+
   // Calculate Progress Stats
   const totalCount = tasks.length;
   const completedCount = tasks.filter((t) => t.completed).length;
@@ -176,7 +183,7 @@ export function RoadmapView({ analyses }: { analyses: AnalysisOption[] }) {
               Execution Roadmap
             </h1>
             <p className="text-xs text-slate-500">
-              Receive a personalized execution roadmap tailored to your startup or business category.
+              Receive a personalized execution roadmap tailored to your specific venture type and operating model.
             </p>
           </div>
 
@@ -251,129 +258,153 @@ export function RoadmapView({ analyses }: { analyses: AnalysisOption[] }) {
               </div>
             </div>
 
-            {/* 4 Phases Timeline Container */}
+            {/* Dynamic Phases Timeline Container */}
             <div className="space-y-8">
-              {PHASES.map((phaseName, phaseIndex) => {
-                const phaseTasks = tasks.filter((t) => t.phase === phaseName);
-                const phaseCompleted = phaseTasks.filter((t) => t.completed).length;
-
-                return (
-                  <div
-                    key={phaseName}
-                    className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden space-y-0"
+              {loading ? (
+                <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 space-y-3">
+                  <RefreshCw className="w-8 h-8 text-purple-600 animate-spin mx-auto" />
+                  <p className="text-xs font-bold text-slate-600">Loading customized execution roadmap...</p>
+                </div>
+              ) : tasks.length === 0 ? (
+                <div className="bg-white rounded-2xl p-8 text-center border border-slate-200 space-y-4">
+                  <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
+                  <h3 className="text-sm font-bold text-slate-900">No Tasks In Roadmap Yet</h3>
+                  <p className="text-xs text-slate-500">
+                    Click below to add custom execution tasks for {currentAnalysis?.startupName}.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setIsAdding(phaseList[0]);
+                      resetForm();
+                    }}
+                    className="px-4 py-2 bg-purple-600 text-white font-bold text-xs rounded-xl inline-flex items-center gap-2"
                   >
-                    {/* Phase Header */}
-                    <div className="p-6 bg-slate-50/70 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-purple-600 text-white font-extrabold text-xs flex items-center justify-center shadow-sm">
-                          {phaseIndex + 1}
+                    <Plus className="w-4 h-4" /> Add Initial Task
+                  </button>
+                </div>
+              ) : (
+                phaseList.map((phaseName, phaseIndex) => {
+                  const phaseTasks = tasks.filter((t) => t.phase === phaseName);
+                  const phaseCompleted = phaseTasks.filter((t) => t.completed).length;
+
+                  return (
+                    <div
+                      key={phaseName}
+                      className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden space-y-0"
+                    >
+                      {/* Phase Header */}
+                      <div className="p-6 bg-slate-50/70 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-purple-600 text-white font-extrabold text-xs flex items-center justify-center shadow-sm">
+                            {phaseIndex + 1}
+                          </div>
+                          <div>
+                            <h3 className="text-base font-extrabold text-slate-900">{phaseName}</h3>
+                            <p className="text-xs text-slate-500">
+                              {phaseCompleted} of {phaseTasks.length} tasks completed
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-base font-extrabold text-slate-900">{phaseName}</h3>
-                          <p className="text-xs text-slate-500">
-                            {phaseCompleted} of {phaseTasks.length} tasks completed
-                          </p>
-                        </div>
+
+                        <button
+                          onClick={() => {
+                            setIsAdding(phaseName);
+                            resetForm();
+                          }}
+                          className="px-3.5 py-2 bg-white hover:bg-purple-50 text-slate-700 hover:text-purple-700 text-xs font-bold rounded-xl border border-slate-200 transition-all flex items-center gap-1.5 self-start sm:self-auto"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Add Custom Task
+                        </button>
                       </div>
 
-                      <button
-                        onClick={() => {
-                          setIsAdding(phaseName);
-                          resetForm();
-                        }}
-                        className="px-3.5 py-2 bg-white hover:bg-purple-50 text-slate-700 hover:text-purple-700 text-xs font-bold rounded-xl border border-slate-200 transition-all flex items-center gap-1.5 self-start sm:self-auto"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        Add Custom Task
-                      </button>
-                    </div>
-
-                    {/* Task Cards Container */}
-                    <div className="p-6 space-y-3">
-                      {phaseTasks.length === 0 ? (
-                        <p className="text-xs text-slate-400 italic py-2">No tasks in this phase yet.</p>
-                      ) : (
-                        phaseTasks.map((task) => (
-                          <div
-                            key={task.id}
-                            className={`p-4 rounded-xl border transition-all flex items-start justify-between gap-4 ${
-                              task.completed
-                                ? "bg-slate-50/60 border-slate-200/60 text-slate-400"
-                                : "bg-white border-slate-200 shadow-2xs hover:border-purple-200"
-                            }`}
-                          >
-                            <div className="flex items-start gap-3.5 flex-1">
-                              {/* Completion Checkbox */}
-                              <button
-                                onClick={() => handleToggleComplete(task)}
-                                className="mt-0.5 shrink-0 transition-transform active:scale-95"
-                              >
-                                {task.completed ? (
-                                  <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-50" />
-                                ) : (
-                                  <Circle className="w-5 h-5 text-slate-300 hover:text-purple-600 transition-colors" />
-                                )}
-                              </button>
-
-                              <div className="space-y-1">
-                                <h4
-                                  className={`text-sm font-bold leading-snug ${
-                                    task.completed ? "line-through text-slate-400" : "text-slate-900"
-                                  }`}
+                      {/* Task Cards Container */}
+                      <div className="p-6 space-y-3">
+                        {phaseTasks.length === 0 ? (
+                          <p className="text-xs text-slate-400 italic py-2">No tasks in this phase yet.</p>
+                        ) : (
+                          phaseTasks.map((task) => (
+                            <div
+                              key={task.id}
+                              className={`p-4 rounded-xl border transition-all flex items-start justify-between gap-4 ${
+                                task.completed
+                                  ? "bg-slate-50/60 border-slate-200/60 text-slate-400"
+                                  : "bg-white border-slate-200 shadow-2xs hover:border-purple-200"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3.5 flex-1">
+                                {/* Completion Checkbox */}
+                                <button
+                                  onClick={() => handleToggleComplete(task)}
+                                  className="mt-0.5 shrink-0 transition-transform active:scale-95"
                                 >
-                                  {task.title}
-                                </h4>
-                                <p className="text-xs text-slate-500 leading-relaxed">{task.description}</p>
+                                  {task.completed ? (
+                                    <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-50" />
+                                  ) : (
+                                    <Circle className="w-5 h-5 text-slate-300 hover:text-purple-600 transition-colors" />
+                                  )}
+                                </button>
 
-                                {/* Badges */}
-                                <div className="flex flex-wrap items-center gap-2 pt-1.5 text-[10px] font-bold">
-                                  <span
-                                    className={`px-2 py-0.5 rounded uppercase ${
-                                      task.priority === "High"
-                                        ? "bg-rose-50 text-rose-700 border border-rose-200"
-                                        : task.priority === "Medium"
-                                        ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                        : "bg-slate-100 text-slate-600 border border-slate-200"
+                                <div className="space-y-1">
+                                  <h4
+                                    className={`text-sm font-bold leading-snug ${
+                                      task.completed ? "line-through text-slate-400" : "text-slate-900"
                                     }`}
                                   >
-                                    {task.priority} Priority
-                                  </span>
+                                    {task.title}
+                                  </h4>
+                                  <p className="text-xs text-slate-500 leading-relaxed">{task.description}</p>
 
-                                  <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
-                                    <Clock className="w-3 h-3" /> Effort: {task.effort}
-                                  </span>
+                                  {/* Badges */}
+                                  <div className="flex flex-wrap items-center gap-2 pt-1.5 text-[10px] font-bold">
+                                    <span
+                                      className={`px-2 py-0.5 rounded uppercase ${
+                                        task.priority === "High"
+                                          ? "bg-rose-50 text-rose-700 border border-rose-200"
+                                          : task.priority === "Medium"
+                                          ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                          : "bg-slate-100 text-slate-600 border border-slate-200"
+                                      }`}
+                                    >
+                                      {task.priority} Priority
+                                    </span>
 
-                                  <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
-                                    <Zap className="w-3 h-3 text-purple-600" /> Impact: {task.impact}
-                                  </span>
+                                    <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1">
+                                      <Clock className="w-3 h-3" /> Effort: {task.effort}
+                                    </span>
+
+                                    <span className="px-2 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
+                                      <Zap className="w-3 h-3 text-purple-600" /> Impact: {task.impact}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
 
-                            {/* Actions */}
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                onClick={() => openEditModal(task)}
-                                className="p-1.5 text-slate-400 hover:text-purple-600 rounded-lg transition-colors"
-                                title="Edit Task"
-                              >
-                                <Edit2 className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteTask(task.id)}
-                                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
-                                title="Delete Task"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              {/* Actions */}
+                              <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                  onClick={() => openEditModal(task)}
+                                  className="p-1.5 text-slate-400 hover:text-purple-600 rounded-lg transition-colors"
+                                  title="Edit Task"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTask(task.id)}
+                                  className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors"
+                                  title="Delete Task"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </div>
-                          </div>
-                        ))
-                      )}
+                          ))
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </>
         )}
