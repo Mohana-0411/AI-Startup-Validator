@@ -237,7 +237,7 @@ export function extractVentureModel(input: StartupIdeaInput): VentureModel {
     missingFacts.push("Specific venture output capacity, equipment inventory, target buyers, and initial budget not provided.");
   }
 
-  // 5. Dynamically Discover Success Drivers, Competitors & Milestones (without unconfirmed arbitrary assertions)
+  // 5. Dynamically Discover Success Drivers, Competitors & Multi-Phase Milestones
   const keySuccessDrivers = discoverSuccessDrivers(input, offeringType, isSoftware, isBroadIndustryOnly, ventureIndustry);
   const competitiveAlternatives = discoverCompetitiveAlternatives(input, offeringType, isSoftware, customerPersona);
   const executionMilestones = discoverExecutionMilestones(input, offeringType, isSoftware, isBroadIndustryOnly);
@@ -545,93 +545,328 @@ function discoverCompetitiveAlternatives(
   ];
 }
 
+/**
+ * FULLY DOMAIN-AWARE & SEQUENTIAL MULTI-PHASE ROADMAP GENERATOR
+ * Generates tasks dynamically tailored across Phase 1, Phase 2, Phase 3, and Phase 4 for ANY venture!
+ */
 function discoverExecutionMilestones(
   input: StartupIdeaInput,
   offeringType: VentureModel["offeringType"],
   isSoftware: boolean,
   isBroadIndustry: boolean
 ): DynamicExecutionMilestone[] {
-  if (isSoftware) {
+  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution}`.toLowerCase();
+
+  // 1. Food Stall / Samosa / Waffle / Quick Service Outlet
+  if (offeringType === "Facility / Outlet" || fullText.includes("waffle") || fullText.includes("samosa") || fullText.includes("stall") || fullText.includes("snack") || fullText.includes("food counter")) {
     return [
+      // PHASE 1: Idea & Market Validation
       {
-        phase: "Phase 1: Discovery",
-        title: `Conduct user discovery interviews for ${input.startupName}`,
-        description: "Validate workflow pain urgency and willingness to pay subscription fees.",
+        phase: "Phase 1 — Idea & Market Validation",
+        title: `Identify target customer segment & evaluate candidate counter space pedestrian traffic for ${input.startupName}`,
+        description: `Measure peak hour pedestrian foot traffic near colleges, commercial centers, or transport hubs in ${input.country}.`,
+        priority: "High",
+        effort: "1 week",
+        impact: "High",
+      },
+      {
+        phase: "Phase 1 — Idea & Market Validation",
+        title: "Test product item demand, recipe variations & taste preferences",
+        description: "Conduct small batch taste testing with target buyers to refine menu offerings and pricing.",
+        priority: "High",
+        effort: "1 week",
+        impact: "High",
+      },
+      // PHASE 2: Setup & Launch
+      {
+        phase: "Phase 2 — Setup & Launch",
+        title: "Source prep equipment, display counter & storage hardware",
+        description: "Procure counter display equipment, prep hardware, and establish reliable bulk ingredient supplier pricing.",
         priority: "High",
         effort: "1-2 weeks",
         impact: "High",
       },
       {
-        phase: "Phase 2: MVP Test",
-        title: "Build lightweight MVP prototype & test signup activation",
-        description: "Develop core automated feature workflow and test user activation.",
+        phase: "Phase 2 — Setup & Launch",
+        title: "Verify municipal food safety registration & trade permit rules",
+        description: "Check local FSSAI food hygiene registration and municipal trade license rules for your jurisdiction.",
         priority: "High",
-        effort: "2-3 weeks",
+        effort: "1-2 weeks",
+        impact: "High",
+      },
+      // PHASE 3: Operations & Growth
+      {
+        phase: "Phase 3 — Operations & Growth",
+        title: "Track daily counter sales & reduce ingredient wastage",
+        description: "Monitor daily inventory turnover, standardize portion controls, and optimize fulfillment speed during peak hours.",
+        priority: "High",
+        effort: "1-2 weeks",
         impact: "High",
       },
       {
-        phase: "Phase 3: Activation & Feedback",
-        title: "Measure user activation, retention, and initial subscription feedback",
-        description: "Optimize onboarding friction and establish unit economics.",
-        priority: "High",
-        effort: "1-2 weeks",
+        phase: "Phase 3 — Operations & Growth",
+        title: "Build customer retention & evaluate local catering opportunities",
+        description: "Test loyalty incentives and explore local office bulk catering or delivery options.",
+        priority: "Medium",
+        effort: "2 weeks",
+        impact: "Medium",
+      },
+      // PHASE 4: Scaling & Expansion
+      {
+        phase: "Phase 4 — Scaling & Expansion",
+        title: "Standardize operating procedures & evaluate secondary outlet location",
+        description: "Document operational checklists and verify unit profitability before expanding to a secondary location.",
+        priority: "Medium",
+        effort: "2-4 weeks",
         impact: "High",
       },
     ];
   }
 
-  if (offeringType === "Manufacturing / Production") {
+  // 2. Manufacturing Plant / Textile Mill / Paper Cup Factory
+  if (offeringType === "Manufacturing / Production" || fullText.includes("textile") || fullText.includes("factory") || fullText.includes("mill") || fullText.includes("paper cup")) {
     return [
+      // PHASE 1: Idea & Market Validation
       {
-        phase: "Phase 1: Sourcing & Feasibility",
-        title: `Identify factory machinery & raw material suppliers for ${input.startupName}`,
-        description: "Evaluate equipment specs, power load requirements, and bulk material pricing.",
+        phase: "Phase 1 — Idea & Market Validation",
+        title: `Assess B2B wholesale buyer specifications & grade demand for ${input.startupName}`,
+        description: "Evaluate regional wholesale buyer specifications, batch pricing expectations, and competitor MOQs.",
         priority: "High",
         effort: "2 weeks",
         impact: "High",
       },
       {
-        phase: "Phase 2: Licensing & Utilities",
-        title: "Evaluate factory permits & industrial power load requirements",
-        description: "Check environmental clearance, factory licensing, and DISCOM power sanction rules.",
+        phase: "Phase 1 — Idea & Market Validation",
+        title: "Evaluate factory site requirements & industrial grid power availability",
+        description: "Check floor space footprint, environmental clearance rules, and industrial DISCOM power sanction timelines.",
+        priority: "High",
+        effort: "2 weeks",
+        impact: "High",
+      },
+      // PHASE 2: Setup & Launch
+      {
+        phase: "Phase 2 — Setup & Launch",
+        title: "Procure manufacturing machinery & negotiate raw material supply contracts",
+        description: "Source forming/weaving machinery equipment, spare parts, and negotiate bulk raw material supply pricing.",
         priority: "High",
         effort: "3-4 weeks",
         impact: "High",
       },
       {
-        phase: "Phase 3: Trial Batch & Off-Take",
-        title: "Run trial production batch & discuss B2B off-take agreements",
-        description: "Test product quality standards and discuss supply agreements with prospective B2B buyers.",
+        phase: "Phase 2 — Setup & Launch",
+        title: "Run trial production batch & verify product quality standards",
+        description: "Conduct pilot manufacturing runs to test machinery output speed, product strength, and defect rates.",
         priority: "High",
         effort: "2 weeks",
+        impact: "High",
+      },
+      // PHASE 3: Operations & Growth
+      {
+        phase: "Phase 3 — Operations & Growth",
+        title: "Discuss B2B wholesale off-take agreements & optimize plant output",
+        description: "Present trial batch samples to regional garment makers/wholesalers and secure initial off-take orders.",
+        priority: "High",
+        effort: "2-3 weeks",
+        impact: "High",
+      },
+      {
+        phase: "Phase 3 — Operations & Growth",
+        title: "Monitor raw material inventory turnover & reduce utility power factor costs",
+        description: "Optimize factory scrap rates, machine maintenance schedules, and unit manufacturing costs.",
+        priority: "Medium",
+        effort: "2 weeks",
+        impact: "Medium",
+      },
+      // PHASE 4: Scaling & Expansion
+      {
+        phase: "Phase 4 — Scaling & Expansion",
+        title: "Expand plant production line capacity & broaden B2B distributor network",
+        description: "Recruit additional skilled plant operators and introduce new product grades once baseline capacity is profitable.",
+        priority: "Medium",
+        effort: "4-8 weeks",
         impact: "High",
       },
     ];
   }
 
+  // 3. Agriculture / Produce Farm
+  if (offeringType === "Agriculture / Farming" || fullText.includes("farm") || fullText.includes("crop") || fullText.includes("agri") || fullText.includes("organic")) {
+    return [
+      // PHASE 1: Idea & Market Validation
+      {
+        phase: "Phase 1 — Idea & Market Validation",
+        title: `Conduct soil, water & crop suitability assessment for ${input.startupName}`,
+        description: `Assess climate conditions, soil fertility, and wholesale mandi price dynamics in ${input.country}.`,
+        priority: "High",
+        effort: "2 weeks",
+        impact: "High",
+      },
+      // PHASE 2: Setup & Launch
+      {
+        phase: "Phase 2 — Setup & Launch",
+        title: "Source seed stock, organic inputs & set up irrigation systems",
+        description: "Procure farming inputs, establish seasonal planting schedules, and set up water storage/irrigation.",
+        priority: "High",
+        effort: "2-3 weeks",
+        impact: "High",
+      },
+      // PHASE 3: Operations & Growth
+      {
+        phase: "Phase 3 — Operations & Growth",
+        title: "Manage harvest timelines & establish direct mandi buyer linkages",
+        description: "Coordinate harvest labor, post-harvest cold storage preservation, and transport logistics to wholesale buyers.",
+        priority: "High",
+        effort: "2-4 weeks",
+        impact: "High",
+      },
+      // PHASE 4: Scaling & Expansion
+      {
+        phase: "Phase 4 — Scaling & Expansion",
+        title: "Expand cultivated acreage & evaluate high-margin crop rotation",
+        description: "Scale produce volume and explore direct B2B supply contracts with retail supermarkets.",
+        priority: "Medium",
+        effort: "4-8 weeks",
+        impact: "High",
+      },
+    ];
+  }
+
+  // 4. Retail Store / Vegetable Shop
+  if (fullText.includes("vegetable") || fullText.includes("retail shop") || fullText.includes("store")) {
+    return [
+      // PHASE 1: Idea & Market Validation
+      {
+        phase: "Phase 1 — Idea & Market Validation",
+        title: `Evaluate store location footfall & wholesale mandi procurement sources for ${input.startupName}`,
+        description: "Analyze neighborhood household density, competitor pricing, and morning wholesale mandi supply routes.",
+        priority: "High",
+        effort: "1-2 weeks",
+        impact: "High",
+      },
+      // PHASE 2: Setup & Launch
+      {
+        phase: "Phase 2 — Setup & Launch",
+        title: "Set up retail display counters, cold storage & check municipal permits",
+        description: "Install counter fixtures, digital weighing scales, refrigeration, and verify local municipal trade license rules.",
+        priority: "High",
+        effort: "1-2 weeks",
+        impact: "High",
+      },
+      // PHASE 3: Operations & Growth
+      {
+        phase: "Phase 3 — Operations & Growth",
+        title: "Track daily inventory turnover & minimize perishability spoilage",
+        description: "Optimize daily procurement volumes, adjust item markup prices, and build neighborhood customer loyalty.",
+        priority: "High",
+        effort: "1-2 weeks",
+        impact: "High",
+      },
+      // PHASE 4: Scaling & Expansion
+      {
+        phase: "Phase 4 — Scaling & Expansion",
+        title: "Expand product assortment & evaluate home delivery channels",
+        description: "Introduce specialized organic lines or test localized home delivery routes.",
+        priority: "Medium",
+        effort: "2-4 weeks",
+        impact: "High",
+      },
+    ];
+  }
+
+  // 5. Pure Digital Software / SaaS Application
+  if (isSoftware) {
+    return [
+      // PHASE 1: Discovery & Validation
+      {
+        phase: "Phase 1 — Discovery & Validation",
+        title: `Conduct user discovery interviews for ${input.startupName}`,
+        description: "Validate target user workflow pain urgency and willingness to pay subscription fees.",
+        priority: "High",
+        effort: "1-2 weeks",
+        impact: "High",
+      },
+      {
+        phase: "Phase 1 — Discovery & Validation",
+        title: "Define MVP feature scope & wireframe core automated workflow",
+        description: "Focus strictly on the primary automated feature that solves the main user friction point.",
+        priority: "High",
+        effort: "1-2 weeks",
+        impact: "High",
+      },
+      // PHASE 2: Setup & Launch
+      {
+        phase: "Phase 2 — Setup & Launch",
+        title: "Develop software application & test signup activation",
+        description: "Build core application features and ensure streamlined onboarding with minimal friction.",
+        priority: "High",
+        effort: "2-3 weeks",
+        impact: "High",
+      },
+      {
+        phase: "Phase 2 — Setup & Launch",
+        title: "Set up cloud hosting, database infrastructure & security standards",
+        description: "Deploy cloud infrastructure, database schema, and test data protection compliance.",
+        priority: "High",
+        effort: "1-2 weeks",
+        impact: "High",
+      },
+      // PHASE 3: Operations & Growth
+      {
+        phase: "Phase 3 — Operations & Growth",
+        title: "Measure user activation, retention & initial subscription feedback",
+        description: "Track user drop-off points, collect feature feedback, and model acquisition payback.",
+        priority: "High",
+        effort: "2-3 weeks",
+        impact: "High",
+      },
+      // PHASE 4: Scaling & Expansion
+      {
+        phase: "Phase 4 — Scaling & Expansion",
+        title: "Scale cloud infrastructure & expand customer acquisition channels",
+        description: "Grow paid marketing channels, introduce team workspace features, and expand API integrations.",
+        priority: "Medium",
+        effort: "4-6 weeks",
+        impact: "High",
+      },
+    ];
+  }
+
+  // 6. Professional Service / Clinic / Repair Workshop / General Commercial Venture
   return [
+    // PHASE 1: Idea & Market Validation
     {
-      phase: "Phase 1: Location & Sourcing",
-      title: `Identify candidate counter locations & measure pedestrian footfall`,
-      description: "Analyze customer footfall or demand and secure required operational tools.",
+      phase: "Phase 1 — Idea & Market Validation",
+      title: `Define service offerings & evaluate target client demand for ${input.startupName}`,
+      description: `Assess local client pain points, competitor pricing structures, and initial service positioning in ${input.country}.`,
       priority: "High",
       effort: "1-2 weeks",
       impact: "High",
     },
+    // PHASE 2: Setup & Launch
     {
-      phase: "Phase 2: Permitting & Setup",
-      title: "Source prep equipment & verify municipal licensing rules",
-      description: "Check municipal permits, food safety/trade registrations, and prepare fulfillment workflow.",
+      phase: "Phase 2 — Setup & Launch",
+      title: "Procure service equipment & check municipal licensing rules",
+      description: "Source operational tools, workspace lease, and verify local municipal trade license requirements.",
       priority: "High",
       effort: "1-2 weeks",
       impact: "High",
     },
+    // PHASE 3: Operations & Growth
     {
-      phase: "Phase 3: Soft Launch & Margins",
-      title: "Calculate item ingredient unit costs & soft launch counter",
-      description: "Standardize service delivery, track daily counter volume, and preserve operating margins.",
+      phase: "Phase 3 — Operations & Growth",
+      title: "Establish service delivery checklists & build client referral channels",
+      description: "Standardize operational checklists, gather client feedback, and track operating margins.",
       priority: "High",
-      effort: "1 week",
+      effort: "2 weeks",
+      impact: "High",
+    },
+    // PHASE 4: Scaling & Expansion
+    {
+      phase: "Phase 4 — Scaling & Expansion",
+      title: "Recruit additional qualified technicians & expand service territory",
+      description: "Hire trained personnel and expand commercial outreach to nearby territory.",
+      priority: "Medium",
+      effort: "3-6 weeks",
       impact: "High",
     },
   ];
@@ -769,12 +1004,12 @@ VENTURE MODEL CONTEXT:
 - Inferred Assumptions: ${JSON.stringify(vModel.evidenceBreakdown.inferredAssumptions)}
 - Missing Information: ${JSON.stringify(vModel.evidenceBreakdown.missingFacts)}
 
-CRITICAL MANDATES:
+CRITICAL MANDATES FOR EXECUTION ROADMAP & ANALYSIS:
 1. REASON STRICTLY FROM THIS ACTUAL VENTURE MODEL. Distinguish between Customer Industry and Venture Type (e.g. AI software platform for textile factories is a B2B Software venture, NOT a textile mill!).
 2. IF THIS IS NOT A SOFTWARE PRODUCT (isTechnologyProduct = false):
-   NEVER mention "MVP", "writing code", "APIs", "tech stack", "software engineering", "CAC", "LTV", "churn", "prototype counter", "wireframe", or "waitlist landing page".
-3. DO NOT INVENT UNCONFIRMED FACTS OR ARBITRARY NUMBERS. Present numbers as illustrative benchmarks (e.g. "consider targeting gross margins of 55-70%") rather than asserting them as user facts. Frame regulatory requirements conditionally based on local jurisdiction.
-4. Distinguish facts provided from inferred assumptions. Do NOT state inferred revenue models or customer segments as user-confirmed facts.
+   NEVER mention "MVP", "writing code", "APIs", "tech stack", "software engineering", "CAC", "LTV", "churn", "prototype counter", "wireframe", or "waitlist landing page" in executionMilestones or nextSteps!
+3. GENERATE DYNAMIC ROADMAP TASKS across Phase 1 (Validation), Phase 2 (Setup & Licensing), Phase 3 (Operations & Margins), and Phase 4 (Scaling & Expansion) tailored strictly to THIS venture's operational reality.
+4. DO NOT INVENT UNCONFIRMED FACTS OR ARBITRARY NUMBERS. Present numbers as illustrative benchmarks rather than asserting them as user facts. Frame regulatory requirements conditionally based on local jurisdiction.
 5. Report both ventureScore (overall venture potential 0-100) and analysisConfidence (data completeness 0-100). If Input Granularity is "Broad Industry Overview", report analysisConfidence between 50-65% and explain missing facts clearly.
 
 Return JSON containing:
