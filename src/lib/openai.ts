@@ -243,16 +243,7 @@ export function extractVentureModel(input: StartupIdeaInput): VentureModel {
   const competitiveAlternatives = discoverCompetitiveAlternatives(input, offeringType, isSoftware, customerPersona);
   const executionMilestones = discoverExecutionMilestones(input, offeringType, isSoftware, isBroadIndustryOnly);
 
-  let stageTimeline = ["1. Demand & Location Validation", "2. Business Setup & Compliance", "3. Opening & Initial Operations", "4. Unit Economics Optimization", "5. Expansion"];
-  let currentStageName = "Demand & Location Validation";
-
-  if (isSoftware) {
-    stageTimeline = ["1. Problem & Customer Discovery", "2. MVP Architecture", "3. Beta Launch & Activation", "4. Product-Market Fit", "5. Growth & Scaling"];
-    currentStageName = "Problem Validation Stage";
-  } else if (offeringType === "Manufacturing / Production") {
-    stageTimeline = ["1. Market & Buyer Validation", "2. Facility & Equipment Setup", "3. Raw Material & Production Readiness", "4. Pilot Production", "5. Commercial Scale"];
-    currentStageName = "Feasibility & Sourcing Stage";
-  }
+  const inferredLifecycle = inferStartupLifecycle(input);
 
   return {
     ventureName: input.startupName.trim(),
@@ -300,8 +291,8 @@ export function extractVentureModel(input: StartupIdeaInput): VentureModel {
       : offeringType === "Facility / Outlet" && (fullText.includes("waffle") || fullText.includes("falooda") || fullText.includes("samosa") || fullText.includes("food") || fullText.includes("coffee"))
       ? ["FSSAI Food Safety Registration (Applicable for Food Ventures)", "Municipal Trade License (Jurisdiction Dependent)", "Fire Safety Certificate (Space Dependent)"]
       : ["Municipal Trade License (Jurisdiction Dependent)", "GST Registration (Turnover Dependent)", "Local Commercial Clearances"],
-    currentStageName,
-    stageTimeline,
+    currentStageName: inferredLifecycle.currentStage,
+    stageTimeline: inferredLifecycle.stageTimeline || [],
   };
 }
 
@@ -849,23 +840,116 @@ export function inferIndustryProfile(input: StartupIdeaInput): IndustryProfile {
   };
 }
 
+/**
+ * PURE DYNAMIC VENTURE LIFECYCLE REASONING ENGINE
+ * Infers dynamic stages, stage rationale, current stage, and next milestone contextually.
+ * Eliminates universal hardcoded "MVP/Launch/Scale" stages for non-tech physical ventures!
+ */
 export function inferStartupLifecycle(input: StartupIdeaInput, vModel?: VentureModel): StartupLifecycle {
   const model = vModel || extractVentureModel(input);
+  const fullText = `${input.startupName} ${input.idea} ${input.problem} ${input.solution}`.toLowerCase();
+
+  const isOperatingBusiness =
+    fullText.includes("running") ||
+    fullText.includes("already operate") ||
+    fullText.includes("for 2 years") ||
+    fullText.includes("for 3 years") ||
+    fullText.includes("existing shop") ||
+    fullText.includes("increase profit");
+
+  let stageTimeline: string[];
+  let currentStageName: string;
+  let currentStageRisks: string[];
+
+  if (model.isTechnologyProduct) {
+    stageTimeline = [
+      "1. Problem Validation & Customer Discovery",
+      "2. MVP Architecture & Development",
+      "3. Beta Validation & User Activation",
+      "4. Product-Market Fit & Retention",
+      "5. Paid Growth",
+      "6. Scalable Expansion",
+    ];
+    currentStageName = isOperatingBusiness ? "4. Product-Market Fit & Retention" : "1. Problem Validation & Customer Discovery";
+    currentStageRisks = ["User retention velocity relative to CAC", "Competitive feature cloning"];
+  } else if (model.offeringType === "Manufacturing / Production") {
+    stageTimeline = [
+      "1. Market & Buyer Validation",
+      "2. Production & Utility Readiness",
+      "3. Supplier & Raw Material Setup",
+      "4. Pilot Production & Quality Stabilization",
+      "5. Commercial Production",
+      "6. Capacity Expansion",
+    ];
+    currentStageName = isOperatingBusiness ? "5. Commercial Production" : "1. Market & Buyer Validation";
+    currentStageRisks = ["Raw material price volatility", "DISCOM power sanction timelines"];
+  } else if (model.offeringType === "Agriculture / Farming") {
+    stageTimeline = [
+      "1. Crop & Market Planning",
+      "2. Land & Resource Preparation",
+      "3. Input Procurement & Cultivation",
+      "4. Harvest & Mandi Distribution",
+      "5. Yield & Margin Optimization",
+      "6. Acreage Expansion",
+    ];
+    currentStageName = isOperatingBusiness ? "5. Yield & Margin Optimization" : "1. Crop & Market Planning";
+    currentStageRisks = ["Seasonal weather variations", "Wholesale mandi price fluctuations"];
+  } else if (model.offeringType === "Facility / Outlet") {
+    stageTimeline = isOperatingBusiness
+      ? [
+          "1. Operational & Margin Audit",
+          "2. Supplier & Wastage Optimization",
+          "3. Customer Retention & Ticket Size Growth",
+          "4. Unit Economics Optimization",
+          "5. Multi-Outlet Expansion",
+        ]
+      : [
+          "1. Demand & Location Assessment",
+          "2. Setup & Compliance Readiness",
+          "3. Initial Operations",
+          "4. Unit Economics & Margin Optimization",
+          "5. Repeat Customer Growth",
+          "6. Multi-Outlet Expansion",
+        ];
+    currentStageName = isOperatingBusiness ? "1. Operational & Margin Audit" : "1. Demand & Location Assessment";
+    currentStageRisks = ["Location footfall variations", "Raw ingredient price inflation"];
+  } else {
+    stageTimeline = isOperatingBusiness
+      ? [
+          "1. Service Efficiency Audit",
+          "2. Retainer & Pricing Optimization",
+          "3. Client Retention & Referral Growth",
+          "4. Capacity & Territory Scaling",
+        ]
+      : [
+          "1. Service Scope & Client Validation",
+          "2. Equipment & Licensing Setup",
+          "3. Initial Service Execution",
+          "4. Service Margin Optimization",
+          "5. Territory & Team Scaling",
+        ];
+    currentStageName = isOperatingBusiness ? "1. Service Efficiency Audit" : "1. Service Scope & Client Validation";
+    currentStageRisks = ["Client referral velocity", "Operating labor cost management"];
+  }
+
+  const nextMilestone = model.executionMilestones[0]?.title || `Validate customer purchasing demand for ${model.ventureName}`;
   const priorities = model.executionMilestones.map((m) => m.title);
 
   const confidenceScore = model.inputGranularity === "Broad Industry Overview" ? 60 : 90;
 
   return {
-    currentStage: model.currentStageName,
+    currentStage: currentStageName,
     confidenceScore,
-    reason: `Analysis for ${model.ventureName} (${model.ventureType} in ${model.operatingEnvironment}) strictly tailored to its operational reality.`,
-    nextMilestone: priorities[0] || "Validate target customer demand and location feasibility",
+    reason: isOperatingBusiness
+      ? `This venture is an operating business. Analysis focuses on operational optimization, unit margins, and sales retention rather than basic idea setup.`
+      : `Analysis for ${model.ventureName} (${model.ventureType} in ${model.operatingEnvironment}) strictly tailored to its operational reality.`,
+    nextMilestone,
     estimatedTimeToNextStage: "2-3 weeks",
-    stageTimeline: model.stageTimeline,
+    stageTimeline,
     keyObjectives: priorities.slice(0, 3),
-    currentStageRisks: model.primaryRisks,
-    successProbability: 82,
-    potentialBlockers: ["Regulatory/licensing approval timelines", "Initial customer off-take contracts"],
+    currentStageRisks,
+    successProbability: 84,
+    potentialBlockers: model.primaryRisks,
     suggestedPriorities: priorities,
   };
 }
@@ -972,8 +1056,8 @@ VENTURE MODEL CONTEXT:
 CRITICAL MANDATES FOR DYNAMIC EXECUTION ROADMAP & ANALYSIS:
 1. REASON STRICTLY FROM THIS ACTUAL VENTURE MODEL. Distinguish between Customer Industry and Venture Type (e.g. AI software platform for textile factories is a B2B Software venture, NOT a textile mill!).
 2. IF THIS IS NOT A SOFTWARE PRODUCT (isTechnologyProduct = false):
-   NEVER mention "MVP", "writing code", "APIs", "tech stack", "software engineering", "CAC", "LTV", "churn", "prototype counter", "wireframe", or "waitlist landing page" in executionMilestones or nextSteps!
-3. GENERATE DYNAMIC ROADMAP TASKS across contextually appropriate phase names tailored strictly to THIS venture's operational reality and identified bottlenecks!
+   NEVER mention "MVP", "writing code", "APIs", "tech stack", "software engineering", "CAC", "LTV", "churn", "prototype counter", "wireframe", or "waitlist landing page" in executionMilestones, startupLifecycle, or nextSteps!
+3. GENERATE DYNAMIC ROADMAP TASKS & LIFECYCLE STAGES tailored strictly to THIS venture's operational reality and identified bottlenecks!
 4. DO NOT INVENT UNCONFIRMED FACTS OR ARBITRARY NUMBERS. Present numbers as illustrative benchmarks rather than asserting them as user facts. Frame regulatory requirements conditionally based on local jurisdiction.
 5. Report both ventureScore (overall venture potential 0-100) and analysisConfidence (data completeness 0-100). If Input Granularity is "Broad Industry Overview", report analysisConfidence between 50-65% and explain missing facts clearly.
 
@@ -1141,7 +1225,7 @@ CRITICAL ADVISORY & REASONING RULES:
    - Never state that a license is definitely required without jurisdiction context.
    - Frame regulations conditionally: "Depending on your location, turnover, and local laws, X registration or Y trade permit may be required. Check local municipal requirements for your area."
 
-5. PRESERVE DOMAIN ADAPTATION:
+5. PRESERVE DOMAIN ADAPTATION & REJECT IRRELEVANT CONCEPTS:
    - Maintain clear domain adaptation for ${vModel.ventureType} in ${vModel.operatingEnvironment}.
    - IF THIS IS NOT A SOFTWARE PRODUCT (isTechnologyProduct = false):
      NEVER mention code, APIs, MVP apps, SaaS metrics, CAC/LTV, wireframes, or waitlist landing pages.
