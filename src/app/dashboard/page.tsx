@@ -39,11 +39,19 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch recent analyses
+  // Fetch recent analyses with selective fields
   const analyses = await prisma.analysis.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     take: 5,
+    select: {
+      id: true,
+      startupName: true,
+      idea: true,
+      overallScore: true,
+      analysisResult: true,
+      createdAt: true,
+    },
   });
 
   const latestRecord = analyses[0];
@@ -82,24 +90,38 @@ export default async function DashboardPage() {
       )
     : 0;
 
-  // Fetch roadmap tasks for latest analysis
-  const roadmapTasks = latestRecord
-    ? await prisma.roadmapTask.findMany({
-        where: { analysisId: latestRecord.id },
-        orderBy: { createdAt: "asc" },
-      })
-    : [];
+  // Fetch roadmap tasks & chat message concurrently in parallel using Promise.all
+  const [roadmapTasks, latestChatMessage] = latestRecord
+    ? await Promise.all([
+        prisma.roadmapTask.findMany({
+          where: { analysisId: latestRecord.id },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            phase: true,
+            title: true,
+            description: true,
+            priority: true,
+            effort: true,
+            impact: true,
+            completed: true,
+          },
+        }),
+        prisma.chatMessage.findFirst({
+          where: { analysisId: latestRecord.id },
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            role: true,
+            content: true,
+            createdAt: true,
+          },
+        }),
+      ])
+    : [[], null];
 
   const openTasksCount = roadmapTasks.filter((t) => !t.completed).length;
   const completedTasks = roadmapTasks.filter((t) => t.completed).slice(-3);
-
-  // Fetch latest AI chat message for latest analysis
-  const latestChatMessage = latestRecord
-    ? await prisma.chatMessage.findFirst({
-        where: { analysisId: latestRecord.id },
-        orderBy: { createdAt: "desc" },
-      })
-    : null;
 
   return (
     <div className="min-h-screen bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 space-y-8 font-sans">

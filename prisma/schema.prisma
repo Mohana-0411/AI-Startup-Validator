@@ -51,6 +51,7 @@ model Analysis {
   roadmapTasks   RoadmapTask[]
 
   @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model ChatMessage {
@@ -62,6 +63,7 @@ model ChatMessage {
   createdAt  DateTime @default(now())
 
   @@index([analysisId])
+  @@index([analysisId, createdAt(sort: Asc)])
 }
 
 model RoadmapTask {
@@ -78,4 +80,5 @@ model RoadmapTask {
   createdAt   DateTime @default(now())
 
   @@index([analysisId])
+  @@index([analysisId, createdAt(sort: Asc)])
 }

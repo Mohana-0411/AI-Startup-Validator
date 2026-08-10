@@ -16,6 +16,7 @@ export default async function ReportsPage() {
   const analyses = await prisma.analysis.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
+    take: 5,
   });
 
   return (

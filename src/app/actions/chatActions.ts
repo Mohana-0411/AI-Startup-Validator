@@ -84,15 +84,17 @@ export async function sendChatMessageAction(userMessage: string, analysisId?: st
     };
   }
 
-  // Fetch existing chat history for context
-  const existingMessages = await prisma.chatMessage.findMany({
+  // Fetch existing chat history for context (10 most recent)
+  const existingMessagesDesc = await prisma.chatMessage.findMany({
     where: { analysisId: targetAnalysis.id },
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: "desc" },
     take: 10,
+    select: { role: true, content: true },
   });
+  const existingMessages = existingMessagesDesc.reverse();
 
   // 1. Save user message to database
-  await prisma.chatMessage.create({
+  const userMsgRecord = await prisma.chatMessage.create({
     data: {
       analysisId: targetAnalysis.id,
       role: "user",
@@ -100,7 +102,16 @@ export async function sendChatMessageAction(userMessage: string, analysisId?: st
     },
   });
 
-  // 2. Generate Mentor Response with context
+  // 2. Parse pre-existing ventureModel from saved analysis result to avoid re-extracting model
+  let preParsedVModel = null;
+  try {
+    const parsedRes = JSON.parse(targetAnalysis.analysisResult);
+    preParsedVModel = parsedRes.ventureModel || parsedRes.ventureContext;
+  } catch {
+    preParsedVModel = null;
+  }
+
+  // 3. Generate Mentor Response with pre-extracted venture model
   const historyForAI = existingMessages.map((m) => ({
     role: m.role as "user" | "assistant",
     content: m.content,
@@ -118,11 +129,12 @@ export async function sendChatMessageAction(userMessage: string, analysisId?: st
       businessModel: targetAnalysis.businessModel,
       competitors: targetAnalysis.competitors,
       overallScore: targetAnalysis.overallScore,
+      ventureModel: preParsedVModel,
     },
   });
 
-  // 3. Save assistant reply to database
-  await prisma.chatMessage.create({
+  // 4. Save assistant reply to database
+  const assistantMsgRecord = await prisma.chatMessage.create({
     data: {
       analysisId: targetAnalysis.id,
       role: "assistant",

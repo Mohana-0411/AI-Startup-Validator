@@ -14,6 +14,17 @@ export default async function HistoryPage() {
   const analyses = await prisma.analysis.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      startupName: true,
+      idea: true,
+      problem: true,
+      audience: true,
+      country: true,
+      businessModel: true,
+      overallScore: true,
+      createdAt: true,
+    },
   });
 
   const formattedAnalyses = analyses.map((a) => ({
