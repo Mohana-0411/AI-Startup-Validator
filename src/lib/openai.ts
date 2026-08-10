@@ -243,7 +243,83 @@ export function extractVentureModel(input: StartupIdeaInput): VentureModel {
   const competitiveAlternatives = discoverCompetitiveAlternatives(input, offeringType, isSoftware, customerPersona);
   const executionMilestones = discoverExecutionMilestones(input, offeringType, isSoftware, isBroadIndustryOnly);
 
-  const inferredLifecycle = inferStartupLifecycle(input);
+  // Derive dynamic stage timeline & current stage directly without recursive call loop!
+  const isOperatingBusiness =
+    fullText.includes("running") ||
+    fullText.includes("already operate") ||
+    fullText.includes("for 2 years") ||
+    fullText.includes("for 3 years") ||
+    fullText.includes("existing shop") ||
+    fullText.includes("increase profit");
+
+  let stageTimeline: string[];
+  let currentStageName: string;
+
+  if (isSoftware) {
+    stageTimeline = [
+      "1. Problem Validation & Customer Discovery",
+      "2. MVP Architecture & Development",
+      "3. Beta Validation & User Activation",
+      "4. Product-Market Fit & Retention",
+      "5. Paid Growth",
+      "6. Scalable Expansion",
+    ];
+    currentStageName = isOperatingBusiness ? "4. Product-Market Fit & Retention" : "1. Problem Validation & Customer Discovery";
+  } else if (offeringType === "Manufacturing / Production") {
+    stageTimeline = [
+      "1. Market & Buyer Validation",
+      "2. Production & Utility Readiness",
+      "3. Supplier & Raw Material Setup",
+      "4. Pilot Production & Quality Stabilization",
+      "5. Commercial Production",
+      "6. Capacity Expansion",
+    ];
+    currentStageName = isOperatingBusiness ? "5. Commercial Production" : "1. Market & Buyer Validation";
+  } else if (offeringType === "Agriculture / Farming") {
+    stageTimeline = [
+      "1. Crop & Market Planning",
+      "2. Land & Resource Preparation",
+      "3. Input Procurement & Cultivation",
+      "4. Harvest & Mandi Distribution",
+      "5. Yield & Margin Optimization",
+      "6. Acreage Expansion",
+    ];
+    currentStageName = isOperatingBusiness ? "5. Yield & Margin Optimization" : "1. Crop & Market Planning";
+  } else if (offeringType === "Facility / Outlet") {
+    stageTimeline = isOperatingBusiness
+      ? [
+          "1. Operational & Margin Audit",
+          "2. Supplier & Wastage Optimization",
+          "3. Customer Retention & Ticket Size Growth",
+          "4. Unit Economics Optimization",
+          "5. Multi-Outlet Expansion",
+        ]
+      : [
+          "1. Demand & Location Assessment",
+          "2. Setup & Compliance Readiness",
+          "3. Initial Operations",
+          "4. Unit Economics & Margin Optimization",
+          "5. Repeat Customer Growth",
+          "6. Multi-Outlet Expansion",
+        ];
+    currentStageName = isOperatingBusiness ? "1. Operational & Margin Audit" : "1. Demand & Location Assessment";
+  } else {
+    stageTimeline = isOperatingBusiness
+      ? [
+          "1. Service Efficiency Audit",
+          "2. Retainer & Pricing Optimization",
+          "3. Client Retention & Referral Growth",
+          "4. Capacity & Territory Scaling",
+        ]
+      : [
+          "1. Service Scope & Client Validation",
+          "2. Equipment & Licensing Setup",
+          "3. Initial Service Execution",
+          "4. Service Margin Optimization",
+          "5. Territory & Team Scaling",
+        ];
+    currentStageName = isOperatingBusiness ? "1. Service Efficiency Audit" : "1. Service Scope & Client Validation";
+  }
 
   return {
     ventureName: input.startupName.trim(),
@@ -291,8 +367,8 @@ export function extractVentureModel(input: StartupIdeaInput): VentureModel {
       : offeringType === "Facility / Outlet" && (fullText.includes("waffle") || fullText.includes("falooda") || fullText.includes("samosa") || fullText.includes("food") || fullText.includes("coffee"))
       ? ["FSSAI Food Safety Registration (Applicable for Food Ventures)", "Municipal Trade License (Jurisdiction Dependent)", "Fire Safety Certificate (Space Dependent)"]
       : ["Municipal Trade License (Jurisdiction Dependent)", "GST Registration (Turnover Dependent)", "Local Commercial Clearances"],
-    currentStageName: inferredLifecycle.currentStage,
-    stageTimeline: inferredLifecycle.stageTimeline || [],
+    currentStageName,
+    stageTimeline,
   };
 }
 
@@ -828,15 +904,15 @@ function discoverExecutionMilestones(
   ];
 }
 
-export function inferIndustryProfile(input: StartupIdeaInput): IndustryProfile {
-  const vModel = extractVentureModel(input);
+export function inferIndustryProfile(input: StartupIdeaInput, vModel?: VentureModel): IndustryProfile {
+  const model = vModel || extractVentureModel(input);
   return {
-    detectedIndustry: vModel.ventureIndustry,
-    subIndustry: vModel.valueDeliveryMechanism,
-    businessCategoryKind: vModel.isTechnologyProduct ? "Technology Startup" : "Traditional / Offline Business",
-    revenueModelType: vModel.revenueMechanism,
-    regulatoryBody: vModel.regulatoryRequirements.join(" & "),
-    keyOperatingMetrics: vModel.keySuccessDrivers.map((d) => d.name),
+    detectedIndustry: model.ventureIndustry,
+    subIndustry: model.valueDeliveryMechanism,
+    businessCategoryKind: model.isTechnologyProduct ? "Technology Startup" : "Traditional / Offline Business",
+    revenueModelType: model.revenueMechanism,
+    regulatoryBody: model.regulatoryRequirements.join(" & "),
+    keyOperatingMetrics: model.keySuccessDrivers.map((d) => d.name),
   };
 }
 
@@ -954,66 +1030,66 @@ export function inferStartupLifecycle(input: StartupIdeaInput, vModel?: VentureM
   };
 }
 
-export function inferBusinessDNA(input: StartupIdeaInput): BusinessDNA {
-  const vModel = extractVentureModel(input);
+export function inferBusinessDNA(input: StartupIdeaInput, vModel?: VentureModel): BusinessDNA {
+  const model = vModel || extractVentureModel(input);
   return {
     startupName: input.startupName.trim(),
-    industry: vModel.ventureIndustry,
-    subIndustry: vModel.valueDeliveryMechanism,
-    businessCategory: vModel.ventureType,
-    ideaTypeKind: vModel.isTechnologyProduct ? "Technology Startup" : "Traditional Business",
-    businessType: vModel.isTechnologyProduct ? "Digital / Software / SaaS" : "Offline Local Business",
-    businessModel: vModel.revenueMechanism,
-    revenueModel: vModel.revenueMechanism,
+    industry: model.ventureIndustry,
+    subIndustry: model.valueDeliveryMechanism,
+    businessCategory: model.ventureType,
+    ideaTypeKind: model.isTechnologyProduct ? "Technology Startup" : "Traditional Business",
+    businessType: model.isTechnologyProduct ? "Digital / Software / SaaS" : "Offline Local Business",
+    businessModel: model.revenueMechanism,
+    revenueModel: model.revenueMechanism,
     businessStage: "Idea",
-    targetCustomers: vModel.customerPersona,
-    customerPersona: `Target buyers seeking reliable solutions for ${vModel.description.slice(0, 60)}...`,
-    marketScope: vModel.isTechnologyProduct ? "Global" : "Local",
-    investmentLevel: vModel.offeringType === "Manufacturing / Production" ? "High" : "Medium",
-    operationalComplexity: vModel.offeringType === "Manufacturing / Production" ? "High" : "Medium",
-    technologyDependency: vModel.isTechnologyProduct ? "High" : "Low",
-    scalability: vModel.isTechnologyProduct ? "High" : "Medium",
+    targetCustomers: model.customerPersona,
+    customerPersona: `Target buyers seeking reliable solutions for ${model.description.slice(0, 60)}...`,
+    marketScope: model.isTechnologyProduct ? "Global" : "Local",
+    investmentLevel: model.offeringType === "Manufacturing / Production" ? "High" : "Medium",
+    operationalComplexity: model.offeringType === "Manufacturing / Production" ? "High" : "Medium",
+    technologyDependency: model.isTechnologyProduct ? "High" : "Low",
+    scalability: model.isTechnologyProduct ? "High" : "Medium",
     expansionPotential: "Multi-location Regional Expansion",
-    fundingRequirement: vModel.offeringType === "Manufacturing / Production" ? "$25,000 - $100,000" : "$5,000 - $25,000",
+    fundingRequirement: model.offeringType === "Manufacturing / Production" ? "$25,000 - $100,000" : "$5,000 - $25,000",
     fundingType: "Self-funded / Bootstrapped / Commercial Loan",
     competitionLevel: "Medium",
     riskLevel: "Medium",
     growthPotential: "High",
-    digitalPresenceImportance: vModel.isTechnologyProduct ? "High" : "Medium",
-    requiredLicenses: vModel.regulatoryRequirements,
-    primarySuccessFactors: vModel.keySuccessDrivers.map((d) => d.name),
-    biggestChallenges: vModel.primaryRisks,
+    digitalPresenceImportance: model.isTechnologyProduct ? "High" : "Medium",
+    requiredLicenses: model.regulatoryRequirements,
+    primarySuccessFactors: model.keySuccessDrivers.map((d) => d.name),
+    biggestChallenges: model.primaryRisks,
     keyAdvantages: ["Direct value proposition", "Domain-focused operational execution"],
-    uniqueSellingProposition: (vModel.solution || "").slice(0, 80),
-    estimatedTimeToLaunch: vModel.offeringType === "Manufacturing / Production" ? "4-8 weeks" : "2-4 weeks",
-    estimatedInitialInvestment: vModel.offeringType === "Manufacturing / Production" ? "$20,000 - $80,000" : "$3,000 - $15,000",
-    recommendedTeamSize: vModel.offeringType === "Manufacturing / Production" ? "5-10 plant operators" : "2-4 team members",
-    businessPriority: vModel.executionMilestones[0]?.title || "Market Validation",
+    uniqueSellingProposition: (model.solution || "").slice(0, 80),
+    estimatedTimeToLaunch: model.offeringType === "Manufacturing / Production" ? "4-8 weeks" : "2-4 weeks",
+    estimatedInitialInvestment: model.offeringType === "Manufacturing / Production" ? "$20,000 - $80,000" : "$3,000 - $15,000",
+    recommendedTeamSize: model.offeringType === "Manufacturing / Production" ? "5-10 plant operators" : "2-4 team members",
+    businessPriority: model.executionMilestones[0]?.title || "Market Validation",
   };
 }
 
-export function inferBusinessClassification(input: StartupIdeaInput): BusinessClassification {
-  const vModel = extractVentureModel(input);
+export function inferBusinessClassification(input: StartupIdeaInput, vModel?: VentureModel): BusinessClassification {
+  const model = vModel || extractVentureModel(input);
   return {
-    industry: vModel.ventureIndustry,
-    businessCategory: vModel.ventureType,
-    ideaTypeKind: vModel.isTechnologyProduct ? "Technology Startup" : "Traditional Business",
-    businessType: vModel.isTechnologyProduct ? "Digital / Software / SaaS" : "Offline Local Business",
-    revenueModel: vModel.revenueMechanism,
-    scalability: vModel.isTechnologyProduct ? "High" : "Medium",
+    industry: model.ventureIndustry,
+    businessCategory: model.ventureType,
+    ideaTypeKind: model.isTechnologyProduct ? "Technology Startup" : "Traditional Business",
+    businessType: model.isTechnologyProduct ? "Digital / Software / SaaS" : "Offline Local Business",
+    revenueModel: model.revenueMechanism,
+    scalability: model.isTechnologyProduct ? "High" : "Medium",
     businessStage: "Idea",
-    primaryCustomerSegment: vModel.customerPersona,
-    marketScope: vModel.isTechnologyProduct ? "Global" : "Local",
-    digitalDependency: vModel.isTechnologyProduct ? "High" : "Low",
+    primaryCustomerSegment: model.customerPersona,
+    marketScope: model.isTechnologyProduct ? "Global" : "Local",
+    digitalDependency: model.isTechnologyProduct ? "High" : "Low",
   };
 }
 
 export async function generateStartupAnalysis(input: StartupIdeaInput): Promise<AnalysisResultJSON> {
   const apiKey = process.env.OPENAI_API_KEY;
   const vModel = extractVentureModel(input);
-  const inferredProfile = inferIndustryProfile(input);
-  const inferredDNA = inferBusinessDNA(input);
-  const inferredClassification = inferBusinessClassification(input);
+  const inferredProfile = inferIndustryProfile(input, vModel);
+  const inferredDNA = inferBusinessDNA(input, vModel);
+  const inferredClassification = inferBusinessClassification(input, vModel);
   const inferredLifecycle = inferStartupLifecycle(input, vModel);
 
   const healthScores: DynamicHealthCategory[] = vModel.keySuccessDrivers.map((driver) => ({
